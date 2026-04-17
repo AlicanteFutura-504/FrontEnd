@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const menuItems = [
   { label: "Dashboard", href: "/dashboard" },
@@ -8,6 +11,8 @@ const menuItems = [
 ];
 
 export default function Sidebar() {
+  const pathname = usePathname();
+
   return (
     <aside
       style={{
@@ -26,21 +31,27 @@ export default function Sidebar() {
       </div>
 
       <nav style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        {menuItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            style={{
-              textDecoration: "none",
-              color: "#111827",
-              padding: "12px 16px",
-              borderRadius: "12px",
-              backgroundColor: "#f8fafc",
-            }}
-          >
-            {item.label}
-          </Link>
-        ))}
+        {menuItems.map((item) => {
+          const isActive = pathname === item.href;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{
+                textDecoration: "none",
+                color: isActive ? "#0369a1" : "#111827",
+                padding: "12px 16px",
+                borderRadius: "12px",
+                backgroundColor: isActive ? "#e0f2fe" : "#f8fafc",
+                fontWeight: isActive ? 600 : 400,
+                transition: "all 0.2s ease",
+              }}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
     </aside>
   );
