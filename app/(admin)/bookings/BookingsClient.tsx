@@ -1,8 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Booking, BookingStatus, CreateBookingDto } from "@/lib/api";
-import { createAppointment } from "@/lib/api";
+import type {
+  Booking,
+  BookingStatus,
+  CreateBookingDto,
+  UpdateBookingDto,
+} from "@/lib/api";
+import { createAppointment, updateAppointment } from "@/lib/api";
 
 function StatusBadge({ status }: { status: BookingStatus }) {
   const label =
@@ -34,20 +39,25 @@ export default function BookingsClient({
 }) {
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
 
-  const [form, setForm] = useState<CreateBookingDto>({
-    appointmentDate: "",
-    appointmentTime: "",
+  const emptyForm: CreateBookingDto = {
+    date: "",
+    time: "",
     status: "pending",
     customerId: 1,
     businessId: 1,
     serviceName: "",
-  });
+  };
+
+  const [createForm, setCreateForm] = useState<CreateBookingDto>(emptyForm);
+  const [editForm, setEditForm] = useState<CreateBookingDto>(emptyForm);
 
   const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");
-  const [loading, setLoading] = useState(false);
+  const [loadingCreate, setLoadingCreate] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingBookingId, setEditingBookingId] = useState<number | null>(null);
 
   const filteredBookings = useMemo(() => {
     if (statusFilter === "all") return bookings;
@@ -59,56 +69,122 @@ export default function BookingsClient({
   const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
   const paidCount = bookings.filter((b) => b.status === "paid").length;
 
-  function updateForm<K extends keyof CreateBookingDto>(
+  function updateCreateForm<K extends keyof CreateBookingDto>(
     key: K,
     value: CreateBookingDto[K]
   ) {
-    setForm((prev) => ({
+    setCreateForm((prev) => ({
       ...prev,
       [key]: value,
     }));
   }
 
-  function resetForm() {
-    setForm({
-      appointmentDate: "",
-      appointmentTime: "",
-      status: "pending",
-      customerId: 1,
-      businessId: 1,
-      serviceName: "",
-    });
+  function updateEditForm<K extends keyof CreateBookingDto>(
+    key: K,
+    value: CreateBookingDto[K]
+  ) {
+    setEditForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  }
+
+  function resetCreateForm() {
+    setCreateForm(emptyForm);
+  }
+
+  function resetEditForm() {
+    setEditForm(emptyForm);
   }
 
   function openCreateForm() {
     setErrorMessage("");
     setSuccessMessage("");
+    setEditingBookingId(null);
+    resetEditForm();
     setIsCreateOpen(true);
   }
 
   function closeCreateForm() {
     setErrorMessage("");
-    resetForm();
+    resetCreateForm();
     setIsCreateOpen(false);
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function openEditForm(booking: Booking) {
+    setErrorMessage("");
+    setSuccessMessage("");
+    setIsCreateOpen(false);
+    setEditingBookingId(booking.id);
+    setEditForm({
+      date: booking.date,
+      time: booking.time,
+      status: booking.status,
+      customerId: booking.customerId,
+      businessId: booking.businessId,
+      serviceName: booking.serviceName,
+    });
+  }
+
+  function closeEditForm() {
+    setErrorMessage("");
+    setEditingBookingId(null);
+    resetEditForm();
+  }
+
+  async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
+    setLoadingCreate(true);
     setSuccessMessage("");
     setErrorMessage("");
 
     try {
-      const created = await createAppointment(form);
-
+      const created = await createAppointment(createForm);
       setBookings((prev) => [created, ...prev]);
-      resetForm();
+      resetCreateForm();
       setIsCreateOpen(false);
       setSuccessMessage("Reserva creada correctamente.");
     } catch {
       setErrorMessage("No se pudo crear la reserva. Revisa los datos o el backend.");
     } finally {
-      setLoading(false);
+      setLoadingCreate(false);
+    }
+  }
+
+  async function handleEditSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    if (!editingBookingId) return;
+
+    setLoadingEdit(true);
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    try {
+      const payload: UpdateBookingDto = {
+        date: editForm.date,
+        time: editForm.time,
+        status: editForm.status,
+        customerId: editForm.customerId,
+        businessId: editForm.businessId,
+        serviceName: editForm.serviceName,
+      };
+
+      const updated = await updateAppointment(editingBookingId, payload);
+
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking.id === editingBookingId ? updated : booking
+        )
+      );
+
+      setEditingBookingId(null);
+      resetEditForm();
+      setSuccessMessage("Reserva actualizada correctamente.");
+    } catch {
+      setErrorMessage("No se pudo actualizar la reserva.");
+    } finally {
+      setLoadingEdit(false);
     }
   }
 
@@ -169,28 +245,30 @@ export default function BookingsClient({
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="page-stack" style={{ gap: 16 }}>
+          <form onSubmit={handleCreateSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
               <input
                 className="input"
                 type="date"
-                value={form.appointmentDate}
-                onChange={(e) => updateForm("appointmentDate", e.target.value)}
+                value={createForm.date}
+                onChange={(e) => updateCreateForm("date", e.target.value)}
                 required
               />
 
               <input
                 className="input"
                 type="time"
-                value={form.appointmentTime}
-                onChange={(e) => updateForm("appointmentTime", e.target.value)}
+                value={createForm.time}
+                onChange={(e) => updateCreateForm("time", e.target.value)}
                 required
               />
 
               <select
                 className="select"
-                value={form.status}
-                onChange={(e) => updateForm("status", e.target.value as BookingStatus)}
+                value={createForm.status}
+                onChange={(e) =>
+                  updateCreateForm("status", e.target.value as BookingStatus)
+                }
               >
                 <option value="pending">Pendiente</option>
                 <option value="confirmed">Confirmada</option>
@@ -201,8 +279,10 @@ export default function BookingsClient({
                 className="input"
                 type="number"
                 min={1}
-                value={form.customerId}
-                onChange={(e) => updateForm("customerId", Number(e.target.value))}
+                value={createForm.customerId}
+                onChange={(e) =>
+                  updateCreateForm("customerId", Number(e.target.value))
+                }
                 placeholder="Customer ID"
                 required
               />
@@ -211,8 +291,10 @@ export default function BookingsClient({
                 className="input"
                 type="number"
                 min={1}
-                value={form.businessId}
-                onChange={(e) => updateForm("businessId", Number(e.target.value))}
+                value={createForm.businessId}
+                onChange={(e) =>
+                  updateCreateForm("businessId", Number(e.target.value))
+                }
                 placeholder="Business ID"
                 required
               />
@@ -220,20 +302,111 @@ export default function BookingsClient({
               <input
                 className="input input--full"
                 type="text"
-                value={form.serviceName}
-                onChange={(e) => updateForm("serviceName", e.target.value)}
+                value={createForm.serviceName}
+                onChange={(e) =>
+                  updateCreateForm("serviceName", e.target.value)
+                }
                 placeholder="Servicio"
                 required
               />
             </div>
 
-            {errorMessage ? (
-              <div className="message-error">{errorMessage}</div>
-            ) : null}
+            {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
 
             <div className="message-row">
-              <button className="primary-btn" type="submit" disabled={loading}>
-                {loading ? "Guardando..." : "Crear reserva"}
+              <button className="primary-btn" type="submit" disabled={loadingCreate}>
+                {loadingCreate ? "Guardando..." : "Crear reserva"}
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
+
+      {editingBookingId !== null && (
+        <section className="section-card">
+          <div className="panel-title-row">
+            <h3 className="panel-title">Editar reserva #{editingBookingId}</h3>
+
+            <button
+              type="button"
+              className="secondary-btn"
+              onClick={closeEditForm}
+            >
+              Cancelar
+            </button>
+          </div>
+
+          <form onSubmit={handleEditSubmit} className="page-stack" style={{ gap: 16 }}>
+            <div className="form-grid">
+              <input
+                className="input"
+                type="date"
+                value={editForm.date}
+                onChange={(e) => updateEditForm("date", e.target.value)}
+                required
+              />
+
+              <input
+                className="input"
+                type="time"
+                value={editForm.time}
+                onChange={(e) => updateEditForm("time", e.target.value)}
+                required
+              />
+
+              <select
+                className="select"
+                value={editForm.status}
+                onChange={(e) =>
+                  updateEditForm("status", e.target.value as BookingStatus)
+                }
+              >
+                <option value="pending">Pendiente</option>
+                <option value="confirmed">Confirmada</option>
+                <option value="paid">Pagada</option>
+              </select>
+
+              <input
+                className="input"
+                type="number"
+                min={1}
+                value={editForm.customerId}
+                onChange={(e) =>
+                  updateEditForm("customerId", Number(e.target.value))
+                }
+                placeholder="Customer ID"
+                required
+              />
+
+              <input
+                className="input"
+                type="number"
+                min={1}
+                value={editForm.businessId}
+                onChange={(e) =>
+                  updateEditForm("businessId", Number(e.target.value))
+                }
+                placeholder="Business ID"
+                required
+              />
+
+              <input
+                className="input input--full"
+                type="text"
+                value={editForm.serviceName}
+                onChange={(e) =>
+                  updateEditForm("serviceName", e.target.value)
+                }
+                placeholder="Servicio"
+                required
+              />
+            </div>
+
+            {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
+
+            <div className="message-row">
+              <button className="primary-btn" type="submit" disabled={loadingEdit}>
+                {loadingEdit ? "Guardando..." : "Guardar cambios"}
               </button>
             </div>
           </form>
@@ -292,19 +465,29 @@ export default function BookingsClient({
               <th>Customer</th>
               <th>Business</th>
               <th>Estado</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {filteredBookings.map((booking) => (
               <tr key={booking.id}>
                 <td style={{ fontWeight: 600 }}>{booking.id}</td>
-                <td>{formatDate(booking.appointmentDate)}</td>
-                <td>{booking.appointmentTime}</td>
+                <td>{formatDate(booking.date)}</td>
+                <td>{booking.time}</td>
                 <td>{booking.serviceName}</td>
                 <td>{booking.customerId}</td>
                 <td>{booking.businessId}</td>
                 <td>
                   <StatusBadge status={booking.status} />
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={() => openEditForm(booking)}
+                  >
+                    Editar
+                  </button>
                 </td>
               </tr>
             ))}

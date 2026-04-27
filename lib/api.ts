@@ -2,23 +2,30 @@ export type BookingStatus = "pending" | "confirmed" | "paid";
 
 export interface Booking {
   id: number;
-  appointmentDate: string;
-  appointmentTime: string;
+  date: string;
+  time: string;
   status: BookingStatus;
   customerId: number;
   businessId: number;
   serviceName: string;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface CreateBookingDto {
-  appointmentDate: string;
-  appointmentTime: string;
+  date: string;
+  time: string;
   status: BookingStatus;
   customerId: number;
   businessId: number;
   serviceName: string;
+}
+
+export interface UpdateBookingDto {
+  date?: string;
+  time?: string;
+  status?: BookingStatus;
+  customerId?: number;
+  businessId?: number;
+  serviceName?: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -46,6 +53,25 @@ export async function createAppointment(data: CreateBookingDto): Promise<Booking
 
   if (!res.ok) {
     throw new Error("Error al crear la reserva");
+  }
+
+  return res.json();
+}
+
+export async function updateAppointment(
+  id: number,
+  data: UpdateBookingDto
+): Promise<Booking> {
+  const res = await fetch(`${API_URL}/appointments/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al editar la reserva");
   }
 
   return res.json();
