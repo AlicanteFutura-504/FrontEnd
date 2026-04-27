@@ -76,3 +76,17 @@ export async function updateAppointment(
 
   return res.json();
 }
+
+export async function deleteAppointment(
+  id: number
+): Promise<{ message: string }> {
+  const res = await fetch(`${API_URL}/appointments/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al eliminar la reserva");
+  }
+
+  return res.json();
+}

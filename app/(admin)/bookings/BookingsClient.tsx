@@ -7,7 +7,11 @@ import type {
   CreateBookingDto,
   UpdateBookingDto,
 } from "@/lib/api";
-import { createAppointment, updateAppointment } from "@/lib/api";
+import {
+  createAppointment,
+  deleteAppointment,
+  updateAppointment,
+} from "@/lib/api";
 
 function StatusBadge({ status }: { status: BookingStatus }) {
   const label =
@@ -54,10 +58,12 @@ export default function BookingsClient({
   const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
+  const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingBookingId, setEditingBookingId] = useState<number | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
 
   const filteredBookings = useMemo(() => {
     if (statusFilter === "all") return bookings;
@@ -101,6 +107,7 @@ export default function BookingsClient({
     setErrorMessage("");
     setSuccessMessage("");
     setEditingBookingId(null);
+    setDeleteTargetId(null);
     resetEditForm();
     setIsCreateOpen(true);
   }
@@ -115,6 +122,7 @@ export default function BookingsClient({
     setErrorMessage("");
     setSuccessMessage("");
     setIsCreateOpen(false);
+    setDeleteTargetId(null);
     setEditingBookingId(booking.id);
     setEditForm({
       date: booking.date,
@@ -130,6 +138,16 @@ export default function BookingsClient({
     setErrorMessage("");
     setEditingBookingId(null);
     resetEditForm();
+  }
+
+  function openDeleteModal(id: number) {
+    setErrorMessage("");
+    setSuccessMessage("");
+    setDeleteTargetId(id);
+  }
+
+  function closeDeleteModal() {
+    setDeleteTargetId(null);
   }
 
   async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -188,6 +206,30 @@ export default function BookingsClient({
     }
   }
 
+  async function confirmDelete() {
+    if (deleteTargetId === null) return;
+
+    setDeletingBookingId(deleteTargetId);
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    try {
+      await deleteAppointment(deleteTargetId);
+      setBookings((prev) => prev.filter((booking) => booking.id !== deleteTargetId));
+
+      if (editingBookingId === deleteTargetId) {
+        closeEditForm();
+      }
+
+      setSuccessMessage("Reserva eliminada correctamente.");
+      closeDeleteModal();
+    } catch {
+      setErrorMessage("No se pudo eliminar la reserva.");
+    } finally {
+      setDeletingBookingId(null);
+    }
+  }
+
   return (
     <div className="page-stack">
       <section className="page-hero">
@@ -235,12 +277,7 @@ export default function BookingsClient({
         <section className="section-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Nueva reserva</h3>
-
-            <button
-              type="button"
-              className="secondary-btn"
-              onClick={closeCreateForm}
-            >
+            <button type="button" className="secondary-btn" onClick={closeCreateForm}>
               Cancelar
             </button>
           </div>
@@ -254,7 +291,6 @@ export default function BookingsClient({
                 onChange={(e) => updateCreateForm("date", e.target.value)}
                 required
               />
-
               <input
                 className="input"
                 type="time"
@@ -262,7 +298,6 @@ export default function BookingsClient({
                 onChange={(e) => updateCreateForm("time", e.target.value)}
                 required
               />
-
               <select
                 className="select"
                 value={createForm.status}
@@ -274,7 +309,6 @@ export default function BookingsClient({
                 <option value="confirmed">Confirmada</option>
                 <option value="paid">Pagada</option>
               </select>
-
               <input
                 className="input"
                 type="number"
@@ -286,7 +320,6 @@ export default function BookingsClient({
                 placeholder="Customer ID"
                 required
               />
-
               <input
                 className="input"
                 type="number"
@@ -298,14 +331,11 @@ export default function BookingsClient({
                 placeholder="Business ID"
                 required
               />
-
               <input
                 className="input input--full"
                 type="text"
                 value={createForm.serviceName}
-                onChange={(e) =>
-                  updateCreateForm("serviceName", e.target.value)
-                }
+                onChange={(e) => updateCreateForm("serviceName", e.target.value)}
                 placeholder="Servicio"
                 required
               />
@@ -326,12 +356,7 @@ export default function BookingsClient({
         <section className="section-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Editar reserva #{editingBookingId}</h3>
-
-            <button
-              type="button"
-              className="secondary-btn"
-              onClick={closeEditForm}
-            >
+            <button type="button" className="secondary-btn" onClick={closeEditForm}>
               Cancelar
             </button>
           </div>
@@ -345,7 +370,6 @@ export default function BookingsClient({
                 onChange={(e) => updateEditForm("date", e.target.value)}
                 required
               />
-
               <input
                 className="input"
                 type="time"
@@ -353,7 +377,6 @@ export default function BookingsClient({
                 onChange={(e) => updateEditForm("time", e.target.value)}
                 required
               />
-
               <select
                 className="select"
                 value={editForm.status}
@@ -365,7 +388,6 @@ export default function BookingsClient({
                 <option value="confirmed">Confirmada</option>
                 <option value="paid">Pagada</option>
               </select>
-
               <input
                 className="input"
                 type="number"
@@ -377,7 +399,6 @@ export default function BookingsClient({
                 placeholder="Customer ID"
                 required
               />
-
               <input
                 className="input"
                 type="number"
@@ -389,14 +410,11 @@ export default function BookingsClient({
                 placeholder="Business ID"
                 required
               />
-
               <input
                 className="input input--full"
                 type="text"
                 value={editForm.serviceName}
-                onChange={(e) =>
-                  updateEditForm("serviceName", e.target.value)
-                }
+                onChange={(e) => updateEditForm("serviceName", e.target.value)}
                 placeholder="Servicio"
                 required
               />
@@ -413,47 +431,59 @@ export default function BookingsClient({
         </section>
       )}
 
+      {deleteTargetId !== null && (
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-modal-title"
+          aria-describedby="delete-modal-description"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeDeleteModal();
+          }}
+        >
+          <div className="modal-card">
+            <div className="modal-icon">!</div>
+            <h3 id="delete-modal-title" className="modal-title">
+              Eliminar reserva
+            </h3>
+            <p id="delete-modal-description" className="modal-text">
+              ¿Seguro que quieres eliminar la reserva #{deleteTargetId}? Esta acción no se puede deshacer.
+            </p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="secondary-btn"
+                onClick={closeDeleteModal}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="danger-btn"
+                onClick={confirmDelete}
+                disabled={deletingBookingId === deleteTargetId}
+              >
+                {deletingBookingId === deleteTargetId ? "Eliminando..." : "Eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="section-card">
         <div className="panel-title-row">
           <h3 className="panel-title">Reservas registradas</h3>
-
           <div className="filter-row">
-            <button
-              type="button"
-              className="filter-pill"
-              onClick={() => setStatusFilter("all")}
-            >
-              Todas
-            </button>
-            <button
-              type="button"
-              className="filter-pill"
-              onClick={() => setStatusFilter("pending")}
-            >
-              Pendientes
-            </button>
-            <button
-              type="button"
-              className="filter-pill"
-              onClick={() => setStatusFilter("confirmed")}
-            >
-              Confirmadas
-            </button>
-            <button
-              type="button"
-              className="filter-pill"
-              onClick={() => setStatusFilter("paid")}
-            >
-              Pagadas
-            </button>
+            <button type="button" className="filter-pill" onClick={() => setStatusFilter("all")}>Todas</button>
+            <button type="button" className="filter-pill" onClick={() => setStatusFilter("pending")}>Pendientes</button>
+            <button type="button" className="filter-pill" onClick={() => setStatusFilter("confirmed")}>Confirmadas</button>
+            <button type="button" className="filter-pill" onClick={() => setStatusFilter("paid")}>Pagadas</button>
           </div>
         </div>
 
-        {successMessage ? (
-          <div className="message-success" style={{ marginBottom: 12 }}>
-            {successMessage}
-          </div>
-        ) : null}
+        {successMessage ? <div className="message-success" style={{ marginBottom: 12 }}>{successMessage}</div> : null}
+        {errorMessage ? <div className="message-error" style={{ marginBottom: 12 }}>{errorMessage}</div> : null}
 
         <table className="data-table">
           <thead>
@@ -477,17 +507,16 @@ export default function BookingsClient({
                 <td>{booking.serviceName}</td>
                 <td>{booking.customerId}</td>
                 <td>{booking.businessId}</td>
+                <td><StatusBadge status={booking.status} /></td>
                 <td>
-                  <StatusBadge status={booking.status} />
-                </td>
-                <td>
-                  <button
-                    type="button"
-                    className="secondary-btn"
-                    onClick={() => openEditForm(booking)}
-                  >
-                    Editar
-                  </button>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button type="button" className="secondary-btn" onClick={() => openEditForm(booking)}>
+                      Editar
+                    </button>
+                    <button type="button" className="secondary-btn" onClick={() => openDeleteModal(booking.id)}>
+                      Eliminar
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
