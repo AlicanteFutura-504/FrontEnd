@@ -1,59 +1,69 @@
 # Bookings Frontend
 
-Frontend para gestión de reservas, construido con **Next.js App Router** y **React**. Incluye una interfaz administrativa con secciones de dashboard, reservas, clientes y cobros, y está preparado para conectarse al backend NestJS mediante peticiones HTTP.
-
-## Visión general
-
-Este repositorio contiene la parte frontend del proyecto de gestión de reservas. La aplicación ofrece una estructura de panel administrativo con navegación lateral, cabecera compartida y páginas independientes para las principales áreas funcionales.
+Frontend del proyecto de gestión de reservas, construido con **Next.js 16**, **React 19** y **TypeScript**. Incluye un panel administrativo con dashboard, reservas, clientes y cobros. La sección de reservas está completamente conectada al backend NestJS: permite listar, crear, editar y eliminar reservas con modal de confirmación.
 
 ## Stack técnico
 
-- **Next.js** con App Router.
-- **React** como librería de interfaz.
-- **TypeScript** para tipado.
-- Estructura de dashboard con `layout.tsx`, navegación lateral y páginas por sección.
+- **Next.js 16** con App Router
+- **React 19**
+- **TypeScript**
+- **CSS propio** en `globals.css`
+- **fetch** nativo para llamadas a la API
 
-## Estructura principal
+## Estructura del proyecto
 
 ```text
-bookings-frontend-develop/
+bookings-frontend/
 ├─ app/
 │  ├─ (admin)/
 │  │  ├─ bookings/
+│  │  │  ├─ BookingsClient.tsx   ← componente cliente con toda la lógica
+│  │  │  └─ page.tsx             ← server component, carga datos iniciales
 │  │  ├─ customers/
+│  │  │  └─ page.tsx
 │  │  ├─ dashboard/
+│  │  │  └─ page.tsx
 │  │  ├─ payments/
-│  │  └─ layout.tsx
-│  ├─ globals.css
-│  ├─ layout.tsx
-│  └─ page.tsx
+│  │  │  └─ page.tsx
+│  │  └─ layout.tsx              ← layout compartido (Sidebar + Header)
+│  ├─ favicon.ico
+│  ├─ globals.css                ← estilos globales del panel
+│  ├─ layout.tsx                 ← layout raíz
+│  └─ page.tsx                   ← redirige a /dashboard
 ├─ components/
 │  └─ layout/
 │     ├─ Header.tsx
 │     └─ Sidebar.tsx
+├─ lib/
+│  ├─ api.ts                     ← funciones fetch hacia el backend
+│  └─ types.ts                   ← tipos compartidos
 ├─ public/
+├─ .env.local                    
+├─ next.config.ts
 ├─ package.json
 └─ tsconfig.json
 ```
 
 ## Funcionalidades actuales
 
-El frontend tiene una base visual ya montada con estas rutas:
+La sección `/bookings` está completamente conectada al backend:
 
-- `/dashboard` → vista general del panel.
-- `/bookings` → pantalla de reservas.
-- `/customers` → pantalla de clientes.
-- `/payments` → pantalla de cobros.
+- Listado real de reservas desde `GET /appointments`
+- KPIs con total, pendientes, confirmadas y pagadas
+- Filtro por estado
+- Formulario para crear una nueva reserva (`POST /appointments`)
+- Formulario para editar una reserva existente (`PATCH /appointments/:id`)
+- Modal de confirmación para eliminar una reserva (`DELETE /appointments/:id`)
+- Mensajes de éxito y error tras cada operación
 
-La raíz `/` redirige a `/dashboard`, y el layout del área admin comparte `Sidebar` y `Header`.
+Las secciones `/dashboard`, `/customers` y `/payments` tienen datos de ejemplo estáticos y están pendientes de conectar con el backend.
 
 ## Requisitos previos
-
-Antes de arrancar el proyecto, asegúrate de tener instalado:
 
 - **Node.js 18 o superior**
 - **npm**
 - **Git**
+- El **backend levantado** y accesible
 
 Puedes comprobarlo con:
 
@@ -69,150 +79,137 @@ git --version
 
 ```bash
 git clone <URL_DEL_REPOSITORIO>
-cd bookings-frontend-develop
+cd bookings-frontend
 ```
 
 ### Opción 2: descargar ZIP
 
-1. En GitHub, pulsa **Code**.
-2. Pulsa **Download ZIP**.
-3. Descomprime el proyecto.
-4. Entra en la carpeta `bookings-frontend-develop`.
+1. En GitHub pulsa **Code → Download ZIP**
+2. Descomprime el proyecto
+3. Entra en la carpeta `bookings-frontend`
 
 ## Instalación
-
-Ejecuta:
 
 ```bash
 npm install
 ```
 
-Esto instalará Next, React, TypeScript y las dependencias del proyecto.
+## Configuración del entorno
 
-## Cómo ejecutar el frontend
-
-### Modo desarrollo
-
-```bash
-npm run dev
-```
-
-Por defecto, Next intentará arrancar en:
-
-```text
-http://localhost:3000
-```
-
-### Recomendación si también usas el backend local
-
-Como el backend Nest suele ejecutarse en `http://localhost:3000`, es recomendable arrancar el frontend en otro puerto, por ejemplo `3001`:
-
-```bash
-npm run dev -- --port 3001
-```
-
-Así podrás tener al mismo tiempo:
-
-- backend en `http://localhost:3000`
-- frontend en `http://localhost:3001`
-
-## URL de acceso
-
-Si lo ejecutas en el puerto recomendado, abre:
-
-```text
-http://localhost:3001
-```
-
-Rutas principales:
-
-- `http://localhost:3001/dashboard`
-- `http://localhost:3001/bookings`
-- `http://localhost:3001/customers`
-- `http://localhost:3001/payments`
-
-## Configuración para conectar con el backend
-
-Lo recomendable es crear un archivo `.env.local` en la raíz del frontend para definir la URL de la API.
-
-Crea este archivo:
-
-```text
-bookings-frontend-develop/.env.local
-```
-
-Contenido recomendado:
+Crea un archivo `.env.local` en la raíz con la URL del backend:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
-Si modificas `.env.local`, reinicia el servidor de desarrollo.
+Si el backend corre en otro puerto, cámbialo aquí. Si modificas este archivo, reinicia el servidor de desarrollo.
+
+## Cómo ejecutar el frontend
+
+```bash
+npm run dev
+```
+
+Como el backend suele correr en el puerto `3000`, arranca el frontend en otro puerto para evitar conflictos:
+
+```bash
+npm run dev -- --port 3001
+```
+
+## URL de acceso
+
+```text
+http://localhost:3001
+```
+
+Rutas disponibles:
+
+| Ruta | Descripción |
+|---|---|
+| `/dashboard` | Panel de resumen con métricas |
+| `/bookings` | Gestión de reservas (conectada al backend) |
+| `/customers` | Listado de clientes (datos estáticos) |
+| `/payments` | Seguimiento de cobros (datos estáticos) |
+
+La raíz `/` redirige automáticamente a `/dashboard`.
 
 ## Cómo funciona la conexión con el backend
 
-El frontend puede consumir la API NestJS con `fetch`.
+Todas las llamadas a la API están centralizadas en `lib/api.ts`:
 
-Ejemplo típico:
+| Función | Método | Endpoint |
+|---|---|---|
+| `getAppointments()` | GET | `/appointments` |
+| `createAppointment(data)` | POST | `/appointments` |
+| `updateAppointment(id, data)` | PATCH | `/appointments/:id` |
+| `deleteAppointment(id)` | DELETE | `/appointments/:id` |
+
+Si el backend no está levantado o la URL en `.env.local` es incorrecta, la página de reservas mostrará un error al cargar.
+
+## Flujo de trabajo recomendado
+
+**Terminal 1 — backend:**
+
+```bash
+cd bookings-backend
+npm install
+npm run start:dev
+```
+
+**Terminal 2 — frontend:**
+
+```bash
+cd bookings-frontend
+npm install
+npm run dev -- --port 3001
+```
+
+Después abre `http://localhost:3001` en el navegador.
+
+## Problemas frecuentes
+
+### La tabla de reservas aparece vacía
+
+- Comprueba que el backend está levantado
+- Comprueba que `NEXT_PUBLIC_API_URL` en `.env.local` apunta a la URL correcta
+- Comprueba que el backend tiene CORS habilitado para `http://localhost:3001`
+
+### Error de CORS en la consola del navegador
+
+En el `main.ts` del backend debe existir:
 
 ```ts
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
-const res = await fetch(`${API_URL}/appointments`, {
-  cache: 'no-store',
+app.enableCors({
+  origin: 'http://localhost:3001',
 });
 ```
 
-Con esto se puede:
+### Los cambios en `.env.local` no se aplican
 
-- listar reservas reales
-- crear reservas mediante `POST`
-- mantener la información sincronizada con el backend
+Detén el servidor y vuelve a ejecutar `npm run dev`.
 
-## Navegación y layout
+### El formulario de crear da error
 
-El panel administrativo usa un layout compartido en `app/(admin)/layout.tsx`, que renderiza:
+Comprueba que todos los campos son válidos. El backend rechazará la petición si falta algún campo obligatorio:
 
-- `Sidebar` con las secciones principales
-- `Header` con el título general
-- el contenido principal de cada página
+```json
+{
+  "date": "2026-04-27",
+  "time": "10:30",
+  "status": "pending",
+  "customerId": 1,
+  "businessId": 1,
+  "serviceName": "Corte de pelo"
+}
+```
 
-El sidebar utiliza `usePathname()` para marcar la ruta activa.
+### Conflicto de puertos
 
-## Páginas principales
+Si el puerto `3000` ya está ocupado por el backend, arranca el frontend en otro:
 
-### Dashboard
-
-Pantalla de resumen con métricas, próximas reservas y bloques informativos.
-
-### Bookings
-
-Pantalla dedicada a la gestión de reservas, pensada para listar información y servir como punto de entrada al flujo principal de la aplicación.
-
-### Customers
-
-Pantalla de clientes con tarjetas y buscador visual.
-
-### Payments
-
-Pantalla de cobros y pagos con resumen y listado.
-
-## Cómo probar la aplicación conectada
-
-Una vez backend y frontend estén levantados:
-
-1. Entra en `http://localhost:3001/bookings`.
-2. Comprueba si aparecen reservas reales de la API.
-3. Si existe formulario conectado, crea una nueva reserva.
-4. Verifica que aparece en el listado.
-
-## Cómo ver los datos reales
-
-El frontend no guarda datos por sí mismo; los datos viven en el backend SQLite. Para comprobarlos puedes:
-
-- mirar la tabla desde `/bookings`
-- llamar al backend con Swagger en `http://localhost:3000/api`
-- abrir el archivo SQLite del backend con una herramienta externa
+```bash
+npm run dev -- --port 3001
+```
 
 ## Scripts disponibles
 
@@ -225,52 +222,6 @@ El frontend no guarda datos por sí mismo; los datos viven en el backend SQLite.
 }
 ```
 
-## Problemas frecuentes
-
-### El frontend no arranca
-
-Revisa:
-
-- que has ejecutado `npm install`
-- que estás dentro de la carpeta correcta
-- que tu versión de Node es suficientemente reciente
-
-### Conflicto de puertos
-
-Si el puerto `3000` ya está ocupado por el backend, arranca el frontend así:
-
-```bash
-npm run dev -- --port 3001
-```
-
-### No carga datos del backend
-
-Revisa:
-
-- que el backend esté corriendo en `http://localhost:3000`
-- que `.env.local` tenga la URL correcta
-- que el backend tenga CORS habilitado para `http://localhost:3001`
-
-## Flujo de trabajo recomendado
-
-### Terminal 1: backend
-
-```bash
-cd bookings-backend-Base/backend
-npm install
-npm run start:dev
-```
-
-### Terminal 2: frontend
-
-```bash
-cd bookings-frontend-develop
-npm install
-npm run dev -- --port 3001
-```
-
-Después abre `http://localhost:3001` en el navegador.
-
 ## Estado actual del proyecto
 
-Este frontend ofrece una estructura clara de panel administrativo y una base sólida para trabajar con navegación, tablas, formularios y consumo de API desde Next.js App Router.
+Este frontend tiene un panel administrativo funcional con la sección de reservas conectada de punta a punta al backend. Las secciones de clientes, cobros y dashboard tienen datos estáticos de ejemplo y están preparadas para que los alumnos las conecten a la API.
