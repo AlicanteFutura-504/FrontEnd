@@ -1,4 +1,16 @@
-const payments = [
+type PaymentStatus = "pending" | "paid";
+
+type Payment = {
+  id: string;
+  client: string;
+  business: string;
+  amount: string;
+  method: string;
+  date: string;
+  status: PaymentStatus;
+};
+
+const payments: Payment[] = [
   {
     id: "COB-001",
     client: "María López",
@@ -67,7 +79,7 @@ function KpiCard({
   );
 }
 
-function Badge({ status }: { status: "pending" | "paid" }) {
+function Badge({ status }: { status: PaymentStatus }) {
   return (
     <span className={`badge badge--${status === "pending" ? "pending" : "confirmed"}`}>
       {status === "pending" ? "Por cobrar" : "Pagado"}

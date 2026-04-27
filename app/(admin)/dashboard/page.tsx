@@ -1,4 +1,14 @@
-const bookings = [
+type DashboardBookingStatus = "pending" | "confirmed" | "paid";
+
+type DashboardBooking = {
+  time: string;
+  client: string;
+  business: string;
+  service: string;
+  status: DashboardBookingStatus;
+};
+
+const bookings: DashboardBooking[] = [
   {
     time: "09:00",
     client: "María López",
@@ -22,7 +32,7 @@ const bookings = [
   },
 ];
 
-function Badge({ status }: { status: "pending" | "confirmed" | "paid" }) {
+function Badge({ status }: { status: DashboardBookingStatus }) {
   const label =
     status === "pending"
       ? "Pendiente"
