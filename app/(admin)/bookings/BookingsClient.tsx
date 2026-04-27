@@ -1,305 +1,310 @@
 "use client";
 
-import { useState } from "react";
-import { Appointment } from "@/lib/types";
-import { createAppointment, getAppointments } from "@/lib/api";
+import { useMemo, useState } from "react";
+import type { Booking, BookingStatus, CreateBookingDto } from "@/lib/api";
+import { createAppointment } from "@/lib/api";
 
-type Props = {
-  initialBookings: Appointment[];
-};
+function StatusBadge({ status }: { status: BookingStatus }) {
+  const label =
+    status === "pending"
+      ? "Pendiente"
+      : status === "confirmed"
+        ? "Confirmada"
+        : "Pagada";
 
-function getBadgeStyle(status: string) {
-  const base = {
-    padding: "6px 10px",
-    borderRadius: "999px",
-    fontSize: "12px",
-    fontWeight: 600 as const,
-    display: "inline-block",
-  };
+  return <span className={`badge badge--${status}`}>{label}</span>;
+}
 
-  if (status === "confirmed" || status === "paid") {
-    return {
-      ...base,
-      backgroundColor: "#dcfce7",
-      color: "#166534",
-    };
+function formatDate(date: string) {
+  try {
+    return new Intl.DateTimeFormat("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(new Date(date));
+  } catch {
+    return date;
   }
-
-  if (status === "pending") {
-    return {
-      ...base,
-      backgroundColor: "#fef3c7",
-      color: "#92400e",
-    };
-  }
-
-  return {
-    ...base,
-    backgroundColor: "#e5e7eb",
-    color: "#374151",
-  };
 }
 
-function getStatusLabel(status: string) {
-  if (status === "pending") return "Pendiente";
-  if (status === "confirmed") return "Confirmada";
-  if (status === "paid") return "Pagada";
-  return status;
-}
+export default function BookingsClient({
+  initialBookings,
+}: {
+  initialBookings: Booking[];
+}) {
+  const [bookings, setBookings] = useState<Booking[]>(initialBookings);
 
-function FilterPill({ label }: { label: string }) {
-  return (
-    <button
-      style={{
-        border: "1px solid #e5e7eb",
-        backgroundColor: "#ffffff",
-        borderRadius: "999px",
-        padding: "10px 14px",
-        fontSize: "14px",
-        cursor: "pointer",
-      }}
-      type="button"
-    >
-      {label}
-    </button>
-  );
-}
-
-export default function BookingsClient({ initialBookings }: Props) {
-  const [bookings, setBookings] = useState<Appointment[]>(initialBookings);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    date: "",
-    time: "",
-    status: "pending" as "pending" | "confirmed" | "paid",
+  const [form, setForm] = useState<CreateBookingDto>({
+    appointmentDate: "",
+    appointmentTime: "",
+    status: "pending",
+    customerId: 1,
+    businessId: 1,
     serviceName: "",
-    });
+  });
 
-  async function refreshBookings() {
-    const data = await getAppointments();
-    setBookings(data);
+  const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  const filteredBookings = useMemo(() => {
+    if (statusFilter === "all") return bookings;
+    return bookings.filter((booking) => booking.status === statusFilter);
+  }, [bookings, statusFilter]);
+
+  const totalCount = bookings.length;
+  const pendingCount = bookings.filter((b) => b.status === "pending").length;
+  const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
+  const paidCount = bookings.filter((b) => b.status === "paid").length;
+
+  function updateForm<K extends keyof CreateBookingDto>(
+    key: K,
+    value: CreateBookingDto[K]
+  ) {
+    setForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  }
+
+  function resetForm() {
+    setForm({
+      appointmentDate: "",
+      appointmentTime: "",
+      status: "pending",
+      customerId: 1,
+      businessId: 1,
+      serviceName: "",
+    });
+  }
+
+  function openCreateForm() {
+    setErrorMessage("");
+    setSuccessMessage("");
+    setIsCreateOpen(true);
+  }
+
+  function closeCreateForm() {
+    setErrorMessage("");
+    resetForm();
+    setIsCreateOpen(false);
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setIsSubmitting(true);
-    setMessage("");
-    setError("");
+    setLoading(true);
+    setSuccessMessage("");
+    setErrorMessage("");
 
     try {
-      await createAppointment(form);
-      await refreshBookings();
+      const created = await createAppointment(form);
 
-      setMessage("Reserva creada correctamente");
-      setForm({
-        date: "",
-        time: "",
-        status: "pending",
-        serviceName: "",
-        });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al crear la reserva");
+      setBookings((prev) => [created, ...prev]);
+      resetForm();
+      setIsCreateOpen(false);
+      setSuccessMessage("Reserva creada correctamente.");
+    } catch {
+      setErrorMessage("No se pudo crear la reserva. Revisa los datos o el backend.");
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <section
-        style={{
-          backgroundColor: "#ffffff",
-          borderRadius: "24px",
-          padding: "24px",
-          border: "1px solid #e5e7eb",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "16px",
-        }}
-      >
+    <div className="page-stack">
+      <section className="page-hero">
         <div>
-          <h2 style={{ margin: 0, fontSize: "30px" }}>Reservas</h2>
-          <p style={{ margin: "8px 0 0", color: "#6b7280" }}>
-            Gestión de reservas de clientes y comercios.
-          </p>
+          <h2>Bookings list</h2>
+          <p>Gestión de reservas conectada con la API.</p>
         </div>
 
-        <button
-          type="button"
-          style={{
-            border: "none",
-            backgroundColor: "#0284c7",
-            color: "#ffffff",
-            borderRadius: "14px",
-            padding: "12px 18px",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
+        <button className="primary-btn" type="button" onClick={openCreateForm}>
           Nueva reserva
         </button>
       </section>
 
-      <section
-        style={{
-          backgroundColor: "#ffffff",
-          borderRadius: "24px",
-          padding: "24px",
-          border: "1px solid #e5e7eb",
-        }}
-      >
-        <h3 style={{ marginTop: 0, fontSize: "22px" }}>Crear reserva</h3>
-
-        <form
-          onSubmit={handleSubmit}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-            gap: "16px",
-          }}
-        >
-          <input
-            type="date"
-            value={form.date}
-            onChange={(e) => setForm({ ...form, date: e.target.value })}
-            required
-            style={{
-              padding: "12px 14px",
-              borderRadius: "12px",
-              border: "1px solid #e5e7eb",
-            }}
-          />
-
-          <input
-            type="time"
-            value={form.time}
-            onChange={(e) => setForm({ ...form, time: e.target.value })}
-            required
-            style={{
-              padding: "12px 14px",
-              borderRadius: "12px",
-              border: "1px solid #e5e7eb",
-            }}
-          />
-
-          <input
-            type="text"
-            value={form.serviceName}
-            onChange={(e) => setForm({ ...form, serviceName: e.target.value })}
-            placeholder="Nombre del servicio"
-            required
-            style={{
-              gridColumn: "1 / -1",
-              padding: "12px 14px",
-              borderRadius: "12px",
-              border: "1px solid #e5e7eb",
-            }}
-          />
-
-          <select
-            value={form.status}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                status: e.target.value as "pending" | "confirmed" | "paid",
-              })
-            }
-            style={{
-              padding: "12px 14px",
-              borderRadius: "12px",
-              border: "1px solid #e5e7eb",
-            }}
-          >
-            <option value="pending">Pendiente</option>
-            <option value="confirmed">Confirmada</option>
-            <option value="paid">Pagada</option>
-          </select>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              style={{
-                border: "none",
-                backgroundColor: "#0284c7",
-                color: "#ffffff",
-                borderRadius: "12px",
-                padding: "12px 16px",
-                fontWeight: 600,
-                cursor: "pointer",
-                opacity: isSubmitting ? 0.7 : 1,
-              }}
-            >
-              {isSubmitting ? "Guardando..." : "Guardar reserva"}
-            </button>
-
-            {message ? <span style={{ color: "#166534" }}>{message}</span> : null}
-            {error ? <span style={{ color: "#b91c1c" }}>{error}</span> : null}
-          </div>
-        </form>
-      </section>
-
-      <section
-        style={{
-          display: "flex",
-          gap: "12px",
-          flexWrap: "wrap",
-        }}
-      >
-        <FilterPill label="Hoy" />
-        <FilterPill label="Pendientes" />
-        <FilterPill label="Confirmadas" />
-        <FilterPill label="Pagadas" />
-      </section>
-
-      <section
-        style={{
-          backgroundColor: "#ffffff",
-          borderRadius: "24px",
-          padding: "24px",
-          border: "1px solid #e5e7eb",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "16px",
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: "22px" }}>Listado de reservas</h3>
-          <span style={{ color: "#6b7280", fontSize: "14px" }}>
-            {bookings.length} resultados
-          </span>
+      <section className="kpi-grid">
+        <div className="kpi-card">
+          <p className="kpi-card__label">Total reservas</p>
+          <h3 className="kpi-card__value">{totalCount}</h3>
+          <p className="kpi-card__meta">Registros disponibles</p>
         </div>
 
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className="kpi-card">
+          <p className="kpi-card__label">Pendientes</p>
+          <h3 className="kpi-card__value">{pendingCount}</h3>
+          <p className="kpi-card__meta kpi-card__meta--warning">
+            Requieren seguimiento
+          </p>
+        </div>
+
+        <div className="kpi-card">
+          <p className="kpi-card__label">Confirmadas</p>
+          <h3 className="kpi-card__value">{confirmedCount}</h3>
+          <p className="kpi-card__meta kpi-card__meta--positive">
+            Estado activo
+          </p>
+        </div>
+
+        <div className="kpi-card">
+          <p className="kpi-card__label">Pagadas</p>
+          <h3 className="kpi-card__value">{paidCount}</h3>
+          <p className="kpi-card__meta">Reservas cerradas</p>
+        </div>
+      </section>
+
+      {isCreateOpen && (
+        <section className="section-card">
+          <div className="panel-title-row">
+            <h3 className="panel-title">Nueva reserva</h3>
+
+            <button
+              type="button"
+              className="secondary-btn"
+              onClick={closeCreateForm}
+            >
+              Cancelar
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="page-stack" style={{ gap: 16 }}>
+            <div className="form-grid">
+              <input
+                className="input"
+                type="date"
+                value={form.appointmentDate}
+                onChange={(e) => updateForm("appointmentDate", e.target.value)}
+                required
+              />
+
+              <input
+                className="input"
+                type="time"
+                value={form.appointmentTime}
+                onChange={(e) => updateForm("appointmentTime", e.target.value)}
+                required
+              />
+
+              <select
+                className="select"
+                value={form.status}
+                onChange={(e) => updateForm("status", e.target.value as BookingStatus)}
+              >
+                <option value="pending">Pendiente</option>
+                <option value="confirmed">Confirmada</option>
+                <option value="paid">Pagada</option>
+              </select>
+
+              <input
+                className="input"
+                type="number"
+                min={1}
+                value={form.customerId}
+                onChange={(e) => updateForm("customerId", Number(e.target.value))}
+                placeholder="Customer ID"
+                required
+              />
+
+              <input
+                className="input"
+                type="number"
+                min={1}
+                value={form.businessId}
+                onChange={(e) => updateForm("businessId", Number(e.target.value))}
+                placeholder="Business ID"
+                required
+              />
+
+              <input
+                className="input input--full"
+                type="text"
+                value={form.serviceName}
+                onChange={(e) => updateForm("serviceName", e.target.value)}
+                placeholder="Servicio"
+                required
+              />
+            </div>
+
+            {errorMessage ? (
+              <div className="message-error">{errorMessage}</div>
+            ) : null}
+
+            <div className="message-row">
+              <button className="primary-btn" type="submit" disabled={loading}>
+                {loading ? "Guardando..." : "Crear reserva"}
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
+
+      <section className="section-card">
+        <div className="panel-title-row">
+          <h3 className="panel-title">Reservas registradas</h3>
+
+          <div className="filter-row">
+            <button
+              type="button"
+              className="filter-pill"
+              onClick={() => setStatusFilter("all")}
+            >
+              Todas
+            </button>
+            <button
+              type="button"
+              className="filter-pill"
+              onClick={() => setStatusFilter("pending")}
+            >
+              Pendientes
+            </button>
+            <button
+              type="button"
+              className="filter-pill"
+              onClick={() => setStatusFilter("confirmed")}
+            >
+              Confirmadas
+            </button>
+            <button
+              type="button"
+              className="filter-pill"
+              onClick={() => setStatusFilter("paid")}
+            >
+              Pagadas
+            </button>
+          </div>
+        </div>
+
+        {successMessage ? (
+          <div className="message-success" style={{ marginBottom: 12 }}>
+            {successMessage}
+          </div>
+        ) : null}
+
+        <table className="data-table">
           <thead>
-            <tr style={{ textAlign: "left", color: "#6b7280" }}>
-                <th style={{ padding: "12px 0" }}>ID</th>
-                <th style={{ padding: "12px 0" }}>Fecha</th>
-                <th style={{ padding: "12px 0" }}>Hora</th>
-                <th style={{ padding: "12px 0" }}>Servicio</th>
-                <th style={{ padding: "12px 0" }}>Estado</th>
+            <tr>
+              <th>ID</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+              <th>Servicio</th>
+              <th>Customer</th>
+              <th>Business</th>
+              <th>Estado</th>
             </tr>
           </thead>
           <tbody>
-            {bookings.map((booking) => (
-              <tr key={booking.id} style={{ borderTop: "1px solid #e5e7eb" }}>
-                <td style={{ padding: "16px 0", fontWeight: 600 }}>
-                  {booking.id}
-                </td>
-                <td style={{ padding: "16px 0" }}>{booking.date}</td>
-                <td style={{ padding: "16px 0" }}>{booking.time}</td>
-                <td style={{ padding: "16px 0" }}>{booking.serviceName}</td>
-                <td style={{ padding: "16px 0" }}>
-                  <span style={getBadgeStyle(booking.status)}>
-                    {getStatusLabel(booking.status)}
-                  </span>
+            {filteredBookings.map((booking) => (
+              <tr key={booking.id}>
+                <td style={{ fontWeight: 600 }}>{booking.id}</td>
+                <td>{formatDate(booking.appointmentDate)}</td>
+                <td>{booking.appointmentTime}</td>
+                <td>{booking.serviceName}</td>
+                <td>{booking.customerId}</td>
+                <td>{booking.businessId}</td>
+                <td>
+                  <StatusBadge status={booking.status} />
                 </td>
               </tr>
             ))}

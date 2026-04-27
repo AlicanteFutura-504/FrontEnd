@@ -1,54 +1,51 @@
-import { Appointment } from "./types";
+export type BookingStatus = "pending" | "confirmed" | "paid";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+export interface Booking {
+  id: number;
+  appointmentDate: string;
+  appointmentTime: string;
+  status: BookingStatus;
+  customerId: number;
+  businessId: number;
+  serviceName: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
-export async function getAppointments(): Promise<Appointment[]> {
+export interface CreateBookingDto {
+  appointmentDate: string;
+  appointmentTime: string;
+  status: BookingStatus;
+  customerId: number;
+  businessId: number;
+  serviceName: string;
+}
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+export async function getAppointments(): Promise<Booking[]> {
   const res = await fetch(`${API_URL}/appointments`, {
     cache: "no-store",
   });
 
   if (!res.ok) {
-    throw new Error("No se pudieron cargar las reservas");
+    throw new Error("Error al obtener las reservas");
   }
 
   return res.json();
 }
 
-export type CreateAppointmentInput = {
-  date: string;
-  time: string;
-  status: "pending" | "confirmed" | "paid";
-  serviceName: string;
-};
-
-export async function createAppointment(data: CreateAppointmentInput) {
-  const payload = {
-    ...data,
-    customerId: 1,
-    businessId: 1,
-  };
-
+export async function createAppointment(data: CreateBookingDto): Promise<Booking> {
   const res = await fetch(`${API_URL}/appointments`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(data),
   });
 
   if (!res.ok) {
-    let message = "No se pudo crear la reserva";
-
-    try {
-      const errorData = await res.json();
-      if (errorData?.message) {
-        message = Array.isArray(errorData.message)
-          ? errorData.message.join(", ")
-          : errorData.message;
-      }
-    } catch {}
-
-    throw new Error(message);
+    throw new Error("Error al crear la reserva");
   }
 
   return res.json();
