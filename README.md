@@ -113,7 +113,7 @@ npm run dev
 Como el backend suele correr en el puerto `3000`, arranca el frontend en otro puerto para evitar conflictos:
 
 ```bash
-npm run dev -- --port 3001
+npm run dev
 ```
 
 ## URL de acceso
@@ -161,7 +161,7 @@ npm run start:dev
 ```bash
 cd bookings-frontend
 npm install
-npm run dev -- --port 3001
+npm run dev
 ```
 
 Después abre `http://localhost:3001` en el navegador.
@@ -208,7 +208,7 @@ Comprueba que todos los campos son válidos. El backend rechazará la petición 
 Si el puerto `3000` ya está ocupado por el backend, arranca el frontend en otro:
 
 ```bash
-npm run dev -- --port 3001
+npm run dev
 ```
 
 ## Scripts disponibles
