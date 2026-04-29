@@ -215,11 +215,11 @@ npm run dev
 
 ```json
 {
-  "dev": "next dev",
-  "build": "next build",
-  "start": "next start",
-  "lint": "eslint"
-}
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "eslint"
+  }
 ```
 
 ## Estado actual del proyecto
