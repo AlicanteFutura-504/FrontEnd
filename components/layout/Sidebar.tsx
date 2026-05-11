@@ -1,16 +1,47 @@
 "use client";
 
+/**
+ * @fileoverview Componente de barra de navegación lateral del panel de administración.
+ * Marca el enlace activo comparando el pathname actual con cada ruta de menú.
+ * @module components/layout/Sidebar
+ */
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const menuItems = [
+/**
+ * Definición de un elemento del menú de navegación.
+ */
+interface MenuItem {
+  /** Etiqueta visible en la interfaz. */
+  label: string;
+  /** Ruta a la que navega el enlace. */
+  href: string;
+  /** Icono Unicode asociado al elemento. */
+  icon: string;
+}
+
+/**
+ * Elementos del menú principal de la aplicación.
+ * Cada entrada corresponde a una sección del panel de administración.
+ */
+const menuItems: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: "◫" },
   { label: "Bookings", href: "/bookings", icon: "☰" },
   { label: "Customers", href: "/customers", icon: "◎" },
   { label: "Payments", href: "/payments", icon: "◌" },
 ];
 
+/**
+ * Componente Sidebar.
+ * Renderiza el panel lateral de navegación del área de administración.
+ * Utiliza `usePathname` para detectar la ruta activa y aplicar
+ * el modificador CSS `admin-sidebar__link--active` al enlace correspondiente.
+ *
+ * @returns {JSX.Element} La barra lateral con el logo y los enlaces de navegación.
+ */
 export default function Sidebar() {
+  /** Pathname de la URL actualmente activa en el navegador. */
   const pathname = usePathname();
 
   return (
@@ -22,6 +53,7 @@ export default function Sidebar() {
 
       <nav className="admin-sidebar__nav">
         {menuItems.map((item) => {
+          /** Indica si este ítem corresponde a la ruta actualmente activa. */
           const isActive = pathname === item.href;
 
           return (

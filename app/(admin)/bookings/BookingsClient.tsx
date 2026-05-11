@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * @fileoverview Componente cliente del módulo de Bookings.
+ * Gestiona el estado local de la lista de reservas y expone la interfaz
+ * completa de CRUD (crear, editar, eliminar) conectada a la API del backend.
+ * @module app/(admin)/bookings/BookingsClient
+ */
+
 import { useMemo, useState } from "react";
 import type {
   Booking,
@@ -13,7 +20,27 @@ import {
   updateAppointment,
 } from "@/lib/api";
 
-function StatusBadge({ status }: { status: BookingStatus }) {
+// ---------------------------------------------------------------------------
+// Subcomponentes internos
+// ---------------------------------------------------------------------------
+
+/**
+ * Props del componente `StatusBadge`.
+ */
+interface StatusBadgeProps {
+  /** Estado actual de la reserva. */
+  status: BookingStatus;
+}
+
+/**
+ * Componente StatusBadge.
+ * Renderiza una etiqueta visual coloreada según el estado de la reserva.
+ * Utiliza clases CSS con el patrón BEM `badge--{status}`.
+ *
+ * @param {StatusBadgeProps} props - Props del componente.
+ * @returns {JSX.Element} Un `<span>` con la etiqueta de estado traducida al español.
+ */
+function StatusBadge({ status }: StatusBadgeProps) {
   const label =
     status === "pending"
       ? "Pendiente"
@@ -24,6 +51,13 @@ function StatusBadge({ status }: { status: BookingStatus }) {
   return <span className={`badge badge--${status}`}>{label}</span>;
 }
 
+/**
+ * Formatea una cadena de fecha ISO al formato `DD/MM/AAAA` en español.
+ * Si la fecha no es válida, devuelve la cadena original sin transformar.
+ *
+ * @param {string} date - Fecha en formato ISO 8601 (ej: `"2026-05-11"`).
+ * @returns {string} Fecha formateada (ej: `"11/05/2026"`) o la cadena original si falla.
+ */
 function formatDate(date: string) {
   try {
     return new Intl.DateTimeFormat("es-ES", {
@@ -36,13 +70,41 @@ function formatDate(date: string) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Componente principal
+// ---------------------------------------------------------------------------
+
+/**
+ * Props del componente `BookingsClient`.
+ */
+interface BookingsClientProps {
+  /**
+   * Lista inicial de reservas obtenida por el Server Component padre.
+   * Se usa para poblar el estado local sin una llamada fetch adicional en cliente.
+   */
+  initialBookings: Booking[];
+}
+
+/**
+ * Componente cliente principal del módulo de reservas.
+ *
+ * Responsabilidades:
+ * - Mantiene el estado reactivo de la lista de reservas.
+ * - Gestiona la apertura/cierre del formulario de creación, edición y modal de eliminación.
+ * - Llama a los endpoints de la API (`createAppointment`, `updateAppointment`, `deleteAppointment`).
+ * - Filtra las reservas visibles por estado mediante `useMemo`.
+ * - Muestra contadores KPI (total, pendientes, confirmadas, pagadas).
+ *
+ * @param {BookingsClientProps} props - Props del componente.
+ * @returns {JSX.Element} El panel completo de gestión de reservas.
+ */
 export default function BookingsClient({
   initialBookings,
-}: {
-  initialBookings: Booking[];
-}) {
+}: BookingsClientProps) {
+  /** Lista reactiva de reservas; se actualiza optimistamente tras cada operación CRUD. */
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
 
+  /** Valores en blanco usados para resetear los formularios. */
   const emptyForm: CreateBookingDto = {
     date: "",
     time: "",
@@ -52,29 +114,59 @@ export default function BookingsClient({
     serviceName: "",
   };
 
+  /** Estado del formulario de creación de nueva reserva. */
   const [createForm, setCreateForm] = useState<CreateBookingDto>(emptyForm);
+  /** Estado del formulario de edición de una reserva existente. */
   const [editForm, setEditForm] = useState<CreateBookingDto>(emptyForm);
 
+  /** Filtro activo por estado; `"all"` muestra todas las reservas. */
   const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");
+  /** Indica si la petición de creación está en curso (deshabilita el botón submit). */
   const [loadingCreate, setLoadingCreate] = useState(false);
+  /** Indica si la petición de edición está en curso. */
   const [loadingEdit, setLoadingEdit] = useState(false);
+  /** ID de la reserva que se está eliminando actualmente (para mostrar estado de carga). */
   const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
+  /** Mensaje de éxito mostrado tras una operación completada correctamente. */
   const [successMessage, setSuccessMessage] = useState("");
+  /** Mensaje de error mostrado cuando una operación de API falla. */
   const [errorMessage, setErrorMessage] = useState("");
+  /** Controla la visibilidad del formulario de creación. */
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  /** ID de la reserva siendo editada; `null` cuando no hay edición activa. */
   const [editingBookingId, setEditingBookingId] = useState<number | null>(null);
+  /** ID de la reserva sobre la que se ha pedido confirmación de borrado. */
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
 
+  /**
+   * Lista de reservas filtradas por `statusFilter`.
+   * Se recalcula solo cuando cambia `bookings` o `statusFilter`.
+   */
   const filteredBookings = useMemo(() => {
     if (statusFilter === "all") return bookings;
     return bookings.filter((booking) => booking.status === statusFilter);
   }, [bookings, statusFilter]);
 
+  /** Número total de reservas en el estado local. */
   const totalCount = bookings.length;
+  /** Número de reservas con estado `"pending"`. */
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
+  /** Número de reservas con estado `"confirmed"`. */
   const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
+  /** Número de reservas con estado `"paid"`. */
   const paidCount = bookings.filter((b) => b.status === "paid").length;
 
+  // ---------------------------------------------------------------------------
+  // Helpers de formulario
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Actualiza un campo específico del formulario de creación de forma tipada.
+   *
+   * @template K - Clave del objeto `CreateBookingDto`.
+   * @param {K} key   - Nombre del campo a actualizar.
+   * @param {CreateBookingDto[K]} value - Nuevo valor para ese campo.
+   */
   function updateCreateForm<K extends keyof CreateBookingDto>(
     key: K,
     value: CreateBookingDto[K]
@@ -85,6 +177,13 @@ export default function BookingsClient({
     }));
   }
 
+  /**
+   * Actualiza un campo específico del formulario de edición de forma tipada.
+   *
+   * @template K - Clave del objeto `CreateBookingDto`.
+   * @param {K} key   - Nombre del campo a actualizar.
+   * @param {CreateBookingDto[K]} value - Nuevo valor para ese campo.
+   */
   function updateEditForm<K extends keyof CreateBookingDto>(
     key: K,
     value: CreateBookingDto[K]
@@ -95,14 +194,24 @@ export default function BookingsClient({
     }));
   }
 
+  /** Restaura el formulario de creación a sus valores vacíos. */
   function resetCreateForm() {
     setCreateForm(emptyForm);
   }
 
+  /** Restaura el formulario de edición a sus valores vacíos. */
   function resetEditForm() {
     setEditForm(emptyForm);
   }
 
+  // ---------------------------------------------------------------------------
+  // Gestión de paneles / modales
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Abre el panel de creación y cierra cualquier otro panel activo.
+   * Limpia los mensajes de estado anteriores.
+   */
   function openCreateForm() {
     setErrorMessage("");
     setSuccessMessage("");
@@ -112,12 +221,21 @@ export default function BookingsClient({
     setIsCreateOpen(true);
   }
 
+  /**
+   * Cierra el panel de creación y limpia su formulario y mensajes de error.
+   */
   function closeCreateForm() {
     setErrorMessage("");
     resetCreateForm();
     setIsCreateOpen(false);
   }
 
+  /**
+   * Abre el panel de edición precargado con los datos de la reserva indicada.
+   * Cierra el panel de creación y el modal de borrado si estuvieran abiertos.
+   *
+   * @param {Booking} booking - Reserva cuyos datos se cargan en el formulario de edición.
+   */
   function openEditForm(booking: Booking) {
     setErrorMessage("");
     setSuccessMessage("");
@@ -134,22 +252,47 @@ export default function BookingsClient({
     });
   }
 
+  /**
+   * Cierra el panel de edición y limpia su formulario y mensajes de error.
+   */
   function closeEditForm() {
     setErrorMessage("");
     setEditingBookingId(null);
     resetEditForm();
   }
 
+  /**
+   * Abre el modal de confirmación de borrado para la reserva indicada.
+   * Limpia los mensajes de estado anteriores.
+   *
+   * @param {number} id - ID de la reserva a eliminar.
+   */
   function openDeleteModal(id: number) {
     setErrorMessage("");
     setSuccessMessage("");
     setDeleteTargetId(id);
   }
 
+  /**
+   * Cierra el modal de confirmación de borrado sin realizar ninguna acción.
+   */
   function closeDeleteModal() {
     setDeleteTargetId(null);
   }
 
+  // ---------------------------------------------------------------------------
+  // Handlers de operaciones CRUD
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Maneja el envío del formulario de creación de reserva.
+   * Llama a `createAppointment` y actualiza el estado local añadiendo
+   * la nueva reserva al inicio de la lista.
+   *
+   * @async
+   * @param {React.FormEvent<HTMLFormElement>} e - Evento de submit del formulario.
+   * @returns {Promise<void>}
+   */
   async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoadingCreate(true);
@@ -169,6 +312,15 @@ export default function BookingsClient({
     }
   }
 
+  /**
+   * Maneja el envío del formulario de edición de reserva.
+   * Llama a `updateAppointment` con el ID activo y reemplaza la reserva
+   * modificada en el estado local.
+   *
+   * @async
+   * @param {React.FormEvent<HTMLFormElement>} e - Evento de submit del formulario.
+   * @returns {Promise<void>}
+   */
   async function handleEditSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -206,6 +358,14 @@ export default function BookingsClient({
     }
   }
 
+  /**
+   * Confirma y ejecuta el borrado de la reserva objetivo (`deleteTargetId`).
+   * Llama a `deleteAppointment` y elimina la reserva del estado local.
+   * Si la reserva eliminada estaba siendo editada, cierra también ese panel.
+   *
+   * @async
+   * @returns {Promise<void>}
+   */
   async function confirmDelete() {
     if (deleteTargetId === null) return;
 
@@ -230,8 +390,13 @@ export default function BookingsClient({
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
+
   return (
     <div className="page-stack">
+      {/* Hero: título de sección + botón de acción principal */}
       <section className="page-hero">
         <div>
           <h2>Bookings list</h2>
@@ -243,6 +408,7 @@ export default function BookingsClient({
         </button>
       </section>
 
+      {/* KPIs: contadores de reservas por estado */}
       <section className="kpi-grid">
         <div className="kpi-card">
           <p className="kpi-card__label">Total reservas</p>
@@ -273,6 +439,7 @@ export default function BookingsClient({
         </div>
       </section>
 
+      {/* Panel de creación — visible solo cuando isCreateOpen === true */}
       {isCreateOpen && (
         <section className="section-card">
           <div className="panel-title-row">
@@ -352,6 +519,7 @@ export default function BookingsClient({
         </section>
       )}
 
+      {/* Panel de edición — visible solo cuando hay un editingBookingId activo */}
       {editingBookingId !== null && (
         <section className="section-card">
           <div className="panel-title-row">
@@ -431,6 +599,7 @@ export default function BookingsClient({
         </section>
       )}
 
+      {/* Modal de confirmación de borrado — visible cuando deleteTargetId tiene valor */}
       {deleteTargetId !== null && (
         <div
           className="modal-backdrop"
@@ -439,6 +608,7 @@ export default function BookingsClient({
           aria-labelledby="delete-modal-title"
           aria-describedby="delete-modal-description"
           onClick={(e) => {
+            // Cierra el modal al hacer clic en el fondo semitransparente
             if (e.target === e.currentTarget) closeDeleteModal();
           }}
         >
@@ -471,6 +641,7 @@ export default function BookingsClient({
         </div>
       )}
 
+      {/* Tabla de reservas con filtros por estado */}
       <section className="section-card">
         <div className="panel-title-row">
           <h3 className="panel-title">Reservas registradas</h3>

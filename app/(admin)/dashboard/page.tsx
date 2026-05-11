@@ -1,13 +1,47 @@
+/**
+ * @fileoverview Página del Dashboard (resumen general del panel de administración).
+ * Muestra KPIs del día, una tabla de próximas reservas y un panel de información rápida.
+ * Los datos son estáticos (mock) ya que esta sección aún no está conectada al backend.
+ * @module app/(admin)/dashboard/page
+ */
+
+// ---------------------------------------------------------------------------
+// Tipos locales
+// ---------------------------------------------------------------------------
+
+/**
+ * Estados posibles de una reserva representada en el Dashboard.
+ * - `"pending"`   → Pendiente de confirmación.
+ * - `"confirmed"` → Confirmada por el negocio.
+ * - `"paid"`      → Servicio completado y cobrado.
+ */
 type DashboardBookingStatus = "pending" | "confirmed" | "paid";
 
+/**
+ * Estructura de una reserva tal como se muestra en la tabla del Dashboard.
+ * Contiene únicamente los campos necesarios para la vista resumida.
+ */
 type DashboardBooking = {
+  /** Hora de la reserva en formato `"HH:mm"`. */
   time: string;
+  /** Nombre completo del cliente. */
   client: string;
+  /** Nombre del negocio donde se realiza la reserva. */
   business: string;
+  /** Nombre del servicio reservado. */
   service: string;
+  /** Estado actual de la reserva. */
   status: DashboardBookingStatus;
 };
 
+// ---------------------------------------------------------------------------
+// Datos mock (pendiente de conexión con la API)
+// ---------------------------------------------------------------------------
+
+/**
+ * Lista de reservas de ejemplo para la tabla de "Próximas reservas".
+ * @todo Reemplazar por una llamada real a `getAppointments()` cuando esté disponible.
+ */
 const bookings: DashboardBooking[] = [
   {
     time: "09:00",
@@ -32,7 +66,26 @@ const bookings: DashboardBooking[] = [
   },
 ];
 
-function Badge({ status }: { status: DashboardBookingStatus }) {
+// ---------------------------------------------------------------------------
+// Subcomponentes internos
+// ---------------------------------------------------------------------------
+
+/**
+ * Props del componente `Badge`.
+ */
+interface BadgeProps {
+  /** Estado de la reserva a representar visualmente. */
+  status: DashboardBookingStatus;
+}
+
+/**
+ * Componente Badge.
+ * Renderiza una etiqueta visual coloreada según el estado de la reserva.
+ *
+ * @param {BadgeProps} props - Props del componente.
+ * @returns {JSX.Element} Un `<span>` con la clase CSS y el texto de estado correspondiente.
+ */
+function Badge({ status }: BadgeProps) {
   const label =
     status === "pending"
       ? "Pendiente"
@@ -43,17 +96,39 @@ function Badge({ status }: { status: DashboardBookingStatus }) {
   return <span className={`badge badge--${status}`}>{label}</span>;
 }
 
+/**
+ * Props del componente `KpiCard`.
+ */
+interface KpiCardProps {
+  /** Título descriptivo del indicador (ej: "Reservas hoy"). */
+  title: string;
+  /** Valor principal a destacar (ej: `"24"` o `"820 €"`). */
+  value: string;
+  /** Texto secundario informativo mostrado debajo del valor. */
+  subtitle: string;
+  /**
+   * Variante visual opcional que colorea el subtítulo:
+   * - `"positive"` → verde (buen resultado).
+   * - `"warning"`  → amarillo/naranja (requiere atención).
+   * - `undefined`  → color neutro por defecto.
+   */
+  variant?: "positive" | "warning";
+}
+
+/**
+ * Componente KpiCard.
+ * Tarjeta de indicador clave de rendimiento (KPI) usada en el Dashboard
+ * para mostrar métricas del día de forma visual y destacada.
+ *
+ * @param {KpiCardProps} props - Props del componente.
+ * @returns {JSX.Element} Una tarjeta con título, valor principal y subtítulo.
+ */
 function KpiCard({
   title,
   value,
   subtitle,
   variant,
-}: {
-  title: string;
-  value: string;
-  subtitle: string;
-  variant?: "positive" | "warning";
-}) {
+}: KpiCardProps) {
   return (
     <div className="kpi-card">
       <p className="kpi-card__label">{title}</p>
@@ -73,9 +148,24 @@ function KpiCard({
   );
 }
 
+// ---------------------------------------------------------------------------
+// Página principal
+// ---------------------------------------------------------------------------
+
+/**
+ * Página del Dashboard.
+ * Muestra un resumen del estado diario de la plataforma: KPIs,
+ * tabla de próximas reservas y un panel lateral de información rápida.
+ *
+ * @remarks
+ * Actualmente usa datos estáticos (mock). Pendiente de integración con la API.
+ *
+ * @returns {JSX.Element} El panel de resumen del Dashboard.
+ */
 export default function DashboardPage() {
   return (
     <div className="page-stack">
+      {/* Hero: título de sección */}
       <section className="page-hero">
         <div>
           <h2>Dashboard overview</h2>
@@ -87,6 +177,7 @@ export default function DashboardPage() {
         </button>
       </section>
 
+      {/* KPIs del día */}
       <section className="kpi-grid">
         <KpiCard
           title="Reservas hoy"
@@ -104,6 +195,7 @@ export default function DashboardPage() {
         <KpiCard title="Clientes activos" value="214" subtitle="Este mes" />
       </section>
 
+      {/* Grid principal: tabla de reservas + panel lateral */}
       <section className="dashboard-grid">
         <div className="section-card">
           <div className="panel-title-row">
@@ -139,6 +231,7 @@ export default function DashboardPage() {
           </table>
         </div>
 
+        {/* Panel lateral de información contextual */}
         <div className="info-stack">
           <div className="info-box">
             <p className="info-box__eyebrow">Siguiente reserva</p>
