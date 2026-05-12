@@ -1,46 +1,13 @@
-/**
- * Tipos de estado permitidos para las reservas en el Frontend.
- * Tienen que coincidir exactamente con los que espera el Backend.
- */
-export type BookingStatus = "pending" | "confirmed" | "paid";
+import type {
+  Booking,
+  BookingStatus,
+  CreateBookingDto,
+  UpdateBookingDto
+} from "./types";
 
-/**
- * Interfaz que define la estructura del objeto Reserva recuperado de la base de datos.
- */
-export interface Booking {
-  id: number;
-  date: string;
-  time: string;
-  status: BookingStatus;
-  customerId: number;
-  businessId: number;
-  serviceName: string;
-}
-
-/**
- * Estructura de datos necesaria para crear una nueva reserva (POST).
- */
-export interface CreateBookingDto {
-  date: string;
-  time: string;
-  status: BookingStatus;
-  customerId: number;
-  businessId: number;
-  serviceName: string;
-}
-
-/**
- * Estructura de datos opcionales para actualizar una reserva (PATCH).
- * Al usar el símbolo `?`, todos los parámetros son opcionales.
- */
-export interface UpdateBookingDto {
-  date?: string;
-  time?: string;
-  status?: BookingStatus;
-  customerId?: number;
-  businessId?: number;
-  serviceName?: string;
-}
+// Reexportamos los tipos para que el resto de la aplicación 
+// que importa desde lib/api.ts no se rompa y siga funcionando sin cambios.
+export type { Booking, BookingStatus, CreateBookingDto, UpdateBookingDto };
 
 // URL base del backend. Se saca de variables de entorno, o usa el localhost por defecto.
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";

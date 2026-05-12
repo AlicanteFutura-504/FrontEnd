@@ -4,18 +4,18 @@
  */
 
 /**
- * Estados posibles de una cita en el sistema.
+ * Estados posibles de una cita en el sistema.  
  * - `"pending"`   → La reserva está creada pero aún no ha sido confirmada.
  * - `"confirmed"` → El negocio ha confirmado la reserva.
  * - `"paid"`      → La reserva ha sido completada y cobrada.
  */
-export type AppointmentStatus = "pending" | "confirmed" | "paid";
+export type BookingStatus = "pending" | "confirmed" | "paid";
 
 /**
  * Representa una cita/reserva tal como se almacena en la base de datos
  * y se devuelve desde la API del backend.
  */
-export type Appointment = {
+export interface Booking {
   /** Identificador único autoincremental de la cita. */
   id: number;
   /** Fecha de la cita en formato ISO 8601 (ej: `"2026-05-11"`). */
@@ -23,11 +23,36 @@ export type Appointment = {
   /** Hora de la cita en formato `"HH:mm"` (ej: `"10:30"`). */
   time: string;
   /** Estado actual de la cita. */
-  status: AppointmentStatus;
+  status: BookingStatus;
   /** ID del cliente que realizó la reserva. */
   customerId: number;
   /** ID del negocio donde se realiza el servicio. */
   businessId: number;
   /** Nombre descriptivo del servicio reservado. */
   serviceName: string;
-};
+}
+
+/**
+ * Estructura de datos necesaria para crear una nueva reserva (POST).
+ */
+export interface CreateBookingDto {
+  date: string;
+  time: string;
+  status: BookingStatus;
+  customerId: number;
+  businessId: number;
+  serviceName: string;
+}
+
+/**
+ * Estructura de datos opcionales para actualizar una reserva (PATCH).
+ * Al usar el símbolo `?`, todos los parámetros son opcionales.
+ */
+export interface UpdateBookingDto {
+  date?: string;
+  time?: string;
+  status?: BookingStatus;
+  customerId?: number;
+  businessId?: number;
+  serviceName?: string;
+}
