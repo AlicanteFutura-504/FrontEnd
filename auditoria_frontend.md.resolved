@@ -1,0 +1,609 @@
+# DOCUMENTO 1: AUDITORÍA DE FRONTEND
+
+> **Proyecto:** `bookings-frontend`
+> **Stack:** Next.js 16 · React 19 · TypeScript 5 · CSS vanilla
+> **Fecha de auditoría:** 12 de mayo de 2026
+> **Auditor:** Auditor de Software Senior
+
+---
+
+## FALLO F-01 — Conflicto de configuración PostCSS / Tailwind residual
+
+### Ubicación del fallo
+
+- [postcss.config.mjs](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-frontend/postcss.config.mjs) — Línea 3
+- [package.json](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-frontend/package.json) — Líneas 17 y 23
+
+### Descripción del fallo
+
+El proyecto declara en su README que usa **CSS propio** (`globals.css`), y efectivamente toda la interfaz está estilada con CSS vanilla. Sin embargo, existen vestigios de una configuración Tailwind CSS que quedó del scaffolding inicial de Next.js:
+
+1. `postcss.config.mjs` carga el plugin `@tailwindcss/postcss`.
+2. `package.json` incluye `tailwindcss` y `@tailwindcss/postcss` como `devDependencies`.
+
+Esto provoca:
+- **Procesamiento innecesario** de PostCSS en cada compilación (rendimiento degradado en `npm run dev`).
+- **Confusión para el equipo**: ¿se usa Tailwind o no?
+- **Riesgo de conflictos** si alguien añade clases de Tailwind sin darse cuenta de que no están generando estilos reales.
+
+### Solución (Aprendizaje guiado)
+
+**¿Por qué ocurre?** Al crear un proyecto con `create-next-app`, el scaffold ofrece Tailwind como opción. Si se selecciona pero luego se migra a CSS vanilla, los archivos de configuración persisten.
+
+**Paso 1** — Limpiar `postcss.config.mjs`:
+
+```js
+/**
+ * @fileoverview Configuración de PostCSS para el proyecto.
+ * Al no utilizar Tailwind CSS, se deja la lista de plugins vacía
+ * para que Next.js aplique únicamente sus transformaciones internas.
+ * @module postcss.config
+ */
+const config = {
+  plugins: {},
+};
+
+export default config;
+```
+
+**Paso 2** — Eliminar las dependencias residuales:
+
+```bash
+npm uninstall tailwindcss @tailwindcss/postcss
+```
+
+### Relación de dependencia
+
+**Sin impacto directo en el Backend.** Es un problema exclusivo del toolchain de build del frontend. No altera las peticiones HTTP ni los datos enviados/recibidos.
+
+---
+
+## FALLO F-02 — Archivo `.env.local` ausente en el repositorio
+
+### Ubicación del fallo
+
+- Directorio raíz de `bookings-frontend/` — El archivo `.env.local` **no existe** en el sistema de archivos.
+- [lib/api.ts](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-frontend/lib/api.ts) — Línea 13 (lectura de `NEXT_PUBLIC_API_URL`)
+
+### Descripción del fallo
+
+El README del frontend (línea 99-103) documenta que se debe crear un archivo `.env.local` con la variable `NEXT_PUBLIC_API_URL`. Sin embargo, este archivo no existe en el repositorio.
+
+El código en `api.ts` tiene un fallback:
+```ts
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+```
+
+Gracias a este fallback el proyecto funciona en local, pero:
+- **No hay un `.env.local.example`** ni `.env.example` que documente las variables necesarias.
+- Si el backend cambia de puerto, el desarrollador no tiene referencia de qué configurar.
+
+### Solución (Aprendizaje guiado)
+
+**¿Por qué es importante?** En proyectos colaborativos, un archivo `.env.example` (sin valores sensibles) versionado en Git sirve de contrato: documenta qué variables de entorno necesita la aplicación.
+
+**Paso 1** — Crear `.env.local` para uso inmediato:
+
+```env
+# URL base del backend NestJS
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+**Paso 2** — Crear `.env.example` para el repositorio:
+
+```env
+# ============================================================
+# Variables de entorno del Frontend (Next.js)
+# ============================================================
+# Copia este archivo como .env.local y ajusta los valores.
+
+# URL base del backend NestJS (sin barra final)
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+### Relación de dependencia
+
+**Impacto directo en la conexión con el Backend.** Si esta variable no está configurada correctamente, todas las llamadas de `lib/api.ts` fallarán o apuntarán al destino incorrecto.
+
+---
+
+## FALLO F-03 — `deleteAppointment` asume respuesta JSON pero el backend puede devolver vacío
+
+### Ubicación del fallo
+
+- [lib/api.ts](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-frontend/lib/api.ts) — Líneas 84-96
+
+### Descripción del fallo
+
+```ts
+export async function deleteAppointment(id: number): Promise<{ message: string }> {
+  // ...
+  return res.json(); // ← Asume que siempre hay body JSON
+}
+```
+
+El backend (`appointments.service.ts`, línea 107) **sí** devuelve `{ message: "..." }`, por lo que actualmente funciona. Sin embargo, la función no tiene protección: si el backend cambia a devolver un `204 No Content` (estándar REST para DELETE), `res.json()` lanzaría un error de parseo JSON silencioso.
+
+### Solución (Aprendizaje guiado)
+
+**¿Por qué es relevante?** Los endpoints DELETE en APIs RESTful a menudo devuelven `204 No Content` (sin body). El frontend debe ser resiliente ante ambos casos.
+
+```ts
+/**
+ * Solicita la eliminación permanente de una reserva del sistema (DELETE).
+ * Maneja tanto respuestas con body JSON como respuestas vacías (204).
+ *
+ * @param {number} id - El identificador único de la reserva a borrar.
+ * @returns {Promise<{ message: string }>} Mensaje de confirmación del servidor,
+ *   o un mensaje generado localmente si el servidor responde sin body.
+ * @throws {Error} Si la petición HTTP falla (status no-ok).
+ */
+export async function deleteAppointment(
+  id: number
+): Promise<{ message: string }> {
+  const res = await fetch(`${API_URL}/appointments/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al eliminar la reserva");
+  }
+
+  // Algunos backends devuelven 204 sin body
+  const text = await res.text();
+  if (!text) {
+    return { message: `Reserva ${id} eliminada correctamente` };
+  }
+
+  return JSON.parse(text) as { message: string };
+}
+```
+
+### Relación de dependencia
+
+**Impacto directo con el Backend.** Si el backend cambiase `remove()` para devolver `void` en lugar de un objeto JSON, este fallo se manifestaría como un crash en el frontend al parsear la respuesta.
+
+---
+
+## FALLO F-04 — Componentes `KpiCard` y `Badge` duplicados en múltiples páginas
+
+### Ubicación del fallo
+
+- [dashboard/page.tsx](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-frontend/app/%28admin%29/dashboard/page.tsx) — Líneas 30-47 (`KpiCard`) y 25-28 (`Badge`)
+- [payments/page.tsx](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-frontend/app/%28admin%29/payments/page.tsx) — Líneas 30-47 (`KpiCard`) y 49-55 (`Badge`)
+- [BookingsClient.tsx](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-frontend/app/%28admin%29/bookings/BookingsClient.tsx) — Líneas 43-52 (`StatusBadge`)
+
+### Descripción del fallo
+
+Los componentes `KpiCard` y `Badge` están **copiados y pegados** en al menos tres archivos distintos con ligeras variaciones. Esto viola el principio DRY (Don't Repeat Yourself):
+
+- Si se necesita cambiar el diseño de las tarjetas KPI, hay que editar **tres archivos**.
+- Las firmas de tipo (`KpiCardProps`) están redefinidas en cada archivo.
+- El `Badge` del módulo de pagos usa lógica diferente (`"confirmed"` para `"paid"`) que los demás.
+
+### Solución (Aprendizaje guiado)
+
+**¿Por qué importa?** La duplicación de componentes es una fuente común de inconsistencias visuales y bugs. Extraer a `components/ui/` centraliza la lógica.
+
+**Paso 1** — Crear `components/ui/KpiCard.tsx`:
+
+```tsx
+/**
+ * @fileoverview Componente reutilizable de tarjeta KPI.
+ * Muestra un indicador clave de rendimiento con título, valor y subtítulo.
+ * @module components/ui/KpiCard
+ */
+
+/**
+ * Props del componente KpiCard.
+ */
+export interface KpiCardProps {
+  /** Etiqueta descriptiva del indicador (ej: "Reservas hoy"). */
+  title: string;
+  /** Valor principal del indicador (ej: "24"). */
+  value: string;
+  /** Texto secundario con contexto adicional. */
+  subtitle: string;
+  /** Variante de color para el subtítulo. */
+  variant?: "positive" | "warning";
+}
+
+/**
+ * Componente KpiCard.
+ * Renderiza una tarjeta con un indicador clave de rendimiento.
+ *
+ * @param {KpiCardProps} props - Props del componente.
+ * @returns {JSX.Element} Tarjeta KPI estilizada.
+ */
+export default function KpiCard({ title, value, subtitle, variant }: KpiCardProps) {
+  const metaClass = variant === "positive"
+    ? "kpi-card__meta kpi-card__meta--positive"
+    : variant === "warning"
+      ? "kpi-card__meta kpi-card__meta--warning"
+      : "kpi-card__meta";
+
+  return (
+    <div className="kpi-card">
+      <p className="kpi-card__label">{title}</p>
+      <h3 className="kpi-card__value">{value}</h3>
+      <p className={metaClass}>{subtitle}</p>
+    </div>
+  );
+}
+```
+
+**Paso 2** — Crear `components/ui/Badge.tsx`:
+
+```tsx
+/**
+ * @fileoverview Componente reutilizable de badge/etiqueta de estado.
+ * @module components/ui/Badge
+ */
+
+/** Tipo unión de los estados soportados por el badge. */
+export type BadgeStatus = "pending" | "confirmed" | "paid";
+
+/**
+ * Mapa de traducción de estados a etiquetas visibles en español.
+ */
+const STATUS_LABELS: Record<BadgeStatus, string> = {
+  pending: "Pendiente",
+  confirmed: "Confirmada",
+  paid: "Pagada",
+};
+
+/**
+ * Props del componente Badge.
+ */
+interface BadgeProps {
+  /** Estado a representar visualmente. */
+  status: BadgeStatus;
+}
+
+/**
+ * Componente Badge.
+ * Renderiza una etiqueta coloreada según el estado proporcionado.
+ *
+ * @param {BadgeProps} props - Props del componente.
+ * @returns {JSX.Element} Span con la clase CSS correspondiente al estado.
+ */
+export default function Badge({ status }: BadgeProps) {
+  return (
+    <span className={`badge badge--${status}`}>
+      {STATUS_LABELS[status]}
+    </span>
+  );
+}
+```
+
+Luego importar desde cada página: `import KpiCard from "@/components/ui/KpiCard"`.
+
+### Relación de dependencia
+
+**Sin impacto en el Backend.** Es un problema exclusivamente de arquitectura interna del frontend.
+
+---
+
+## FALLO F-05 — Generación frágil de IDs en Customers y Payments
+
+### Ubicación del fallo
+
+- [customers/page.tsx](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-frontend/app/%28admin%29/customers/page.tsx) — Línea 57
+- [payments/page.tsx](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-frontend/app/%28admin%29/payments/page.tsx) — Línea 89
+
+### Descripción del fallo
+
+```ts
+// customers/page.tsx
+const id = `C-00${customers.length + 1}`;
+
+// payments/page.tsx
+const id = `COB-00${payments.length + 1}`;
+```
+
+Problemas:
+1. **Colisión de IDs**: Si se borran elementos y luego se crean nuevos, se generarán IDs duplicados.
+2. **Formato roto con ≥10 elementos**: `C-0010` pierde el formato de 3 dígitos esperado (`C-010`).
+3. **No es persistente**: Al recargar la página se pierden todos los datos añadidos.
+
+### Solución (Aprendizaje guiado)
+
+**¿Por qué ocurre?** Estos módulos usan datos estáticos locales (no conectados al backend). El patrón `length + 1` no garantiza unicidad.
+
+```ts
+/**
+ * Genera un identificador único con un prefijo dado y un sufijo numérico
+ * con padding de ceros de anchura fija.
+ *
+ * @param {string} prefix - Prefijo del ID (ej: "C", "COB").
+ * @param {number} length - Longitud actual del array (referencia, no garantía de unicidad).
+ * @returns {string} ID formateado (ej: "C-004", "COB-012").
+ */
+function generateId(prefix: string, length: number): string {
+  const suffix = (length + 1).toString().padStart(3, "0");
+  return `${prefix}-${suffix}`;
+}
+```
+
+O mejor aún, usar `crypto.randomUUID()` disponible en navegadores modernos:
+
+```ts
+/**
+ * Genera un identificador único basado en UUID v4.
+ * Utiliza la API nativa `crypto.randomUUID()` del navegador.
+ *
+ * @param {string} prefix - Prefijo descriptivo del ID (ej: "C", "COB").
+ * @returns {string} ID único (ej: "C-a1b2c3d4").
+ */
+function generateUniqueId(prefix: string): string {
+  const short = crypto.randomUUID().split("-")[0];
+  return `${prefix}-${short}`;
+}
+```
+
+### Relación de dependencia
+
+**Sin impacto en el Backend actualmente.** Cuando estos módulos se conecten a la API, los IDs serán generados por el servidor (autoincremental de SQLite) y este problema desaparecerá.
+
+---
+
+## FALLO F-06 — Filtros de estado sin indicador visual de selección activa
+
+### Ubicación del fallo
+
+- [BookingsClient.tsx](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-frontend/app/%28admin%29/bookings/BookingsClient.tsx) — Líneas 648-653
+
+### Descripción del fallo
+
+```tsx
+<button type="button" className="filter-pill" onClick={() => setStatusFilter("all")}>Todas</button>
+<button type="button" className="filter-pill" onClick={() => setStatusFilter("pending")}>Pendientes</button>
+```
+
+Los botones de filtro **no muestran cuál está seleccionado**. Todos tienen la misma clase `filter-pill` sin importar si `statusFilter` coincide. Esto es un problema de UX: el usuario no sabe qué filtro está activo.
+
+### Solución (Aprendizaje guiado)
+
+**¿Por qué importa?** Dar feedback visual del estado actual es un principio fundamental de usabilidad (Heurística de Nielsen nº1: Visibilidad del estado del sistema).
+
+**Paso 1** — Añadir clase condicional en los botones:
+
+```tsx
+{/** Botones de filtrado por estado con indicador visual de selección. */}
+<div className="filter-row">
+  {(["all", "pending", "confirmed", "paid"] as const).map((filter) => (
+    <button
+      key={filter}
+      type="button"
+      className={`filter-pill${statusFilter === filter ? " filter-pill--active" : ""}`}
+      onClick={() => setStatusFilter(filter)}
+    >
+      {filter === "all" ? "Todas" :
+       filter === "pending" ? "Pendientes" :
+       filter === "confirmed" ? "Confirmadas" : "Pagadas"}
+    </button>
+  ))}
+</div>
+```
+
+**Paso 2** — Añadir la clase CSS en `globals.css`:
+
+```css
+/** Estilo activo para el botón de filtro seleccionado. */
+.filter-pill--active {
+  background: #eef2ff;
+  color: #1e3a8a;
+  border-color: #c7d2fe;
+  font-weight: 600;
+}
+```
+
+### Relación de dependencia
+
+**Sin impacto en el Backend.** Es un problema puramente visual del frontend.
+
+---
+
+## FALLO F-07 — Tabla de reservas sin estado vacío (`empty state`)
+
+### Ubicación del fallo
+
+- [BookingsClient.tsx](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-frontend/app/%28admin%29/bookings/BookingsClient.tsx) — Líneas 659-695
+
+### Descripción del fallo
+
+Cuando `filteredBookings` está vacío (no hay reservas o el filtro no encuentra coincidencias), la tabla renderiza un `<tbody>` vacío sin ningún mensaje. El usuario solo ve los encabezados de columna, lo cual es confuso.
+
+### Solución (Aprendizaje guiado)
+
+**¿Por qué importa?** Un "empty state" bien diseñado guía al usuario: le dice que no hay datos y le sugiere una acción (ej: crear una reserva).
+
+Añadir después del `</thead>` y dentro del `<tbody>`:
+
+```tsx
+<tbody>
+  {filteredBookings.length === 0 ? (
+    <tr>
+      <td colSpan={8} style={{ textAlign: "center", padding: "2rem", color: "#6b7280" }}>
+        {statusFilter === "all"
+          ? "No hay reservas registradas. Crea una nueva con el botón superior."
+          : `No hay reservas con estado "${statusFilter}".`}
+      </td>
+    </tr>
+  ) : (
+    filteredBookings.map((booking) => (
+      /* ...filas existentes... */
+    ))
+  )}
+</tbody>
+```
+
+### Relación de dependencia
+
+**Relación indirecta con el Backend.** Si el backend devuelve un array vacío (`[]`), este es el comportamiento que verá el usuario. Un empty state bien diseñado evita que piense que algo está roto.
+
+---
+
+## FALLO F-08 — `AppModule` del backend no registra `AppController` / `AppService` pero existen archivos
+
+### Ubicación del fallo
+
+> **Nota:** Aunque los archivos están en el backend, este fallo se detecta desde el frontend porque la ruta `GET /` colisiona con el endpoint raíz.
+
+- [app.module.ts](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-backend/backend/src/app.module.ts) — Líneas 5-16
+- [app.controller.ts](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-backend/backend/src/app.controller.ts) y [app.service.ts](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-backend/backend/src/app.service.ts)
+
+### Descripción del fallo
+
+Los archivos `app.controller.ts` y `app.service.ts` existen en el repositorio pero **no están registrados** en el `@Module` de `AppModule`. Esto significa que la ruta `GET /` que define `AppController` no se registra nunca, y los archivos son código muerto.
+
+### Solución (Aprendizaje guiado)
+
+Tiene dos caminos: registrarlos o eliminarlos. Dado que el proyecto no necesita un endpoint `GET /` (el frontend es independiente), lo correcto es **eliminar los archivos muertos**:
+
+```bash
+rm src/app.controller.ts src/app.controller.spec.ts src/app.service.ts
+```
+
+### Relación de dependencia
+
+**Sin impacto funcional actualmente** porque los archivos no se cargan. Sin embargo, si alguien los registra en el módulo en el futuro, `GET /` devolvería `"Hello World!"` en lugar de un 404, lo cual sería confuso al hacer peticiones desde el frontend.
+
+---
+
+## FALLO F-09 — El `tsconfig.json` del frontend usa `"jsx": "react-jsx"` en lugar de `"preserve"`
+
+### Ubicación del fallo
+
+- [tsconfig.json](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-frontend/tsconfig.json) — Línea 14
+
+### Descripción del fallo
+
+```json
+"jsx": "react-jsx"
+```
+
+En proyectos Next.js, la compilación de JSX la gestiona el compilador de Next.js (SWC/Turbopack), no TypeScript directamente. La configuración recomendada por Next.js es `"jsx": "preserve"`, que delega la transformación al framework.
+
+Con `"react-jsx"`, TypeScript intenta transformar el JSX él mismo, lo cual puede causar **conflictos con las optimizaciones de SWC** y warnings durante el build de producción.
+
+### Solución (Aprendizaje guiado)
+
+**¿Por qué `preserve`?** Next.js usa su propio compilador (SWC) que es mucho más rápido que `tsc`. Al poner `preserve`, le decimos a TypeScript: "solo comprueba los tipos, no transformes el JSX". La transformación real la hará SWC.
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "preserve"
+  }
+}
+```
+
+> [!NOTE]
+> Este cambio no afecta al autocompletado ni al chequeo de tipos en el IDE; solo cambia quién transforma el JSX en la compilación final.
+
+### Relación de dependencia
+
+**Sin impacto en el Backend.** Es una configuración del toolchain de compilación del frontend.
+
+---
+
+## FALLO F-10 — Falta gestión de errores en la carga inicial (Server Component)
+
+### Ubicación del fallo
+
+- [bookings/page.tsx](file:///e:/Alicante%20Futura/BootCamp-Alicante-Futura-504/bookings-frontend/app/%28admin%29/bookings/page.tsx) — Líneas 21-25
+
+### Descripción del fallo
+
+```ts
+export default async function BookingsPage() {
+  const bookings = await getAppointments();
+  return <BookingsClient initialBookings={bookings} />;
+}
+```
+
+Si `getAppointments()` lanza un error (backend caído, red no disponible), **la página entera rompe** con un error de servidor no controlado. No hay `try/catch` ni `error.tsx` boundary.
+
+### Solución (Aprendizaje guiado)
+
+**¿Por qué importa?** En Server Components, un throw no capturado durante el render produce un error 500 en toda la página. Next.js permite crear un `error.tsx` como boundary.
+
+**Opción A** — `try/catch` con fallback:
+
+```tsx
+/**
+ * Página de gestión de reservas (Server Component).
+ * Obtiene las reservas del backend y las pasa al componente cliente.
+ * Si la API falla, renderiza el componente con un array vacío
+ * para que el usuario vea un estado vacío en lugar de un error 500.
+ *
+ * @async
+ * @returns {Promise<JSX.Element>} Componente cliente con las reservas iniciales.
+ */
+export default async function BookingsPage() {
+  let bookings: Booking[] = [];
+
+  try {
+    bookings = await getAppointments();
+  } catch (error) {
+    console.error("Error al cargar reservas desde el servidor:", error);
+  }
+
+  return <BookingsClient initialBookings={bookings} />;
+}
+```
+
+**Opción B** — Crear `app/(admin)/bookings/error.tsx`:
+
+```tsx
+"use client";
+
+/**
+ * Error boundary para la sección de bookings.
+ * Se renderiza automáticamente por Next.js cuando el Server Component falla.
+ *
+ * @param {object} props - Props inyectadas por Next.js.
+ * @param {Error} props.error - Error capturado.
+ * @param {() => void} props.reset - Función para reintentar el render.
+ * @returns {JSX.Element} Pantalla de error con opción de reintento.
+ */
+export default function BookingsError({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
+  return (
+    <div className="page-stack" style={{ padding: "2rem", textAlign: "center" }}>
+      <h2>Error al cargar las reservas</h2>
+      <p style={{ color: "#6b7280" }}>{error.message}</p>
+      <button className="primary-btn" onClick={reset}>
+        Reintentar
+      </button>
+    </div>
+  );
+}
+```
+
+### Relación de dependencia
+
+**Impacto directo con el Backend.** Este fallo se manifiesta precisamente cuando el backend no está disponible. La solución permite que el frontend degrade gracefully en lugar de romper completamente.
+
+---
+
+## Resumen de fallos del Frontend
+
+| ID | Severidad | Archivo principal | Estado |
+|----|-----------|-------------------|--------|
+| F-01 | 🟡 Media | `postcss.config.mjs` | Pendiente |
+| F-02 | 🟡 Media | `.env.local` (ausente) | Pendiente |
+| F-03 | 🟠 Alta | `lib/api.ts` | Pendiente |
+| F-04 | 🟡 Media | `dashboard/page.tsx`, `payments/page.tsx` | Pendiente |
+| F-05 | 🟢 Baja | `customers/page.tsx`, `payments/page.tsx` | Pendiente |
+| F-06 | 🟡 Media | `BookingsClient.tsx` | Pendiente |
+| F-07 | 🟡 Media | `BookingsClient.tsx` | Pendiente |
+| F-08 | 🟢 Baja | Backend `app.controller.ts` (código muerto) | Pendiente |
+| F-09 | 🟢 Baja | `tsconfig.json` | Pendiente |
+| F-10 | 🔴 Crítica | `bookings/page.tsx` | Pendiente |
