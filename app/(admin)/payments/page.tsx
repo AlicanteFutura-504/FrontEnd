@@ -1,161 +1,52 @@
+"use client";
+
 /**
  * @fileoverview Página del módulo de Payments (cobros).
- * Muestra KPIs de facturación del día y una tabla con el historial de cobros.
- * Los datos son estáticos (mock) pendientes de integración con la API de pagos.
+ * Transformada en Client Component para permitir la interactividad local.
  * @module app/(admin)/payments/page
  */
 
-// ---------------------------------------------------------------------------
-// Tipos locales
-// ---------------------------------------------------------------------------
+import { useState, useMemo } from "react";
 
-/**
- * Estados posibles de un cobro en el sistema.
- * - `"pending"` → El cobro está pendiente de realizarse.
- * - `"paid"`    → El cobro ya ha sido completado.
- */
 type PaymentStatus = "pending" | "paid";
 
-/**
- * Representa un registro de cobro en la tabla de pagos.
- */
 type Payment = {
-  /** Identificador legible del cobro (ej: `"COB-001"`). */
   id: string;
-  /** Nombre completo del cliente que realiza el pago. */
   client: string;
-  /** Nombre del negocio receptor del pago. */
   business: string;
-  /** Importe del cobro formateado como cadena (ej: `"28 €"`). */
   amount: string;
-  /** Método de pago utilizado (ej: `"Tarjeta"`, `"Bizum"`, `"Efectivo"`). */
   method: string;
-  /** Fecha del cobro en formato `"DD/MM/AAAA"`. */
   date: string;
-  /** Estado actual del cobro. */
   status: PaymentStatus;
 };
 
-// ---------------------------------------------------------------------------
-// Datos mock (pendiente de conexión con la API)
-// ---------------------------------------------------------------------------
-
-/**
- * Lista estática de cobros de ejemplo para la tabla de pagos.
- * @todo Reemplazar por una llamada real a la API de pagos cuando esté disponible.
- */
-const payments: Payment[] = [
-  {
-    id: "COB-001",
-    client: "María López",
-    business: "Peluquería Nova",
-    amount: "28 €",
-    method: "Tarjeta",
-    date: "15/04/2026",
-    status: "paid",
-  },
-  {
-    id: "COB-002",
-    client: "Carlos Pérez",
-    business: "Restaurante Marea",
-    amount: "80 €",
-    method: "Pendiente",
-    date: "15/04/2026",
-    status: "pending",
-  },
-  {
-    id: "COB-003",
-    client: "Lucía Sánchez",
-    business: "Barber Studio",
-    amount: "18 €",
-    method: "Bizum",
-    date: "15/04/2026",
-    status: "paid",
-  },
-  {
-    id: "COB-004",
-    client: "Pedro Ruiz",
-    business: "Peluquería Nova",
-    amount: "45 €",
-    method: "Efectivo",
-    date: "16/04/2026",
-    status: "paid",
-  },
+const initialPayments: Payment[] = [
+  { id: "COB-001", client: "María López", business: "Peluquería Nova", amount: "28", method: "Tarjeta", date: "15/04/2026", status: "paid" },
+  { id: "COB-002", client: "Carlos Pérez", business: "Restaurante Marea", amount: "80", method: "Pendiente", date: "15/04/2026", status: "pending" },
+  { id: "COB-003", client: "Lucía Sánchez", business: "Barber Studio", amount: "18", method: "Bizum", date: "15/04/2026", status: "paid" },
+  { id: "COB-004", client: "Pedro Ruiz", business: "Peluquería Nova", amount: "45", method: "Efectivo", date: "16/04/2026", status: "paid" },
 ];
 
-// ---------------------------------------------------------------------------
-// Subcomponentes internos
-// ---------------------------------------------------------------------------
-
-/**
- * Props del componente `KpiCard`.
- */
 interface KpiCardProps {
-  /** Título descriptivo del indicador (ej: "Cobrado hoy"). */
   title: string;
-  /** Valor principal a destacar (ej: `"171 €"` o `"84%"`). */
   value: string;
-  /** Texto secundario informativo mostrado debajo del valor. */
   subtitle: string;
-  /**
-   * Variante visual opcional que colorea el subtítulo:
-   * - `"positive"` → verde (buen resultado).
-   * - `"warning"`  → amarillo/naranja (requiere atención).
-   * - `undefined`  → color neutro por defecto.
-   */
   variant?: "positive" | "warning";
 }
 
-/**
- * Componente KpiCard.
- * Tarjeta de indicador clave de rendimiento (KPI) para el módulo de Payments.
- * Muestra una métrica financiera con título, valor y subtítulo opcionales.
- *
- * @param {KpiCardProps} props - Props del componente.
- * @returns {JSX.Element} Una tarjeta con el indicador financiero.
- */
-function KpiCard({
-  title,
-  value,
-  subtitle,
-  variant,
-}: KpiCardProps) {
+function KpiCard({ title, value, subtitle, variant }: KpiCardProps) {
   return (
     <div className="kpi-card">
       <p className="kpi-card__label">{title}</p>
       <h3 className="kpi-card__value">{value}</h3>
-      <p
-        className={`kpi-card__meta ${
-          variant === "positive"
-            ? "kpi-card__meta--positive"
-            : variant === "warning"
-              ? "kpi-card__meta--warning"
-              : ""
-        }`}
-      >
+      <p className={`kpi-card__meta ${variant === "positive" ? "kpi-card__meta--positive" : variant === "warning" ? "kpi-card__meta--warning" : ""}`}>
         {subtitle}
       </p>
     </div>
   );
 }
 
-/**
- * Props del componente `Badge`.
- */
-interface BadgeProps {
-  /** Estado del cobro a representar visualmente. */
-  status: PaymentStatus;
-}
-
-/**
- * Componente Badge.
- * Renderiza una etiqueta visual coloreada según el estado del cobro.
- * Mapea `"pending"` → clase `badge--pending` y `"paid"` → clase `badge--confirmed`.
- *
- * @param {BadgeProps} props - Props del componente.
- * @returns {JSX.Element} Un `<span>` con la clase CSS y el texto de estado.
- */
-function Badge({ status }: BadgeProps) {
+function Badge({ status }: { status: PaymentStatus }) {
   return (
     <span className={`badge badge--${status === "pending" ? "pending" : "confirmed"}`}>
       {status === "pending" ? "Por cobrar" : "Pagado"}
@@ -163,62 +54,96 @@ function Badge({ status }: BadgeProps) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Página principal
-// ---------------------------------------------------------------------------
-
-/**
- * Página del módulo de Payments (cobros).
- * Muestra KPIs de facturación del día y una tabla con el histórico de cobros,
- * con indicación visual del estado de cada operación.
- *
- * @remarks
- * Actualmente usa datos estáticos (mock). Pendiente de integración con la API de pagos.
- *
- * @returns {JSX.Element} El panel completo del módulo de cobros.
- */
 export default function PaymentsPage() {
+  const [payments, setPayments] = useState<Payment[]>(initialPayments);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const [newPayment, setNewPayment] = useState({ client: "", business: "", amount: "", method: "Tarjeta", status: "paid" as PaymentStatus });
+
+  // Cálculos dinámicos para los KPIs
+  const kpis = useMemo(() => {
+    let cobrado = 0;
+    let pendiente = 0;
+    let pagadosCount = 0;
+    let pendientesCount = 0;
+    
+    payments.forEach(p => {
+      const val = parseFloat(p.amount) || 0;
+      if (p.status === "paid") {
+        cobrado += val;
+        pagadosCount++;
+      } else {
+        pendiente += val;
+        pendientesCount++;
+      }
+    });
+
+    const conversion = payments.length > 0 ? Math.round((pagadosCount / payments.length) * 100) : 0;
+
+    return { cobrado, pendiente, pagadosCount, pendientesCount, conversion };
+  }, [payments]);
+
+  function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    const date = new Date().toLocaleDateString("es-ES");
+    const id = `COB-00${payments.length + 1}`;
+    setPayments([{ ...newPayment, id, date, amount: newPayment.amount }, ...payments]);
+    setIsModalOpen(false);
+    setNewPayment({ client: "", business: "", amount: "", method: "Tarjeta", status: "paid" });
+  }
+
   return (
     <div className="page-stack">
-      {/* Hero: título de sección + botón de acción principal */}
       <section className="page-hero">
         <div>
           <h2>Payments</h2>
           <p>Seguimiento de cobros realizados y pendientes.</p>
         </div>
-
-        <button className="primary-btn" type="button">
+        <button className="primary-btn" type="button" onClick={() => setIsModalOpen(true)}>
           Registrar cobro
         </button>
       </section>
 
-      {/* KPIs de facturación */}
+      {isModalOpen && (
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false) }}>
+          <div className="modal-card">
+            <h3 className="modal-title" style={{ marginBottom: 16 }}>Registrar nuevo cobro</h3>
+            <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <input required className="input" placeholder="Cliente" value={newPayment.client} onChange={e => setNewPayment({...newPayment, client: e.target.value})} />
+              <input required className="input" placeholder="Comercio" value={newPayment.business} onChange={e => setNewPayment({...newPayment, business: e.target.value})} />
+              <input required type="number" min="0" step="0.01" className="input" placeholder="Importe (€)" value={newPayment.amount} onChange={e => setNewPayment({...newPayment, amount: e.target.value})} />
+              <select className="select" value={newPayment.method} onChange={e => setNewPayment({...newPayment, method: e.target.value})}>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Bizum">Bizum</option>
+                <option value="Transferencia">Transferencia</option>
+                <option value="Pendiente">Pendiente</option>
+              </select>
+              <select className="select" value={newPayment.status} onChange={e => setNewPayment({...newPayment, status: e.target.value as PaymentStatus})}>
+                <option value="paid">Pagado</option>
+                <option value="pending">Por cobrar</option>
+              </select>
+              <div className="modal-actions" style={{ marginTop: 8 }}>
+                <button type="button" className="secondary-btn" onClick={() => setIsModalOpen(false)}>Cancelar</button>
+                <button type="submit" className="primary-btn">Guardar cobro</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <section className="kpi-grid">
-        <KpiCard
-          title="Cobrado hoy"
-          value="171 €"
-          subtitle="4 operaciones registradas"
-          variant="positive"
-        />
-        <KpiCard
-          title="Pendiente"
-          value="80 €"
-          subtitle="1 cobro por revisar"
-          variant="warning"
-        />
+        <KpiCard title="Cobrado hoy" value={`${kpis.cobrado} €`} subtitle={`${kpis.pagadosCount} operaciones registradas`} variant="positive" />
+        <KpiCard title="Pendiente" value={`${kpis.pendiente} €`} subtitle={`${kpis.pendientesCount} cobros por revisar`} variant="warning" />
         <KpiCard title="Método más usado" value="Tarjeta" subtitle="Mayor volumen del día" />
-        <KpiCard title="Conversión" value="84%" subtitle="Cobros cerrados hoy" />
+        <KpiCard title="Conversión" value={`${kpis.conversion}%`} subtitle="Cobros cerrados hoy" />
       </section>
 
-      {/* Tabla de cobros */}
       <section className="section-card">
         <div className="panel-title-row">
           <h3 className="panel-title">Listado de cobros</h3>
-          <span style={{ color: "#6b7280", fontSize: 14 }}>
-            {payments.length} resultados
-          </span>
+          <span style={{ color: "#6b7280", fontSize: 14 }}>{payments.length} resultados</span>
         </div>
-
         <table className="data-table">
           <thead>
             <tr>
@@ -237,12 +162,10 @@ export default function PaymentsPage() {
                 <td style={{ fontWeight: 600 }}>{payment.id}</td>
                 <td>{payment.client}</td>
                 <td>{payment.business}</td>
-                <td>{payment.amount}</td>
+                <td>{payment.amount} €</td>
                 <td>{payment.method}</td>
                 <td>{payment.date}</td>
-                <td>
-                  <Badge status={payment.status} />
-                </td>
+                <td><Badge status={payment.status} /></td>
               </tr>
             ))}
           </tbody>
