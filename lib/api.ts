@@ -10,7 +10,7 @@ import type {
 export type { Booking, BookingStatus, CreateBookingDto, UpdateBookingDto };
 
 // URL base del backend. Se saca de variables de entorno, o usa el localhost por defecto.
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 /**
  * Solicita todas las reservas al servidor backend.
@@ -22,7 +22,9 @@ export async function getAppointments(): Promise<Booking[]> {
   });
 
   if (!res.ok) {
-    throw new Error("Error al obtener las reservas");
+    const errorText = await res.text().catch(() => "No se pudo leer la respuesta");
+    console.error("fetch a", `${API_URL}/appointments`, "falló con status:", res.status, errorText);
+    throw new Error(`Error al obtener las reservas (Status: ${res.status}): ${errorText}`);
   }
 
   return res.json();
