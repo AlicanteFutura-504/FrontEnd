@@ -56,3 +56,50 @@ export interface UpdateBookingDto {
   businessId?: number;
   serviceName?: string;
 }
+
+/**
+ * Estados posibles de un pago en el sistema.
+ */
+export type PaymentStatus = "pagado" | "pendiente";
+
+/**
+ * Tipos/métodos de pago posibles.
+ */
+export type PaymentTypeEnum = "tarjeta" | "efectivo" | "bizum" | "transferencia" | "pendiente";
+
+/**
+ * Representa un pago tal como se almacena en la base de datos.
+ */
+export interface Payment {
+  id: number;
+  status: PaymentStatus;
+  type: PaymentTypeEnum;
+  clientName: string;
+  businessName: string;
+  amount: number;
+  date?: string;
+}
+
+/**
+ * Estructura de datos necesaria para crear un pago (POST).
+ */
+export interface CreatePaymentDtoReq {
+  status: PaymentStatus;
+  type: PaymentTypeEnum;
+  clientName: string;
+  businessName: string;
+  amount: number;
+  date?: string;
+}
+
+/**
+ * Estructura de datos opcionales para actualizar un pago (PATCH).
+ */
+export interface UpdatePaymentDtoReq {
+  status?: PaymentStatus;
+  type?: PaymentTypeEnum;
+  clientName?: string;
+  businessName?: string;
+  amount?: number;
+  date?: string;
+}
