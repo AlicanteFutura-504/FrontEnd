@@ -2,49 +2,61 @@
 
 /**
  * @fileoverview Página del directorio de clientes.
- * Transformada en Client Component para dar interactividad a los botones.
+ * Conectada al backend mediante la API para persistir los datos.
  * @module app/(admin)/customers/page
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { getCustomers, createCustomer } from "@/lib/api";
+import type { Customer, CreateCustomerDto } from "@/lib/api";
 
-// Datos iniciales
-const initialCustomers = [
-  { id: "C-001", name: "María López", phone: "600 123 456", email: "maria@email.com", business: "Peluquería Nova", nextBooking: "Hoy · 09:00" },
-  { id: "C-002", name: "Carlos Pérez", phone: "611 456 789", email: "carlos@email.com", business: "Restaurante Marea", nextBooking: "Hoy · 10:30" },
-  { id: "C-003", name: "Lucía Sánchez", phone: "622 987 654", email: "lucia@email.com", business: "Barber Studio", nextBooking: "Mañana · 12:00" },
-];
-
-function CustomerCard({ customer }: { customer: typeof initialCustomers[0] }) {
+function CustomerCard({ customer }: { customer: Customer }) {
   return (
     <div className="customer-card">
       <p className="customer-name">{customer.name}</p>
       <p className="customer-meta">{customer.phone}</p>
       <p className="customer-meta">{customer.email}</p>
-      <div className="customer-tag">{customer.business}</div>
+      {customer.notes && (
+        <div className="customer-tag">{customer.notes}</div>
+      )}
       <div className="customer-next">
-        <strong>Próxima reserva:</strong> {customer.nextBooking}
+        <strong>Registrado:</strong> {customer.createdAt}
       </div>
     </div>
   );
 }
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState(initialCustomers);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // Estado del nuevo cliente
-  const [newCustomer, setNewCustomer] = useState({ name: "", phone: "", email: "", business: "" });
+  const [saving, setSaving] = useState(false);
+
+  const [newCustomer, setNewCustomer] = useState<CreateCustomerDto>({
+    name: "",
+    phone: "",
+    email: "",
+    notes: "",
+  });
+
+  // Carga los clientes desde el backend al montar la página
+  useEffect(() => {
+    getCustomers()
+      .then(setCustomers)
+      .catch(() => setError("No se pudieron cargar los clientes."))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredCustomers = useMemo(() => {
     if (!appliedSearch) return customers;
     const lower = appliedSearch.toLowerCase();
-    return customers.filter(c => 
-      c.name.toLowerCase().includes(lower) || 
-      c.business.toLowerCase().includes(lower) ||
-      c.email.toLowerCase().includes(lower)
+    return customers.filter(
+      (c) =>
+        c.name.toLowerCase().includes(lower) ||
+        c.email.toLowerCase().includes(lower)
     );
   }, [customers, appliedSearch]);
 
@@ -52,12 +64,19 @@ export default function CustomersPage() {
     setAppliedSearch(searchTerm);
   }
 
-  function handleCreate(e: React.FormEvent) {
+  async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    const id = `C-00${customers.length + 1}`;
-    setCustomers([{ ...newCustomer, id, nextBooking: "Sin reservas" }, ...customers]);
-    setIsModalOpen(false);
-    setNewCustomer({ name: "", phone: "", email: "", business: "" });
+    setSaving(true);
+    try {
+      const created = await createCustomer(newCustomer);
+      setCustomers([created, ...customers]);
+      setIsModalOpen(false);
+      setNewCustomer({ name: "", phone: "", email: "", notes: "" });
+    } catch {
+      alert("Error al guardar el cliente. Comprueba que el email no esté repetido.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -73,18 +92,60 @@ export default function CustomersPage() {
       </section>
 
       {isModalOpen && (
-        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false) }}>
+        <div
+          className="modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsModalOpen(false);
+          }}
+        >
           <div className="modal-card">
-            <h3 className="modal-title" style={{ marginBottom: 16 }}>Crear nuevo cliente</h3>
-            <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input required className="input" placeholder="Nombre completo" value={newCustomer.name} onChange={e => setNewCustomer({...newCustomer, name: e.target.value})} />
-              <input required className="input" placeholder="Teléfono" value={newCustomer.phone} onChange={e => setNewCustomer({...newCustomer, phone: e.target.value})} />
-              <input required type="email" className="input" placeholder="Email" value={newCustomer.email} onChange={e => setNewCustomer({...newCustomer, email: e.target.value})} />
-              <input required className="input" placeholder="Negocio" value={newCustomer.business} onChange={e => setNewCustomer({...newCustomer, business: e.target.value})} />
-              
+            <h3 className="modal-title" style={{ marginBottom: 16 }}>
+              Crear nuevo cliente
+            </h3>
+            <form
+              onSubmit={handleCreate}
+              style={{ display: "flex", flexDirection: "column", gap: 12 }}
+            >
+              <input
+                required
+                className="input"
+                placeholder="Nombre completo"
+                value={newCustomer.name}
+                onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+              />
+              <input
+                required
+                className="input"
+                placeholder="Teléfono"
+                value={newCustomer.phone}
+                onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+              />
+              <input
+                required
+                type="email"
+                className="input"
+                placeholder="Email"
+                value={newCustomer.email}
+                onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+              />
+              <input
+                className="input"
+                placeholder="Notas (opcional)"
+                value={newCustomer.notes ?? ""}
+                onChange={(e) => setNewCustomer({ ...newCustomer, notes: e.target.value })}
+              />
+
               <div className="modal-actions" style={{ marginTop: 8 }}>
-                <button type="button" className="secondary-btn" onClick={() => setIsModalOpen(false)}>Cancelar</button>
-                <button type="submit" className="primary-btn">Guardar cliente</button>
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="primary-btn" disabled={saving}>
+                  {saving ? "Guardando..." : "Guardar cliente"}
+                </button>
               </div>
             </form>
           </div>
@@ -93,12 +154,12 @@ export default function CustomersPage() {
 
       <section className="section-card">
         <div className="search-row">
-          <input 
-            className="input" 
-            placeholder="Buscar por nombre, email o negocio..." 
+          <input
+            className="input"
+            placeholder="Buscar por nombre o email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleFilter()}
+            onKeyDown={(e) => e.key === "Enter" && handleFilter()}
           />
           <button className="secondary-btn" type="button" onClick={handleFilter}>
             Filtrar
@@ -107,13 +168,25 @@ export default function CustomersPage() {
       </section>
 
       <section className="customer-grid">
-        {filteredCustomers.length > 0 ? (
+        {loading && (
+          <p style={{ color: "#6b7280", gridColumn: "1 / -1", textAlign: "center", padding: "2rem" }}>
+            Cargando clientes...
+          </p>
+        )}
+        {error && (
+          <p style={{ color: "red", gridColumn: "1 / -1", textAlign: "center", padding: "2rem" }}>
+            {error}
+          </p>
+        )}
+        {!loading && filteredCustomers.length > 0 &&
           filteredCustomers.map((customer) => (
             <CustomerCard key={customer.id} customer={customer} />
-          ))
-        ) : (
+          ))}
+        {!loading && !error && filteredCustomers.length === 0 && (
           <p style={{ color: "#6b7280", gridColumn: "1 / -1", textAlign: "center", padding: "2rem" }}>
-            No se encontraron clientes con "{appliedSearch}"
+            {appliedSearch
+              ? `No se encontraron clientes con "${appliedSearch}"`
+              : "No hay clientes registrados todavía."}
           </p>
         )}
       </section>

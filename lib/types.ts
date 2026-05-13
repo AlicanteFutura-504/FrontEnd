@@ -1,40 +1,109 @@
-/**
- * @fileoverview Definición de tipos compartidos para el módulo de citas/reservas.
- * @module lib/types
- */
+// ─── ENUMS / STATUS ────────────────────────────────────────────────────────────
 
-/**
- * Estados posibles de una cita en el sistema.  
- * - `"pending"`   → La reserva está creada pero aún no ha sido confirmada.
- * - `"confirmed"` → El negocio ha confirmado la reserva.
- * - `"paid"`      → La reserva ha sido completada y cobrada.
- */
-export type BookingStatus = "pending" | "confirmed" | "paid";
+export type BookingStatus = 'pending' | 'confirmed' | 'paid';
+export type PaymentStatus = 'pending' | 'confirmed' | 'paid';
 
-/**
- * Representa una cita/reserva tal como se almacena en la base de datos
- * y se devuelve desde la API del backend.
- */
-export interface Booking {
-  /** Identificador único autoincremental de la cita. */
+// ─── CUSTOMER ──────────────────────────────────────────────────────────────────
+
+export interface Customer {
   id: number;
-  /** Fecha de la cita en formato ISO 8601 (ej: `"2026-05-11"`). */
-  date: string;
-  /** Hora de la cita en formato `"HH:mm"` (ej: `"10:30"`). */
-  time: string;
-  /** Estado actual de la cita. */
-  status: BookingStatus;
-  /** ID del cliente que realizó la reserva. */
-  customerId: number;
-  /** ID del negocio donde se realiza el servicio. */
+  name: string;
+  email: string;
+  phone: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface CreateCustomerDto {
+  name: string;
+  email: string;
+  phone: string;
+  notes?: string;
+}
+
+export interface UpdateCustomerDto extends Partial<CreateCustomerDto> {}
+
+// ─── BUSINESS ──────────────────────────────────────────────────────────────────
+
+export interface Business {
+  id: number;
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  openTime: string;
+  closeTime: string;
+}
+
+export interface CreateBusinessDto {
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  openTime?: string;
+  closeTime?: string;
+}
+
+export interface UpdateBusinessDto extends Partial<CreateBusinessDto> {}
+
+// ─── SERVICE ───────────────────────────────────────────────────────────────────
+
+export interface Service {
+  id: number;
+  name: string;
+  description?: string;
+  price: number;
+  durationMinutes: number;
   businessId: number;
-  /** Nombre descriptivo del servicio reservado. */
+  isActive: boolean;
+}
+
+export interface CreateServiceDto {
+  name: string;
+  description?: string;
+  price: number;
+  durationMinutes: number;
+  businessId: number;
+  isActive?: boolean;
+}
+
+export interface UpdateServiceDto extends Partial<CreateServiceDto> {}
+
+// ─── EMPLOYEE ──────────────────────────────────────────────────────────────────
+
+export interface Employee {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  specialty?: string;
+  businessId: number;
+  isActive: boolean;
+}
+
+export interface CreateEmployeeDto {
+  name: string;
+  email: string;
+  phone: string;
+  specialty?: string;
+  businessId: number;
+  isActive?: boolean;
+}
+
+export interface UpdateEmployeeDto extends Partial<CreateEmployeeDto> {}
+
+// ─── BOOKING (APPOINTMENT) ─────────────────────────────────────────────────────
+
+export interface Booking {
+  id: number;
+  date: string;
+  time: string;
+  status: BookingStatus;
+  customerId: number;
+  businessId: number;
   serviceName: string;
 }
 
-/**
- * Estructura de datos necesaria para crear una nueva reserva (POST).
- */
 export interface CreateBookingDto {
   date: string;
   time: string;
@@ -44,15 +113,27 @@ export interface CreateBookingDto {
   serviceName: string;
 }
 
-/**
- * Estructura de datos opcionales para actualizar una reserva (PATCH).
- * Al usar el símbolo `?`, todos los parámetros son opcionales.
- */
-export interface UpdateBookingDto {
-  date?: string;
-  time?: string;
-  status?: BookingStatus;
-  customerId?: number;
-  businessId?: number;
-  serviceName?: string;
+export interface UpdateBookingDto extends Partial<CreateBookingDto> {}
+
+// ─── PAYMENT ───────────────────────────────────────────────────────────────────
+
+export interface Payment {
+  id: number;
+  date: string;
+  time: string;
+  status: PaymentStatus;
+  customerId: number;
+  businessId: number;
+  serviceName: string;
 }
+
+export interface CreatePaymentDto {
+  date: string;
+  time: string;
+  status: PaymentStatus;
+  customerId: number;
+  businessId: number;
+  serviceName: string;
+}
+
+export interface UpdatePaymentDto extends Partial<CreatePaymentDto> {}
