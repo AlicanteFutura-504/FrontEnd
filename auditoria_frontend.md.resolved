@@ -604,6 +604,6 @@ export default function BookingsError({
 | F-05 | 🟢 Baja | `customers/page.tsx`, `payments/page.tsx` | Pendiente |
 | F-06 | 🟡 Media | `BookingsClient.tsx` | Pendiente |
 | F-07 | 🟡 Media | `BookingsClient.tsx` | Pendiente |
-| F-08 | 🟢 Baja | Backend `app.controller.ts` (código muerto) | Pendiente |
+| F-08 | 🟢 Baja | Backend `app.controller.ts` (código muerto) | ✅ Resuelto |
 | F-09 | 🟢 Baja | `tsconfig.json` | Pendiente |
 | F-10 | 🔴 Crítica | `bookings/page.tsx` | Pendiente |
