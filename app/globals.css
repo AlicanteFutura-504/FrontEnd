@@ -494,10 +494,12 @@ body {
 .customer-tag {
   width: fit-content;
   margin-top: 12px;
-  background: #f1f5f9;
+  background: var(--surface-2);
+  color: var(--text);
   padding: 6px 10px;
   border-radius: 10px;
   font-size: 13px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .customer-next {
