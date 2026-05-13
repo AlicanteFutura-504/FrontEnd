@@ -7,6 +7,8 @@
  */
 
 import { useState, useMemo } from "react";
+import KpiCard from "@/components/ui/KpiCard";
+import Badge from "@/components/ui/Badge";
 
 type PaymentStatus = "pending" | "paid";
 
@@ -27,32 +29,7 @@ const initialPayments: Payment[] = [
   { id: "COB-004", client: "Pedro Ruiz", business: "Peluquería Nova", amount: "45", method: "Efectivo", date: "16/04/2026", status: "paid" },
 ];
 
-interface KpiCardProps {
-  title: string;
-  value: string;
-  subtitle: string;
-  variant?: "positive" | "warning";
-}
 
-function KpiCard({ title, value, subtitle, variant }: KpiCardProps) {
-  return (
-    <div className="kpi-card">
-      <p className="kpi-card__label">{title}</p>
-      <h3 className="kpi-card__value">{value}</h3>
-      <p className={`kpi-card__meta ${variant === "positive" ? "kpi-card__meta--positive" : variant === "warning" ? "kpi-card__meta--warning" : ""}`}>
-        {subtitle}
-      </p>
-    </div>
-  );
-}
-
-function Badge({ status }: { status: PaymentStatus }) {
-  return (
-    <span className={`badge badge--${status === "pending" ? "pending" : "confirmed"}`}>
-      {status === "pending" ? "Por cobrar" : "Pagado"}
-    </span>
-  );
-}
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>(initialPayments);
@@ -86,7 +63,7 @@ export default function PaymentsPage() {
   function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     const date = new Date().toLocaleDateString("es-ES");
-    const id = `COB-00${payments.length + 1}`;
+    const id = `COB-${crypto.randomUUID().split("-")[0]}`;
     setPayments([{ ...newPayment, id, date, amount: newPayment.amount }, ...payments]);
     setIsModalOpen(false);
     setNewPayment({ client: "", business: "", amount: "", method: "Tarjeta", status: "paid" });
@@ -165,7 +142,7 @@ export default function PaymentsPage() {
                 <td>{payment.amount} €</td>
                 <td>{payment.method}</td>
                 <td>{payment.date}</td>
-                <td><Badge status={payment.status} /></td>
+                <td><Badge status={payment.status} label={payment.status === "pending" ? "Por cobrar" : "Pagado"} /></td>
               </tr>
             ))}
           </tbody>

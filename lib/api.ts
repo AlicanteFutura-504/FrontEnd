@@ -92,5 +92,10 @@ export async function deleteAppointment(
     throw new Error("Error al eliminar la reserva");
   }
 
-  return res.json();
+  const text = await res.text();
+  if (!text) {
+    return { message: `Reserva ${id} eliminada correctamente` };
+  }
+
+  return JSON.parse(text) as { message: string };
 }

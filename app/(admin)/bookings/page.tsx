@@ -6,7 +6,7 @@
  */
 
 import BookingsClient from "./BookingsClient";
-import { getAppointments } from "@/lib/api";
+import { getAppointments, type Booking } from "@/lib/api";
 
 /**
  * Página de gestión de reservas.
@@ -19,8 +19,13 @@ import { getAppointments } from "@/lib/api";
  *   hidratado con la lista de reservas obtenida del backend.
  */
 export default async function BookingsPage() {
-  /** Lista de reservas obtenida del backend en el momento del render del servidor. */
-  const bookings = await getAppointments();
+  let bookings: Booking[] = [];
+
+  try {
+    bookings = await getAppointments();
+  } catch (error) {
+    console.error("Error al cargar reservas desde el servidor:", error);
+  }
 
   return <BookingsClient initialBookings={bookings} />;
 }

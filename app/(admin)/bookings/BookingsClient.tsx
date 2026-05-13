@@ -8,6 +8,7 @@
  */
 
 import { useMemo, useState } from "react";
+import Badge from "@/components/ui/Badge";
 import type {
   Booking,
   BookingStatus,
@@ -24,32 +25,7 @@ import {
 // Subcomponentes internos
 // ---------------------------------------------------------------------------
 
-/**
- * Props del componente `StatusBadge`.
- */
-interface StatusBadgeProps {
-  /** Estado actual de la reserva. */
-  status: BookingStatus;
-}
 
-/**
- * Componente StatusBadge.
- * Renderiza una etiqueta visual coloreada según el estado de la reserva.
- * Utiliza clases CSS con el patrón BEM `badge--{status}`.
- *
- * @param {StatusBadgeProps} props - Props del componente.
- * @returns {JSX.Element} Un `<span>` con la etiqueta de estado traducida al español.
- */
-function StatusBadge({ status }: StatusBadgeProps) {
-  const label =
-    status === "pending"
-      ? "Pendiente"
-      : status === "confirmed"
-        ? "Confirmada"
-        : "Pagada";
-
-  return <span className={`badge badge--${status}`}>{label}</span>;
-}
 
 /**
  * Formatea una cadena de fecha ISO al formato `DD/MM/AAAA` en español.
@@ -646,10 +622,18 @@ export default function BookingsClient({
         <div className="panel-title-row">
           <h3 className="panel-title">Reservas registradas</h3>
           <div className="filter-row">
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("all")}>Todas</button>
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("pending")}>Pendientes</button>
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("confirmed")}>Confirmadas</button>
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("paid")}>Pagadas</button>
+            {(["all", "pending", "confirmed", "paid"] as const).map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                className={`filter-pill${statusFilter === filter ? " filter-pill--active" : ""}`}
+                onClick={() => setStatusFilter(filter)}
+              >
+                {filter === "all" ? "Todas" :
+                 filter === "pending" ? "Pendientes" :
+                 filter === "confirmed" ? "Confirmadas" : "Pagadas"}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -670,27 +654,37 @@ export default function BookingsClient({
             </tr>
           </thead>
           <tbody>
-            {filteredBookings.map((booking) => (
-              <tr key={booking.id}>
-                <td style={{ fontWeight: 600 }}>{booking.id}</td>
-                <td>{formatDate(booking.date)}</td>
-                <td>{booking.time}</td>
-                <td>{booking.serviceName}</td>
-                <td>{booking.customerId}</td>
-                <td>{booking.businessId}</td>
-                <td><StatusBadge status={booking.status} /></td>
-                <td>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button type="button" className="secondary-btn" onClick={() => openEditForm(booking)}>
-                      Editar
-                    </button>
-                    <button type="button" className="secondary-btn" onClick={() => openDeleteModal(booking.id)}>
-                      Eliminar
-                    </button>
-                  </div>
+            {filteredBookings.length === 0 ? (
+              <tr>
+                <td colSpan={8} style={{ textAlign: "center", padding: "2rem", color: "#6b7280" }}>
+                  {statusFilter === "all"
+                    ? "No hay reservas registradas. Crea una nueva con el botón superior."
+                    : `No hay reservas con estado "${statusFilter}".`}
                 </td>
               </tr>
-            ))}
+            ) : (
+              filteredBookings.map((booking) => (
+                <tr key={booking.id}>
+                  <td style={{ fontWeight: 600 }}>{booking.id}</td>
+                  <td>{formatDate(booking.date)}</td>
+                  <td>{booking.time}</td>
+                  <td>{booking.serviceName}</td>
+                  <td>{booking.customerId}</td>
+                  <td>{booking.businessId}</td>
+                  <td><Badge status={booking.status} /></td>
+                  <td>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button type="button" className="secondary-btn" onClick={() => openEditForm(booking)}>
+                        Editar
+                      </button>
+                      <button type="button" className="secondary-btn" onClick={() => openDeleteModal(booking.id)}>
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </section>

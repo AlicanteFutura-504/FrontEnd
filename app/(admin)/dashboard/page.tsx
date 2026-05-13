@@ -6,6 +6,9 @@
  * @module app/(admin)/dashboard/page
  */
 
+import KpiCard from "@/components/ui/KpiCard";
+import Badge from "@/components/ui/Badge";
+
 type DashboardBookingStatus = "pending" | "confirmed" | "paid";
 
 type DashboardBooking = {
@@ -22,29 +25,7 @@ const bookings: DashboardBooking[] = [
   { time: "12:00", client: "Lucía Sánchez", business: "Barber Studio", service: "Corte caballero", status: "paid" },
 ];
 
-function Badge({ status }: { status: DashboardBookingStatus }) {
-  const label = status === "pending" ? "Pendiente" : status === "confirmed" ? "Confirmada" : "Pagada";
-  return <span className={`badge badge--${status}`}>{label}</span>;
-}
 
-interface KpiCardProps {
-  title: string;
-  value: string;
-  subtitle: string;
-  variant?: "positive" | "warning";
-}
-
-function KpiCard({ title, value, subtitle, variant }: KpiCardProps) {
-  return (
-    <div className="kpi-card">
-      <p className="kpi-card__label">{title}</p>
-      <h3 className="kpi-card__value">{value}</h3>
-      <p className={`kpi-card__meta ${variant === "positive" ? "kpi-card__meta--positive" : variant === "warning" ? "kpi-card__meta--warning" : ""}`}>
-        {subtitle}
-      </p>
-    </div>
-  );
-}
 
 export default function DashboardPage() {
   function handleExport() {

@@ -54,7 +54,7 @@ export default function CustomersPage() {
 
   function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    const id = `C-00${customers.length + 1}`;
+    const id = `C-${crypto.randomUUID().split("-")[0]}`;
     setCustomers([{ ...newCustomer, id, nextBooking: "Sin reservas" }, ...customers]);
     setIsModalOpen(false);
     setNewCustomer({ name: "", phone: "", email: "", business: "" });
