@@ -33,93 +33,73 @@ export default function SettingsPage() {
           Elige entre el tema claro u oscuro para la interfaz de administración.
         </p>
 
-        <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-          {/* Opción Modo Claro */}
-          <button
-            type="button"
-            onClick={() => handleToggle(false)}
-            style={{
-              flex: "1",
-              minWidth: "200px",
-              padding: "20px",
-              borderRadius: "16px",
-              border: `2px solid ${!isDarkMode && mounted ? "var(--accent)" : "var(--border)"}`,
-              background: "var(--surface)",
-              color: "var(--text)",
-              textAlign: "left",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-              transition: "all 0.2s ease",
-              boxShadow: !isDarkMode && mounted ? "0 4px 12px rgba(37, 99, 235, 0.15)" : "none",
-            }}
-          >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "20px",
+            borderRadius: "18px",
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
+            transition: "all 0.3s ease",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <div
               style={{
-                width: "42px",
-                height: "42px",
-                borderRadius: "12px",
-                background: !isDarkMode && mounted ? "var(--primary-soft)" : "var(--surface-2)",
-                color: !isDarkMode && mounted ? "var(--accent)" : "var(--muted)",
+                width: "46px",
+                height: "46px",
+                borderRadius: "14px",
+                background: mounted && isDarkMode ? "var(--primary-soft)" : "#f1f5f9",
+                color: mounted && isDarkMode ? "var(--accent)" : "#f59e0b",
                 display: "grid",
                 placeItems: "center",
-                fontSize: "20px",
-                transition: "all 0.2s ease",
+                fontSize: "22px",
+                transition: "all 0.3s ease",
               }}
             >
-              ☀️
+              {mounted && isDarkMode ? "🌙" : "☀️"}
             </div>
             <div>
-              <p style={{ margin: 0, fontWeight: 600, fontSize: "15px" }}>Modo Claro</p>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: "16px" }}>
+                {mounted && isDarkMode ? "Modo Oscuro Activado" : "Modo Claro Activado"}
+              </p>
               <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: "13px" }}>
-                Aspecto diurno y brillante
+                Ajusta el contraste y los colores de la interfaz
               </p>
             </div>
-          </button>
+          </div>
 
-          {/* Opción Modo Oscuro */}
           <button
             type="button"
-            onClick={() => handleToggle(true)}
+            role="switch"
+            aria-checked={mounted ? isDarkMode : false}
+            onClick={() => handleToggle(!isDarkMode)}
             style={{
-              flex: "1",
-              minWidth: "200px",
-              padding: "20px",
-              borderRadius: "16px",
-              border: `2px solid ${isDarkMode && mounted ? "var(--accent)" : "var(--border)"}`,
-              background: "var(--surface)",
-              color: "var(--text)",
-              textAlign: "left",
+              width: "56px",
+              height: "32px",
+              borderRadius: "999px",
+              background: mounted && isDarkMode ? "var(--accent)" : "var(--muted-2)",
+              border: "none",
+              padding: "4px",
               cursor: "pointer",
+              transition: "background-color 0.3s ease",
               display: "flex",
               alignItems: "center",
-              gap: "16px",
-              transition: "all 0.2s ease",
-              boxShadow: isDarkMode && mounted ? "0 4px 12px rgba(37, 99, 235, 0.15)" : "none",
             }}
           >
             <div
               style={{
-                width: "42px",
-                height: "42px",
-                borderRadius: "12px",
-                background: isDarkMode && mounted ? "var(--primary-soft)" : "var(--surface-2)",
-                color: isDarkMode && mounted ? "var(--accent)" : "var(--muted)",
-                display: "grid",
-                placeItems: "center",
-                fontSize: "20px",
-                transition: "all 0.2s ease",
+                width: "24px",
+                height: "24px",
+                borderRadius: "999px",
+                background: "#ffffff",
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                transform: mounted && isDarkMode ? "translateX(24px)" : "translateX(0)",
               }}
-            >
-              🌙
-            </div>
-            <div>
-              <p style={{ margin: 0, fontWeight: 600, fontSize: "15px" }}>Modo Oscuro</p>
-              <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: "13px" }}>
-                Ideal para entornos con poca luz
-              </p>
-            </div>
+            />
           </button>
         </div>
       </section>
