@@ -30,7 +30,7 @@ const menuItems: MenuItem[] = [
   { label: "Bookings", href: "/bookings", icon: "☰" },
   { label: "Customers", href: "/customers", icon: "◎" },
   { label: "Payments", href: "/payments", icon: "◌" },
-  { label: "Ajustes", href: "/settings", icon: "⚙" },
+  { label: "Settings", href: "/settings", icon: "⚙" },
 ];
 
 /**
