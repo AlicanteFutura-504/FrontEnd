@@ -27,48 +27,33 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="section-card">
-        <h3 style={{ margin: "0 0 6px", fontSize: "18px", fontWeight: 700 }}>Apariencia</h3>
-        <p style={{ margin: "0 0 24px", color: "var(--muted)", fontSize: "14px" }}>
-          Elige entre el tema claro u oscuro para la interfaz de administración.
-        </p>
-
+      <section className="section-card" style={{ padding: "16px 20px" }}>
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "20px",
-            borderRadius: "18px",
-            background: "var(--surface-2)",
-            border: "1px solid var(--border)",
-            transition: "all 0.3s ease",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div
               style={{
-                width: "46px",
-                height: "46px",
-                borderRadius: "14px",
+                width: "36px",
+                height: "36px",
+                borderRadius: "10px",
                 background: mounted && isDarkMode ? "var(--primary-soft)" : "#f1f5f9",
                 color: mounted && isDarkMode ? "var(--accent)" : "#f59e0b",
                 display: "grid",
                 placeItems: "center",
-                fontSize: "22px",
+                fontSize: "18px",
                 transition: "all 0.3s ease",
               }}
             >
               {mounted && isDarkMode ? "🌙" : "☀️"}
             </div>
-            <div>
-              <p style={{ margin: 0, fontWeight: 600, fontSize: "16px" }}>
-                {mounted && isDarkMode ? "Modo Oscuro Activado" : "Modo Claro Activado"}
-              </p>
-              <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: "13px" }}>
-                Ajusta el contraste y los colores de la interfaz
-              </p>
-            </div>
+            <p style={{ margin: 0, fontWeight: 600, fontSize: "15px" }}>
+              Modo Oscuro
+            </p>
           </div>
 
           <button
@@ -77,12 +62,12 @@ export default function SettingsPage() {
             aria-checked={mounted ? isDarkMode : false}
             onClick={() => handleToggle(!isDarkMode)}
             style={{
-              width: "56px",
-              height: "32px",
+              width: "46px",
+              height: "26px",
               borderRadius: "999px",
               background: mounted && isDarkMode ? "var(--accent)" : "var(--muted-2)",
               border: "none",
-              padding: "4px",
+              padding: "3px",
               cursor: "pointer",
               transition: "background-color 0.3s ease",
               display: "flex",
@@ -91,13 +76,13 @@ export default function SettingsPage() {
           >
             <div
               style={{
-                width: "24px",
-                height: "24px",
+                width: "20px",
+                height: "20px",
                 borderRadius: "999px",
                 background: "#ffffff",
                 boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                 transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                transform: mounted && isDarkMode ? "translateX(24px)" : "translateX(0)",
+                transform: mounted && isDarkMode ? "translateX(20px)" : "translateX(0)",
               }}
             />
           </button>
