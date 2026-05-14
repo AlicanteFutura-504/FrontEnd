@@ -21,7 +21,7 @@
   --radius-sm: 12px;
   --radius-md: 18px;
   --radius-lg: 24px;
-  --sidebar-width: 248px;
+  --sidebar-width: 200px;
 }
 
 :root[data-theme="dark"] {
@@ -89,7 +89,7 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
-  transition: width 0.5s ease, background-color 0.5s ease, border-color 0.5s ease;
+  transition: width 0.85s ease, background-color 0.85s ease, border-color 0.85s ease;
 }
 
 .sidebar-toggle {
@@ -106,8 +106,8 @@ body {
 
 .sidebar-toggle .arrow {
   display: inline-block;
-  transition: transform 0.3s ease-in-out;
-  transform: rotate(180deg);
+  transition: transform 0.85s ease-in-out;
+  transform: rotate(540deg);
 }
 
 .admin-sidebar--collapsed .admin-sidebar__link span:nth-child(2) {
@@ -127,7 +127,7 @@ body {
 .admin-sidebar--collapsed {
   width: 65px;
   overflow: hidden;
-  transition: width 0.5s ease;
+  transition: width 0.85s ease;
 }
 
 /* Esconder título y subtítulo */
@@ -763,6 +763,7 @@ body {
     opacity: 0;
     transform: translateY(20px) scale(0.97);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -935,6 +936,7 @@ body {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
