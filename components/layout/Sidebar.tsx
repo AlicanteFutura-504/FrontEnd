@@ -8,6 +8,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 /**
  * Definición de un elemento del menú de navegación.
@@ -42,12 +43,14 @@ const menuItems: MenuItem[] = [
  * @returns {JSX.Element} La barra lateral con el logo y los enlaces de navegación.
  */
 export default function Sidebar() {
+  const [collapsed, setCollapsed] = useState(false);
   /** Pathname de la URL actualmente activa en el navegador. */
   const pathname = usePathname();
 
   return (
-    <aside className="admin-sidebar">
+    <aside className={`admin-sidebar ${collapsed ? 'admin-sidebar--collapsed' : ''}`}>
       <div className="admin-sidebar__brand">
+        <button className="sidebar-toggle" onClick={() => setCollapsed(!collapsed)} aria-label="Toggle sidebar" style={{ marginBottom: "12px", background: "none", border: "none", cursor: "pointer", color: "var(--text)" }}>☰</button>
         <h2 className="admin-sidebar__title">BookFlow</h2>
         <p className="admin-sidebar__subtitle">Admin workspace</p>
       </div>

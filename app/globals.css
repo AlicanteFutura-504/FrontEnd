@@ -89,7 +89,32 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition: width 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.sidebar-toggle {
+  font-size: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.admin-sidebar--collapsed {
+  width: 0;
+  overflow: hidden;
+  transition: width 0.3s ease;
+}
+
+/* Esconder título y subtítulo */
+.admin-sidebar--collapsed .admin-sidebar__title,
+.admin-sidebar--collapsed .admin-sidebar__subtitle {
+  display: none;
+}
+
+/* adjust link layout */
+.admin-sidebar--collapsed .admin-sidebar__link {
+  justify-content: center;
 }
 
 .admin-sidebar__brand {
@@ -524,6 +549,7 @@ body {
 }
 
 @media (max-width: 1200px) {
+
   .kpi-grid,
   .customer-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
