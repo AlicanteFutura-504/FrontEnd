@@ -110,10 +110,6 @@ body {
   transform: rotate(180deg);
 }
 
-.admin-sidebar__link span:first-child {
-  font-size: 14px;
-}
-
 .admin-sidebar--collapsed .admin-sidebar__link span:nth-child(2) {
   display: none;
 }
