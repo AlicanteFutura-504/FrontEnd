@@ -6,16 +6,10 @@
  * @module app/(admin)/customers/page
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { getCustomers, createCustomer, Customer } from "@/lib/api";
 
-// Datos iniciales
-const initialCustomers = [
-  { id: "C-001", name: "María López", phone: "600 123 456", email: "maria@email.com", business: "Peluquería Nova", nextBooking: "Hoy · 09:00" },
-  { id: "C-002", name: "Carlos Pérez", phone: "611 456 789", email: "carlos@email.com", business: "Restaurante Marea", nextBooking: "Hoy · 10:30" },
-  { id: "C-003", name: "Lucía Sánchez", phone: "622 987 654", email: "lucia@email.com", business: "Barber Studio", nextBooking: "Mañana · 12:00" },
-];
-
-function CustomerCard({ customer }: { customer: typeof initialCustomers[0] }) {
+function CustomerCard({ customer }: { customer: any }) {
   return (
     <div className="customer-card">
       <p className="customer-name">{customer.name}</p>
@@ -30,13 +24,32 @@ function CustomerCard({ customer }: { customer: typeof initialCustomers[0] }) {
 }
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState(initialCustomers);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   // Estado del nuevo cliente
   const [newCustomer, setNewCustomer] = useState({ name: "", phone: "", email: "", business: "" });
+
+  useEffect(() => {
+    async function loadCustomers() {
+      try {
+        const data = await getCustomers();
+        const mapped = data.map((c: Customer) => ({
+          id: `C-${c.id}`,
+          name: c.name,
+          phone: c.phone || "Sin teléfono",
+          email: c.email || "Sin email",
+          business: "Cliente registrado",
+          nextBooking: "Consultar reservas",
+        }));
+        setCustomers(mapped);
+      } catch (err) {} finally { setLoading(false); }
+    }
+    loadCustomers();
+  }, []);
 
   const filteredCustomers = useMemo(() => {
     if (!appliedSearch) return customers;
@@ -52,12 +65,28 @@ export default function CustomersPage() {
     setAppliedSearch(searchTerm);
   }
 
-  function handleCreate(e: React.FormEvent) {
+  async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    const id = `C-${crypto.randomUUID().split("-")[0]}`;
-    setCustomers([{ ...newCustomer, id, nextBooking: "Sin reservas" }, ...customers]);
-    setIsModalOpen(false);
-    setNewCustomer({ name: "", phone: "", email: "", business: "" });
+    try {
+      const created = await createCustomer({
+        name: newCustomer.name,
+        phone: newCustomer.phone,
+        email: newCustomer.email
+      });
+      const mapped = {
+        id: `C-${created.id}`,
+        name: created.name,
+        phone: created.phone || "Sin teléfono",
+        email: created.email || "Sin email",
+        business: newCustomer.business,
+        nextBooking: "Sin reservas"
+      };
+      setCustomers([mapped, ...customers]);
+      setIsModalOpen(false);
+      setNewCustomer({ name: "", phone: "", email: "", business: "" });
+    } catch (err) {
+      console.error("Error al crear cliente:", err);
+    }
   }
 
   return (

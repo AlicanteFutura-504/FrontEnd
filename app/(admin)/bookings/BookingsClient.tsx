@@ -7,7 +7,7 @@
  * @module app/(admin)/bookings/BookingsClient
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Badge from "@/components/ui/Badge";
 import type {
   Booking,
@@ -19,6 +19,7 @@ import {
   createAppointment,
   deleteAppointment,
   updateAppointment,
+  getAppointments
 } from "@/lib/api";
 
 // ---------------------------------------------------------------------------
@@ -77,8 +78,18 @@ interface BookingsClientProps {
 export default function BookingsClient({
   initialBookings,
 }: BookingsClientProps) {
-  /** Lista reactiva de reservas; se actualiza optimistamente tras cada operación CRUD. */
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
+
+  // FETCH INICIAL DESDE CLIENTE (Para usar el Token de localStorage)
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const data = await getAppointments();
+        setBookings(data);
+      } catch (err) {}
+    }
+    loadData();
+  }, []);
 
   /** Valores en blanco usados para resetear los formularios. */
   const emptyForm: CreateBookingDto = {

@@ -99,7 +99,24 @@ export interface UpdatePaymentDtoReq {
   status?: PaymentStatus;
   type?: PaymentTypeEnum;
   clientName?: string;
-  businessName?: string;
   amount?: number;
   date?: string;
+}
+
+export interface Business {
+  id: number;
+  nombre: string;
+  usuarioId?: number;
+}
+
+export interface Customer {
+  id: number;
+  name: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface User {
+  id: number;
+  nombre: string;
 }

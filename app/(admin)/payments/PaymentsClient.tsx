@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { Payment, PaymentStatus, PaymentTypeEnum, CreatePaymentDtoReq, UpdatePaymentDtoReq } from "@/lib/api";
-import { createPayment, updatePayment, deletePayment } from "@/lib/api";
+import { createPayment, updatePayment, deletePayment, getAppointments, getPayments } from "@/lib/api";
 import KpiCard from "@/components/ui/KpiCard";
 import Badge from "@/components/ui/Badge";
 import type { BadgeStatus } from "@/components/ui/Badge";
@@ -41,6 +41,16 @@ export default function PaymentsClient({ initialPayments }: PaymentsClientProps)
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const data = await getPayments();
+        setPayments(data);
+      } catch (err) {}
+    }
+    loadData();
+  }, []);
   
   const emptyForm: CreatePaymentDtoReq = { 
     clientName: "", 
@@ -79,7 +89,6 @@ export default function PaymentsClient({ initialPayments }: PaymentsClientProps)
     setEditingId(payment.id);
     setEditForm({
       clientName: payment.clientName,
-      businessName: payment.businessName,
       amount: payment.amount,
       type: payment.type,
       status: payment.status,
@@ -224,7 +233,7 @@ export default function PaymentsClient({ initialPayments }: PaymentsClientProps)
           <form onSubmit={handleEdit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
               <input required className="input" placeholder="Cliente" value={editForm.clientName || ""} onChange={e => setEditForm({...editForm, clientName: e.target.value})} />
-              <input required className="input" placeholder="Comercio" value={editForm.businessName || ""} onChange={e => setEditForm({...editForm, businessName: e.target.value})} />
+              <input required className="input" placeholder="Comercio" value={(editForm as any).businessName || ""} onChange={e => setEditForm({...editForm, businessName: e.target.value} as any)} />
               <input required type="number" min="0" step="0.01" className="input" placeholder="Importe (€)" value={editForm.amount || ""} onChange={e => setEditForm({...editForm, amount: Number(e.target.value)})} />
               <select className="select" value={editForm.type || ""} onChange={e => setEditForm({...editForm, type: e.target.value as PaymentTypeEnum})}>
                 <option value="">Seleccionar método</option>
