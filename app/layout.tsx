@@ -7,6 +7,7 @@
 
 import "./globals.css";
 import type { Metadata } from "next";
+import Script from "next/script";
 
 /**
  * Metadatos SEO de la aplicación, consumidos automáticamente por Next.js
@@ -34,7 +35,9 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
-        <script
+        <Script
+          id="theme-initializer"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               try {

@@ -2,12 +2,20 @@ import type {
   Booking,
   BookingStatus,
   CreateBookingDto,
-  UpdateBookingDto
+  UpdateBookingDto,
+  Payment,
+  PaymentStatus,
+  PaymentTypeEnum,
+  CreatePaymentDtoReq,
+  UpdatePaymentDtoReq
 } from "./types";
 
 // Reexportamos los tipos para que el resto de la aplicación 
 // que importa desde lib/api.ts no se rompa y siga funcionando sin cambios.
-export type { Booking, BookingStatus, CreateBookingDto, UpdateBookingDto };
+export type {
+  Booking, BookingStatus, CreateBookingDto, UpdateBookingDto,
+  Payment, PaymentStatus, PaymentTypeEnum, CreatePaymentDtoReq, UpdatePaymentDtoReq
+};
 
 // URL base del backend. Se saca de variables de entorno, o usa el localhost por defecto.
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -98,4 +106,152 @@ export async function deleteAppointment(
   }
 
   return JSON.parse(text) as { message: string };
+}
+
+/**
+ * Solicita todos los pagos al servidor backend.
+ */
+export async function getPayments(): Promise<Payment[]> {
+  const res = await fetch(`${API_URL}/payments`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "No se pudo leer la respuesta");
+    throw new Error(`Error al obtener los pagos (Status: ${res.status}): ${errorText}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Crea un nuevo pago en el servidor (POST).
+ */
+export async function createPayment(data: CreatePaymentDtoReq): Promise<Payment> {
+  const res = await fetch(`${API_URL}/payments`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al crear el pago");
+  }
+
+  return res.json();
+}
+
+/**
+ * Modifica un pago existente (PATCH).
+ */
+export async function updatePayment(
+  id: number,
+  data: UpdatePaymentDtoReq
+): Promise<Payment> {
+  const res = await fetch(`${API_URL}/payments/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al editar el pago");
+  }
+
+  return res.json();
+}
+
+/**
+ * Elimina un pago del sistema (DELETE).
+ */
+export async function deletePayment(
+  id: number
+): Promise<{ message: string }> {
+  const res = await fetch(`${API_URL}/payments/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al eliminar el pago");
+  }
+
+  return res.json();
+}
+
+/**
+ * Solicita todos los pagos al servidor backend.
+ */
+export async function getPayments(): Promise<Payment[]> {
+  const res = await fetch(`${API_URL}/payments`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "No se pudo leer la respuesta");
+    throw new Error(`Error al obtener los pagos (Status: ${res.status}): ${errorText}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Crea un nuevo pago en el servidor (POST).
+ */
+export async function createPayment(data: CreatePaymentDtoReq): Promise<Payment> {
+  const res = await fetch(`${API_URL}/payments`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al crear el pago");
+  }
+
+  return res.json();
+}
+
+/**
+ * Modifica un pago existente (PATCH).
+ */
+export async function updatePayment(
+  id: number,
+  data: UpdatePaymentDtoReq
+): Promise<Payment> {
+  const res = await fetch(`${API_URL}/payments/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al editar el pago");
+  }
+
+  return res.json();
+}
+
+/**
+ * Elimina un pago del sistema (DELETE).
+ */
+export async function deletePayment(
+  id: number
+): Promise<{ message: string }> {
+  const res = await fetch(`${API_URL}/payments/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al eliminar el pago");
+  }
+
+  return res.json();
 }
