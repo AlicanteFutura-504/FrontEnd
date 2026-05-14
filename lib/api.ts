@@ -187,3 +187,64 @@ export async function deletePayment(
 
   return JSON.parse(text) as { message: string };
 }
+
+/**
+ * Crea un nuevo usuario en la base de datos a través del backend (POST).
+ */
+export async function createUsuario(nombre: string, contrasena: string): Promise<any> {
+  const res = await fetch(`${API_URL}/usuarios`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ nombre, contrasena }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "Error desconocido al crear usuario");
+    throw new Error(errorText);
+  }
+
+  return res.json();
+}
+
+/**
+ * Autentica un usuario verificando sus credenciales contra el backend (POST /usuarios/login).
+ */
+export async function loginUsuario(nombre: string, contrasena: string): Promise<any> {
+  const res = await fetch(`${API_URL}/usuarios/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ nombre, contrasena }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "Credenciales incorrectas");
+    throw new Error("Nombre de usuario o contraseña incorrectos");
+  }
+
+  return res.json();
+}
+
+/**
+ * Crea una nueva empresa en el backend (POST /business).
+ */
+export async function createBusiness(nombre: string, contrasena: string, usuarioId: number): Promise<any> {
+  const res = await fetch(`${API_URL}/business`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ nombre, contrasena, usuarioId }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "Error desconocido al crear empresa");
+    throw new Error(errorText);
+  }
+
+  return res.json();
+}
+
