@@ -3,36 +3,18 @@
 import { useState, useMemo } from "react";
 import type { Payment, PaymentStatus, PaymentTypeEnum, CreatePaymentDtoReq, UpdatePaymentDtoReq } from "@/lib/api";
 import { createPayment, updatePayment, deletePayment } from "@/lib/api";
+import KpiCard from "@/components/ui/KpiCard";
+import Badge from "@/components/ui/Badge";
+import type { BadgeStatus } from "@/components/ui/Badge";
 
 interface PaymentsClientProps {
   initialPayments: Payment[];
 }
 
-interface KpiCardProps {
-  title: string;
-  value: string;
-  subtitle: string;
-  variant?: "positive" | "warning";
-}
-
-function KpiCard({ title, value, subtitle, variant }: KpiCardProps) {
-  return (
-    <div className="kpi-card">
-      <p className="kpi-card__label">{title}</p>
-      <h3 className="kpi-card__value">{value}</h3>
-      <p className={`kpi-card__meta ${variant === "positive" ? "kpi-card__meta--positive" : variant === "warning" ? "kpi-card__meta--warning" : ""}`}>
-        {subtitle}
-      </p>
-    </div>
-  );
-}
-
-function Badge({ status }: { status: PaymentStatus }) {
-  return (
-    <span className={`badge badge--${status === "pendiente" ? "pending" : "confirmed"}`}>
-      {status === "pendiente" ? "Por cobrar" : "Pagado"}
-    </span>
-  );
+/** Convierte el PaymentStatus del backend al BadgeStatus del componente compartido */
+function paymentStatusToBadge(status: PaymentStatus): { badgeStatus: BadgeStatus; label: string } {
+  if (status === "pendiente") return { badgeStatus: "pending", label: "Por cobrar" };
+  return { badgeStatus: "paid", label: "Pagado" };
 }
 
 function formatDate(dateString?: string) {
@@ -342,7 +324,12 @@ export default function PaymentsClient({ initialPayments }: PaymentsClientProps)
                 <td>{payment.amount} €</td>
                 <td>{payment.type}</td>
                 <td>{formatDate(payment.date)}</td>
-                <td><Badge status={payment.status} /></td>
+                <td>
+                  {(() => {
+                    const { badgeStatus, label } = paymentStatusToBadge(payment.status);
+                    return <Badge status={badgeStatus} label={label} />;
+                  })()}
+                </td>
                 <td>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button type="button" className="secondary-btn" onClick={() => openEditForm(payment)}>
