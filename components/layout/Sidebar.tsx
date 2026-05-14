@@ -50,7 +50,7 @@ export default function Sidebar() {
   return (
     <aside className={`admin-sidebar ${collapsed ? 'admin-sidebar--collapsed' : ''}`}>
       <div className="admin-sidebar__brand">
-        <button className="sidebar-toggle" onClick={() => setCollapsed(!collapsed)} aria-label="Toggle sidebar" style={{ marginBottom: "12px", background: "none", border: "none", cursor: "pointer", color: "var(--text)" }}>☰</button>
+        <button className="sidebar-toggle" onClick={() => setCollapsed(!collapsed)} aria-label="Toggle sidebar">☰</button>
         <h2 className="admin-sidebar__title">BookFlow</h2>
         <p className="admin-sidebar__subtitle">Admin workspace</p>
       </div>

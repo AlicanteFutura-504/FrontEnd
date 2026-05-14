@@ -98,7 +98,13 @@ body {
   border: none;
   cursor: pointer;
   color: var(--text);
+  margin-bottom: 12px;
 }
+
+.admin-sidebar--collapsed .admin-sidebar__link span:nth-child(2) {
+  display: none;
+}
+
 
 .admin-sidebar--collapsed {
   width: 0;
