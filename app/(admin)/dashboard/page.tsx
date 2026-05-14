@@ -8,6 +8,7 @@
 
 import KpiCard from "@/components/ui/KpiCard";
 import Badge from "@/components/ui/Badge";
+import Link from "next/link";
 
 type DashboardBookingStatus = "pending" | "confirmed" | "paid";
 
@@ -31,11 +32,11 @@ export default function DashboardPage() {
   function handleExport() {
     const headers = ["Hora", "Cliente", "Comercio", "Servicio", "Estado"];
     const rows = bookings.map(b => [b.time, b.client, b.business, b.service, b.status]);
-    
-    let csvContent = "data:text/csv;charset=utf-8," 
+
+    let csvContent = "data:text/csv;charset=utf-8,"
       + headers.join(",") + "\n"
       + rows.map(e => e.join(",")).join("\n");
-      
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -68,7 +69,7 @@ export default function DashboardPage() {
         <div className="section-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Próximas reservas</h3>
-            <button className="panel-subtle-link" type="button">Ver todas</button>
+            <Link href=".//bookings/">Ver todas</Link>
           </div>
           <table className="data-table">
             <thead>
