@@ -14,5 +14,5 @@ import { redirect } from "next/navigation";
  * @returns {never} Esta función nunca retorna un JSX porque lanza una redirección.
  */
 export default function Home() {
-  redirect("/dashboard");
+  redirect("/login");
 }
