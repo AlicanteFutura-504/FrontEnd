@@ -1,250 +1,216 @@
 import type {
   Booking,
-  BookingStatus,
   CreateBookingDto,
   UpdateBookingDto,
   Payment,
-  PaymentStatus,
-  PaymentTypeEnum,
   CreatePaymentDtoReq,
-  UpdatePaymentDtoReq
+  UpdatePaymentDtoReq,
+  Business,
+  Customer,
+  User,
+  BookingStatus,
+  PaymentStatus,
+  PaymentTypeEnum
 } from "./types";
 
-// Reexportamos los tipos para que el resto de la aplicación 
-// que importa desde lib/api.ts no se rompa y siga funcionando sin cambios.
 export type {
-  Booking, BookingStatus, CreateBookingDto, UpdateBookingDto,
-  Payment, PaymentStatus, PaymentTypeEnum, CreatePaymentDtoReq, UpdatePaymentDtoReq
+  Booking,
+  CreateBookingDto,
+  UpdateBookingDto,
+  Payment,
+  CreatePaymentDtoReq,
+  UpdatePaymentDtoReq,
+  Business,
+  Customer,
+  User,
+  BookingStatus,
+  PaymentStatus,
+  PaymentTypeEnum
 };
 
-// URL base del backend. Se saca de variables de entorno, o usa el localhost por defecto.
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-/**
- * Solicita todas las reservas al servidor backend.
- * @returns {Promise<Booking[]>} Una promesa con el listado (Array) de reservas obtenidas.
- */
-export async function getAppointments(): Promise<Booking[]> {
-  const res = await fetch(`${API_URL}/appointments`, {
-    cache: "no-store", // Evitamos la caché para traer siempre datos recientes
-  });
+// Export refresh triggered to solve build issues
 
-  if (!res.ok) {
-    const errorText = await res.text().catch(() => "No se pudo leer la respuesta");
-    console.error("fetch a", `${API_URL}/appointments`, "falló con status:", res.status, errorText);
-    throw new Error(`Error al obtener las reservas (Status: ${res.status}): ${errorText}`);
+/**
+ * Obtiene los headers necesarios para las peticiones, incluyendo el token de autenticación.
+ */
+function getHeaders(contentType: boolean = true) {
+  const headers: Record<string, string> = {};
+  
+  if (contentType) {
+    headers["Content-Type"] = "application/json";
   }
 
-  return res.json();
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+
+  return headers;
 }
 
 /**
- * Envía una solicitud de creación de una nueva reserva al servidor (POST).
- * @param {CreateBookingDto} data Datos introducidos por el usuario para la reserva.
- * @returns {Promise<Booking>} La reserva recién creada con su nuevo ID.
+ * Maneja las respuestas de la API de forma centralizada.
  */
+async function handleResponse(res: Response) {
+  if (res.status === 401) {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("user");
+      // Redirigir al usuario al login automáticamente cuando su sesión caduque
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+  }
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => "Error desconocido");
+    let errorMessage = `Error (Status: ${res.status})`;
+    try {
+      const errorObj = JSON.parse(errorText);
+      errorMessage = errorObj.message || errorMessage;
+    } catch {
+      errorMessage = errorText || errorMessage;
+    }
+    throw new Error(errorMessage);
+  }
+
+  if (res.status === 204) return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+// --- AUTH ---
+
+export async function loginUsuario(identifier: string, contrasena: string): Promise<{ access_token: string, user: User }> {
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ identifier, contrasena }),
+  });
+  const data = await handleResponse(res);
+  if (data?.access_token && typeof window !== "undefined") {
+    localStorage.setItem("access_token", data.access_token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+  }
+  return data;
+}
+
+export async function registerAdmin(data: { username: string, email: string, contrasena: string, nombreCompleto: string, dni: string }): Promise<User> {
+  const res = await fetch(`${API_URL}/usuarios/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+// --- BUSINESS ---
+
+export async function getBusinesses(): Promise<Business[]> {
+  const res = await fetch(`${API_URL}/business`, { headers: getHeaders() });
+  return handleResponse(res) || [];
+}
+
+export async function createBusiness(data: any): Promise<Business> {
+  const res = await fetch(`${API_URL}/business`, {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteBusiness(id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/business/${id}`, {
+    method: "DELETE",
+    headers: getHeaders(),
+  });
+  return handleResponse(res);
+}
+
+// --- APPOINTMENTS ---
+
+export async function getAppointments(): Promise<Booking[]> {
+  const res = await fetch(`${API_URL}/appointments`, { headers: getHeaders() });
+  return handleResponse(res) || [];
+}
+
 export async function createAppointment(data: CreateBookingDto): Promise<Booking> {
   const res = await fetch(`${API_URL}/appointments`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getHeaders(),
     body: JSON.stringify(data),
   });
-
-  if (!res.ok) {
-    throw new Error("Error al crear la reserva");
-  }
-
-  return res.json();
+  return handleResponse(res);
 }
 
-/**
- * Solicita la modificación de un parámetro o parámetros de una reserva (PATCH).
- * @param {number} id ID numérico de la reserva.
- * @param {UpdateBookingDto} data Los atributos parciales que queremos cambiar (ej: el status).
- * @returns {Promise<Booking>} La reserva después de ser actualizada.
- */
-export async function updateAppointment(
-  id: number,
-  data: UpdateBookingDto
-): Promise<Booking> {
+export async function updateAppointment(id: number, data: UpdateBookingDto): Promise<Booking> {
   const res = await fetch(`${API_URL}/appointments/${id}`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getHeaders(),
     body: JSON.stringify(data),
   });
-
-  if (!res.ok) {
-    throw new Error("Error al editar la reserva");
-  }
-
-  return res.json();
+  return handleResponse(res);
 }
 
-/**
- * Solicita la eliminación permanente de una reserva del sistema (DELETE).
- * @param {number} id El identificador único de la reserva a borrar.
- * @returns {Promise<{message: string}>} Mensaje de confirmación en caso de éxito.
- */
-export async function deleteAppointment(
-  id: number
-): Promise<{ message: string }> {
+export async function deleteAppointment(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/appointments/${id}`, {
     method: "DELETE",
+    headers: getHeaders(),
   });
-
-  if (!res.ok) {
-    throw new Error("Error al eliminar la reserva");
-  }
-
-  const text = await res.text();
-  if (!text) {
-    return { message: `Reserva ${id} eliminada correctamente` };
-  }
-
-  return JSON.parse(text) as { message: string };
+  return handleResponse(res);
 }
 
-/**
- * Solicita todos los pagos al servidor backend.
- */
+// --- PAYMENTS ---
+
 export async function getPayments(): Promise<Payment[]> {
-  const res = await fetch(`${API_URL}/payments`, {
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text().catch(() => "No se pudo leer la respuesta");
-    throw new Error(`Error al obtener los pagos (Status: ${res.status}): ${errorText}`);
-  }
-
-  return res.json();
+  const res = await fetch(`${API_URL}/payments`, { headers: getHeaders() });
+  return handleResponse(res) || [];
 }
 
-/**
- * Crea un nuevo pago en el servidor (POST).
- */
 export async function createPayment(data: CreatePaymentDtoReq): Promise<Payment> {
   const res = await fetch(`${API_URL}/payments`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getHeaders(),
     body: JSON.stringify(data),
   });
-
-  if (!res.ok) {
-    throw new Error("Error al crear el pago");
-  }
-
-  return res.json();
+  return handleResponse(res);
 }
 
-/**
- * Modifica un pago existente (PATCH).
- */
-export async function updatePayment(
-  id: number,
-  data: UpdatePaymentDtoReq
-): Promise<Payment> {
+export async function updatePayment(id: number, data: UpdatePaymentDtoReq): Promise<Payment> {
   const res = await fetch(`${API_URL}/payments/${id}`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getHeaders(),
     body: JSON.stringify(data),
   });
-
-  if (!res.ok) {
-    throw new Error("Error al editar el pago");
-  }
-
-  return res.json();
+  return handleResponse(res);
 }
 
-/**
- * Elimina un pago del sistema (DELETE).
- * Gestiona correctamente las respuestas vacías (204 No Content).
- */
-export async function deletePayment(
-  id: number
-): Promise<{ message: string }> {
+export async function deletePayment(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/payments/${id}`, {
     method: "DELETE",
+    headers: getHeaders(),
   });
-
-  if (!res.ok) {
-    throw new Error("Error al eliminar el pago");
-  }
-
-  const text = await res.text();
-  if (!text) {
-    return { message: `Pago ${id} eliminado correctamente` };
-  }
-
-  return JSON.parse(text) as { message: string };
+  return handleResponse(res);
 }
 
-/**
- * Crea un nuevo usuario en la base de datos a través del backend (POST).
- */
-export async function createUsuario(nombre: string, contrasena: string): Promise<any> {
-  const res = await fetch(`${API_URL}/usuarios`, {
+// --- CUSTOMERS ---
+
+export async function getCustomers(): Promise<Customer[]> {
+  const res = await fetch(`${API_URL}/customers`, { headers: getHeaders() });
+  return handleResponse(res) || [];
+}
+
+export async function createCustomer(data: Partial<Customer>): Promise<Customer> {
+  const res = await fetch(`${API_URL}/customers`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ nombre, contrasena }),
+    headers: getHeaders(),
+    body: JSON.stringify(data),
   });
-
-  if (!res.ok) {
-    const errorText = await res.text().catch(() => "Error desconocido al crear usuario");
-    throw new Error(errorText);
-  }
-
-  return res.json();
+  return handleResponse(res);
 }
-
-/**
- * Autentica un usuario verificando sus credenciales contra el backend (POST /usuarios/login).
- */
-export async function loginUsuario(nombre: string, contrasena: string): Promise<any> {
-  const res = await fetch(`${API_URL}/usuarios/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ nombre, contrasena }),
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text().catch(() => "Credenciales incorrectas");
-    throw new Error("Nombre de usuario o contraseña incorrectos");
-  }
-
-  return res.json();
-}
-
-/**
- * Crea una nueva empresa en el backend (POST /business).
- */
-export async function createBusiness(nombre: string, contrasena: string, usuarioId: number): Promise<any> {
-  const res = await fetch(`${API_URL}/business`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ nombre, contrasena, usuarioId }),
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text().catch(() => "Error desconocido al crear empresa");
-    throw new Error(errorText);
-  }
-
-  return res.json();
-}
-

@@ -89,7 +89,7 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
-  transition: width 0.85s ease, background-color 0.85s ease, border-color 0.85s ease;
+  transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .sidebar-toggle {
@@ -100,14 +100,16 @@ body {
   border: none;
   cursor: pointer;
   color: var(--text);
-  margin-bottom: 12px;
-  align-self: flex-end;
 }
 
 .sidebar-toggle .arrow {
-  display: inline-block;
-  transition: transform 0.85s ease-in-out;
-  transform: rotate(540deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  transform: rotate(0deg);
 }
 
 .admin-sidebar--collapsed .admin-sidebar__link span:nth-child(2) {
@@ -116,18 +118,18 @@ body {
 
 .admin-sidebar--collapsed .sidebar-toggle {
   width: 100%;
-  justify-content: right;
+  justify-content: center;
 }
 
 .admin-sidebar--collapsed .sidebar-toggle .arrow {
-  transform: rotate(0deg);
+  transform: rotate(180deg);
 }
 
 
 .admin-sidebar--collapsed {
-  width: 65px;
-  overflow: hidden;
-  transition: width 0.85s ease;
+  width: 72px;
+  padding-left: 14px;
+  padding-right: 14px;
 }
 
 /* Esconder título y subtítulo */
@@ -297,7 +299,18 @@ body {
   font-weight: 600;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
-  transition: background-color 0.3s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.primary-btn:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+}
+
+.primary-btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
 .secondary-btn {
@@ -308,7 +321,17 @@ body {
   padding: 12px 18px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.secondary-btn:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.secondary-btn:active {
+  transform: translateY(0);
 }
 
 .kpi-grid {
@@ -534,7 +557,14 @@ body {
   border-radius: 22px;
   padding: 20px;
   box-shadow: var(--shadow-sm);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.customer-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  border-color: var(--accent);
 }
 
 .customer-name {
@@ -942,3 +972,165 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Sidebar Scoped Styles Moved from styled-jsx */
+.admin-sidebar {
+  overflow: hidden;
+}
+.admin-sidebar__brand-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  transition: all 0.6s ease;
+}
+.admin-sidebar__title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  transition: max-width 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 200px;
+}
+.collapsed-hide {
+  max-width: 0;
+  opacity: 0;
+  pointer-events: none;
+  margin: 0;
+  padding: 0;
+}
+.admin-sidebar__subtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  transition: max-width 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease, height 0.8s cubic-bezier(0.25, 1, 0.5, 1), margin 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 200px;
+  height: 18px;
+}
+.admin-sidebar--collapsed .admin-sidebar__subtitle {
+  height: 0;
+  opacity: 0;
+  margin: 0;
+  max-width: 0;
+}
+.admin-sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.4s ease;
+  border-radius: 14px;
+}
+.admin-sidebar__link:hover {
+  background: var(--surface-2);
+  transform: translateX(4px);
+}
+.justify-center {
+  justify-content: center !important;
+  padding: 0 !important;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto;
+  border-radius: 14px;
+}
+.justify-center:hover {
+  transform: translateY(-2px);
+}
+.nav-label {
+  transition: max-width 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease, transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  opacity: 1;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 150px;
+}
+.nav-label--hidden {
+  max-width: 0;
+  opacity: 0;
+}
+.sidebar-toggle--collapsed {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto !important;
+  padding: 0;
+}
+.admin-sidebar__dropdown-container {
+  transition: all 0.4s ease;
+  position: relative;
+}
+.dropdown-toggle {
+  position: absolute;
+  right: 8px;
+  top: 10px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 8px;
+  transition: transform 0.2s ease, opacity 0.3s ease;
+}
+.dropdown-toggle--open {
+  transform: rotate(180deg);
+}
+.admin-sidebar__submenu {
+  margin-left: 18px;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 2px solid var(--border);
+  padding-left: 10px;
+  transition: all 0.3s ease;
+}
+.admin-sidebar__submenu-link {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 10px 12px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  display: block;
+}
+.admin-sidebar__submenu-link:hover {
+  color: var(--accent);
+  background: var(--primary-soft);
+  padding-left: 16px;
+}
+.admin-sidebar__submenu-link--active {
+  color: var(--accent);
+  font-weight: 600;
+  background: var(--primary-soft);
+}
+.admin-sidebar__active-business-menu {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.admin-sidebar__section-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-2);
+  font-weight: 700;
+  padding: 0 14px;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+  transition: max-width 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease, padding 0.8s cubic-bezier(0.25, 1, 0.5, 1), margin 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.shrink-0 { 
+  flex-shrink: 0; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 18px;
+}

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginUsuario } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 
 /**
  * Página premium de inicio de sesión.
@@ -10,6 +11,7 @@ import { loginUsuario } from "@/lib/api";
  */
 export default function LoginPage() {
   const router = useRouter();
+  const { login: authLogin } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -32,18 +34,14 @@ export default function LoginPage() {
 
     try {
       const data = await loginUsuario(username, password);
-      try {
-        localStorage.setItem("currentUser", data.user.nombre);
-        localStorage.setItem("currentUserId", (data.user.id || 0).toString());
-      } catch (err) {}
-
+      
       setAlert({
         type: "success",
         message: "¡Sesión iniciada correctamente! Redirigiendo...",
       });
 
       setTimeout(() => {
-        router.push("/dashboard");
+        authLogin(data.access_token, data.user);
       }, 800);
     } catch (error: any) {
       setAlert({

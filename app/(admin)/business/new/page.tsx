@@ -1,54 +1,50 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { createBusiness } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
+import { useRouter } from "next/navigation";
 
-/**
- * Página premium para la creación de empresas.
- * Vincula automáticamente la nueva empresa al usuario autenticado.
- */
 export default function NewBusinessPage() {
-  const [nombre, setNombre] = useState("");
-  const [contrasena, setContrasena] = useState("");
-  const [usuarioId, setUsuarioId] = useState<number>(0);
+  const { user } = useAuth();
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    nombre: "",
+    direccion: "",
+    telefono: "",
+    username: "",
+    email: "",
+    contrasena: "",
+  });
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  useEffect(() => {
-    try {
-      const storedId = localStorage.getItem("currentUserId");
-      if (storedId) {
-        setUsuarioId(parseInt(storedId, 10));
-      }
-    } catch (err) {}
-  }, []);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleCreateBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
     setAlert(null);
 
-    if (!nombre || !contrasena) {
-      setAlert({
-        type: "error",
-        message: "Por favor, completa tanto el nombre de la empresa como la contraseña.",
-      });
-      return;
-    }
+    if (!user) return;
 
     setLoading(true);
 
     try {
-      await createBusiness(nombre, contrasena, usuarioId);
+      await createBusiness({
+        ...formData,
+        usuarioId: user.id
+      });
       setAlert({
         type: "success",
-        message: `¡Empresa '${nombre}' registrada exitosamente en la base de datos!`,
+        message: `¡Negocio '${formData.nombre}' añadido exitosamente!`,
       });
-      setNombre("");
-      setContrasena("");
+      setTimeout(() => router.push("/business"), 1500);
     } catch (error: any) {
       setAlert({
         type: "error",
-        message: error.message || "No se pudo registrar la empresa. Verifica la conexión con el servidor.",
+        message: error.message || "No se pudo añadir el negocio.",
       });
     } finally {
       setLoading(false);
@@ -57,64 +53,62 @@ export default function NewBusinessPage() {
 
   return (
     <div className="page-stack">
-      <div className="page-hero" style={{ borderLeft: "4px solid #10b981" }}>
+      <header className="page-hero">
         <div>
-          <h2>Registrar Nueva Empresa</h2>
-          <p>Añade y vincula empresas al espacio de trabajo de tu cuenta de usuario</p>
+          <h2>Añadir Nuevo Negocio</h2>
+          <p>Configura el perfil de tu local y genera sus credenciales de acceso para el personal.</p>
         </div>
-      </div>
+      </header>
 
-      <section className="section-card" style={{ maxWidth: "600px", margin: "0 auto" }}>
+      <section className="section-card" style={{ maxWidth: "800px", margin: "0 auto", width: '100%' }}>
         {alert && (
-          <div
-            id="create-business-alert"
-            className={`login-alert login-alert--${alert.type}`}
-            style={{ marginBottom: "20px" }}
-          >
+          <div className={alert.type === 'success' ? 'message-success' : 'message-error'} style={{ marginBottom: '24px', padding: '16px', borderRadius: '12px', background: alert.type === 'success' ? 'var(--success-bg)' : 'var(--warning-bg)' }}>
             {alert.message}
           </div>
         )}
 
-        <form id="create-business-form" onSubmit={handleCreateBusiness} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <form onSubmit={handleCreateBusiness} className="page-stack">
           <div>
-            <label htmlFor="business-nombre" style={{ display: "block", marginBottom: "8px", fontWeight: 600, fontSize: "14px", color: "var(--muted)" }}>
-              Nombre de la Empresa
-            </label>
-            <input
-              id="business-nombre"
-              type="text"
-              required
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Ej. TechCorp Spain"
-              className="input"
-            />
+            <h3 className="panel-title" style={{ marginBottom: '16px' }}>Información Comercial</h3>
+            <div className="form-grid">
+              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                <label className="kpi-card__label">Nombre del Local</label>
+                <input name="nombre" value={formData.nombre} onChange={handleChange} required className="input" placeholder="Ej. Restaurante El Puerto" />
+              </div>
+              <div className="input-group">
+                <label className="kpi-card__label">Ubicación / Dirección</label>
+                <input name="direccion" value={formData.direccion} onChange={handleChange} className="input" placeholder="Av. Mediterráneo, 12" />
+              </div>
+              <div className="input-group">
+                <label className="kpi-card__label">Teléfono de Contacto</label>
+                <input name="telefono" value={formData.telefono} onChange={handleChange} className="input" placeholder="965 00 00 00" />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="business-contrasena" style={{ display: "block", marginBottom: "8px", fontWeight: 600, fontSize: "14px", color: "var(--muted)" }}>
-              Contraseña de Acceso
-            </label>
-            <input
-              id="business-contrasena"
-              type="password"
-              required
-              value={contrasena}
-              onChange={(e) => setContrasena(e.target.value)}
-              placeholder="••••••••••••"
-              className="input"
-            />
+          <div style={{ marginTop: '12px', paddingTop: '24px', borderTop: '1px solid var(--border)' }}>
+            <h3 className="panel-title" style={{ marginBottom: '16px' }}>Acceso del Local</h3>
+            <div className="form-grid">
+              <div className="input-group">
+                <label className="kpi-card__label">Usuario (para el personal)</label>
+                <input name="username" value={formData.username} onChange={handleChange} required className="input" placeholder="usuario_local" />
+              </div>
+              <div className="input-group">
+                <label className="kpi-card__label">Email corporativo</label>
+                <input name="email" type="email" value={formData.email} onChange={handleChange} required className="input" placeholder="local@negocio.com" />
+              </div>
+              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                <label className="kpi-card__label">Contraseña de acceso</label>
+                <input name="contrasena" type="password" value={formData.contrasena} onChange={handleChange} required className="input" placeholder="••••••••" />
+              </div>
+            </div>
           </div>
 
-          <button
-            id="submit-create-business"
-            type="submit"
-            disabled={loading}
-            className="primary-btn"
-            style={{ marginTop: "10px", width: "100%", padding: "14px", background: "#059669" }}
-          >
-            {loading ? "Registrando empresa..." : "Guardar empresa en base de datos"}
-          </button>
+          <div className="message-row" style={{ marginTop: '12px' }}>
+            <button type="submit" disabled={loading} className="primary-btn" style={{ width: '100%', padding: '16px' }}>
+              {loading ? "Procesando..." : "Finalizar y Añadir Negocio"}
+            </button>
+          </div>
         </form>
       </section>
     </div>
