@@ -19,6 +19,5 @@ export default function Header() {
         <p className="admin-header__subtitle">Plataforma de gestión de reservas y cobros</p>
       </div>
     </header>
-
   );
 }

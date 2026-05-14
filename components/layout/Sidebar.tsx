@@ -30,7 +30,7 @@ const menuItems: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: "◫" },
   { label: "Bookings", href: "/bookings", icon: "☰" },
   { label: "Customers", href: "/customers", icon: "◎" },
-  { label: "Payments", href: "/payments", icon: "◌" },
+  { label: "Payments", href: "/payments", icon: "$" },
   { label: "Settings", href: "/settings", icon: "⚙" },
 ];
 
@@ -50,7 +50,7 @@ export default function Sidebar() {
   return (
     <aside className={`admin-sidebar ${collapsed ? 'admin-sidebar--collapsed' : ''}`}>
       <div className="admin-sidebar__brand">
-        <button className="sidebar-toggle" onClick={() => setCollapsed(!collapsed)} aria-label="Toggle sidebar">☰</button>
+        <button className="sidebar-toggle" onClick={() => setCollapsed(!collapsed)} aria-label="Toggle sidebar"><span className="arrow">🡺</span></button>
         <h2 className="admin-sidebar__title">BookFlow</h2>
         <p className="admin-sidebar__subtitle">Admin workspace</p>
       </div>
