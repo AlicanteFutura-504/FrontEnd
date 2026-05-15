@@ -145,6 +145,20 @@ export async function createBusiness(data: any): Promise<Business> {
   return handleResponse(res);
 }
 
+export async function getBusiness(id: number): Promise<Business> {
+  const res = await fetch(`${API_URL}/business/${id}`, { headers: getHeaders() });
+  return handleResponse(res);
+}
+
+export async function updateBusiness(id: number, data: any): Promise<Business> {
+  const res = await fetch(`${API_URL}/business/${id}`, {
+    method: "PATCH",
+    headers: getHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
 export async function deleteBusiness(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/business/${id}`, {
     method: "DELETE",
