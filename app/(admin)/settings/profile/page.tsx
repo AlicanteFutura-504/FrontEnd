@@ -30,6 +30,11 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Estados para cambio de contraseña
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({ newPassword: "", confirmPassword: "" });
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
   if (!user) return <div className="p-8">Cargando perfil...</div>;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,6 +52,31 @@ export default function ProfilePage() {
       setIsEditing(false);
     } catch (err: any) {
       setError(err.message || "Error al actualizar el perfil");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordData.newPassword.length < 6) {
+      setPasswordError("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError("Las contraseñas no coinciden");
+      return;
+    }
+
+    setIsLoading(true);
+    setPasswordError(null);
+    try {
+      await updateProfileApi(user.id, { contrasena: passwordData.newPassword });
+      setIsChangingPassword(false);
+      setPasswordData({ newPassword: "", confirmPassword: "" });
+      alert("Contraseña actualizada correctamente");
+    } catch (err: any) {
+      setPasswordError(err.message || "Error al actualizar la contraseña");
     } finally {
       setIsLoading(false);
     }
@@ -194,7 +224,62 @@ export default function ProfilePage() {
           <div className="section-card">
             <h3 className="panel-title" style={{ fontSize: '18px', marginBottom: '16px' }}>Seguridad</h3>
             <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>Tu cuenta está protegida con autenticación JWT de última generación.</p>
-            <button className="secondary-btn" style={{ width: '100%' }}>Cambiar contraseña</button>
+            
+            {!isChangingPassword ? (
+              <button 
+                className="secondary-btn" 
+                style={{ width: '100%' }}
+                onClick={() => setIsChangingPassword(true)}
+              >
+                Cambiar contraseña
+              </button>
+            ) : (
+              <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="input-group">
+                  <label className="kpi-card__label" style={{ fontSize: '12px' }}>Nueva contraseña</label>
+                  <input 
+                    type="password" 
+                    className="input" 
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                    style={{ padding: '8px 12px' }}
+                  />
+                </div>
+                <div className="input-group">
+                  <label className="kpi-card__label" style={{ fontSize: '12px' }}>Confirmar contraseña</label>
+                  <input 
+                    type="password" 
+                    className="input" 
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    placeholder="Repite la contraseña"
+                    required
+                    style={{ padding: '8px 12px' }}
+                  />
+                </div>
+                {passwordError && <p style={{ color: '#ff4444', fontSize: '12px', margin: 0 }}>{passwordError}</p>}
+                <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                  <button type="submit" className="primary-btn" style={{ flex: 1, padding: '8px' }} disabled={isLoading}>
+                    {isLoading ? "Guardando..." : "Guardar"}
+                  </button>
+                  <button 
+                    type="button" 
+                    className="secondary-btn" 
+                    style={{ flex: 1, padding: '8px' }}
+                    onClick={() => {
+                      setIsChangingPassword(false);
+                      setPasswordData({ newPassword: "", confirmPassword: "" });
+                      setPasswordError(null);
+                    }}
+                    disabled={isLoading}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
           
           <div className="info-box" style={{ borderLeft: '4px solid var(--accent)' }}>
