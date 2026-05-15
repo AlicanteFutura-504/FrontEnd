@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUsuario } from "@/lib/api";
+import { registerAdmin } from "@/lib/api";
 
 /**
  * Página premium de registro de nuevos usuarios.
@@ -10,7 +10,10 @@ import { createUsuario } from "@/lib/api";
  */
 export default function RegisterPage() {
   const router = useRouter();
-  const [nombre, setNombre] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [nombreCompleto, setNombreCompleto] = useState("");
+  const [dni, setDni] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -19,7 +22,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setAlert(null);
 
-    if (!nombre || !contrasena) {
+    if (!username || !email || !nombreCompleto || !dni || !contrasena) {
       setAlert({
         type: "error",
         message: "Por favor, completa todos los campos para registrarte.",
@@ -30,7 +33,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await createUsuario(nombre, contrasena);
+      await registerAdmin({ username, email, nombreCompleto, dni, contrasena });
       setAlert({
         type: "success",
         message: "¡Usuario creado exitosamente! Redirigiendo al inicio de sesión...",
@@ -78,11 +81,58 @@ export default function RegisterPage() {
               id="reg-username"
               type="text"
               required
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               placeholder="tu_usuario"
               className="login-input"
               autoComplete="username"
+            />
+          </div>
+
+          <div className="login-field">
+            <label htmlFor="reg-email" className="login-field__label">
+              Correo Electrónico
+            </label>
+            <input
+              id="reg-email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ejemplo@email.com"
+              className="login-input"
+              autoComplete="email"
+            />
+          </div>
+
+          <div className="login-field">
+            <label htmlFor="reg-fullname" className="login-field__label">
+              Nombre Completo
+            </label>
+            <input
+              id="reg-fullname"
+              type="text"
+              required
+              value={nombreCompleto}
+              onChange={(e) => setNombreCompleto(e.target.value)}
+              placeholder="Juan Pérez"
+              className="login-input"
+              autoComplete="name"
+            />
+          </div>
+
+          <div className="login-field">
+            <label htmlFor="reg-dni" className="login-field__label">
+              DNI
+            </label>
+            <input
+              id="reg-dni"
+              type="text"
+              required
+              value={dni}
+              onChange={(e) => setDni(e.target.value)}
+              placeholder="12345678Z"
+              className="login-input"
             />
           </div>
 
