@@ -3,7 +3,7 @@
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { updateUser as updateProfileApi } from "@/lib/api";
+import { updateMe as updateProfileApi } from "@/lib/api";
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
@@ -47,7 +47,7 @@ export default function ProfilePage() {
     setIsLoading(true);
     setError(null);
     try {
-      const updatedUser = await updateProfileApi(user.id, formData);
+      const updatedUser = await updateProfileApi(formData);
       updateUser(updatedUser);
       setIsEditing(false);
     } catch (err: any) {
@@ -71,7 +71,7 @@ export default function ProfilePage() {
     setIsLoading(true);
     setPasswordError(null);
     try {
-      await updateProfileApi(user.id, { contrasena: passwordData.newPassword });
+      await updateProfileApi({ contrasena: passwordData.newPassword });
       setIsChangingPassword(false);
       setPasswordData({ newPassword: "", confirmPassword: "" });
       alert("Contraseña actualizada correctamente");

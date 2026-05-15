@@ -111,6 +111,15 @@ export async function registerAdmin(data: { username: string, email: string, con
   return handleResponse(res);
 }
 
+export async function updateMe(data: UpdateUserDto): Promise<User> {
+  const res = await fetch(`${API_URL}/usuarios/me/update`, {
+    method: "PATCH",
+    headers: getHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
 export async function updateUser(id: number, data: UpdateUserDto): Promise<User> {
   const res = await fetch(`${API_URL}/usuarios/${id}`, {
     method: "PATCH",
