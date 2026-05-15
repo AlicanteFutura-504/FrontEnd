@@ -83,6 +83,14 @@ export interface User {
   dni?: string;
 }
 
+export interface UpdateUserDto {
+  username?: string;
+  email?: string;
+  nombreCompleto?: string;
+  dni?: string;
+  contrasena?: string;
+}
+
 export interface Business {
   id: number;
   nombre: string;

@@ -8,6 +8,7 @@ import type {
   Business,
   Customer,
   User,
+  UpdateUserDto,
   BookingStatus,
   PaymentStatus,
   PaymentTypeEnum
@@ -23,6 +24,7 @@ export type {
   Business,
   Customer,
   User,
+  UpdateUserDto,
   BookingStatus,
   PaymentStatus,
   PaymentTypeEnum
@@ -104,6 +106,15 @@ export async function registerAdmin(data: { username: string, email: string, con
   const res = await fetch(`${API_URL}/usuarios/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function updateUser(id: number, data: UpdateUserDto): Promise<User> {
+  const res = await fetch(`${API_URL}/usuarios/${id}`, {
+    method: "PATCH",
+    headers: getHeaders(),
     body: JSON.stringify(data),
   });
   return handleResponse(res);
