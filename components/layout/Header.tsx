@@ -21,6 +21,14 @@ export default function Header() {
     </svg>
   );
 
+  const LogoutIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "4px" }}>
+      <path d="M10 22H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h5"></path>
+      <polyline points="17 16 21 12 17 8"></polyline>
+      <line x1="21" y1="12" x2="9" y2="12"></line>
+    </svg>
+  );
+
   return (
     <header className="admin-header">
       <div>
@@ -63,7 +71,7 @@ export default function Header() {
               <Link 
                 href="/settings/profile" 
                 className="admin-sidebar__link"
-                style={{ fontSize: '14px' }}
+                style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}
                 onClick={() => setIsMenuOpen(false)}
               >
                 <UserIcon /> Ver perfil
@@ -71,10 +79,14 @@ export default function Header() {
               <Link 
                 href="/settings" 
                 className="admin-sidebar__link"
-                style={{ fontSize: '14px' }}
+                style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}
                 onClick={() => setIsMenuOpen(false)}
               >
-                <span>⚙️</span> Configuración
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "4px" }}>
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                Configuración
               </Link>
               <div style={{ height: '1px', background: 'var(--border)', margin: '4px 0' }} />
               <button 
@@ -83,9 +95,9 @@ export default function Header() {
                   logout();
                 }}
                 className="admin-sidebar__link"
-                style={{ fontSize: '14px', color: '#ef4444', width: '100%', textAlign: 'left' }}
+                style={{ fontSize: '14px', color: '#ef4444', width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}
               >
-                <span>🚪</span> Cerrar sesión
+                <LogoutIcon /> Cerrar sesión
               </button>
             </div>
           </>
