@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getBookingsByBusiness, createBooking, createCustomer } from "@/lib/api";
-import { Booking, CreateBookingDto } from "@/lib/types";
+import { getBookingsByBusiness, createBooking, createCustomer, updateBooking, deleteBooking } from "@/lib/api";
+import { Booking, CreateBookingDto, BookingStatus } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
 
@@ -21,6 +21,12 @@ export default function BusinessBookingsPage() {
     time: "",
     serviceName: ""
   });
+  
+  // Edit and Delete state
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editBookingId, setEditBookingId] = useState<number | null>(null);
+  const [editStatus, setEditStatus] = useState<BookingStatus>("pending");
+  const [rowActionsId, setRowActionsId] = useState<number | null>(null);
 
   const fetchBookings = async () => {
     try {
@@ -34,7 +40,6 @@ export default function BusinessBookingsPage() {
   };
 
   useEffect(() => {
-
     if (businessId) fetchBookings();
   }, [businessId]);
 
@@ -42,7 +47,6 @@ export default function BusinessBookingsPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // Creamos el cliente real en la base de datos para obtener un ID secuencial
       const newCust = await createCustomer({
         name: "Cliente Anónimo",
         email: `anon_${Date.now()}@reserva.local`,
@@ -53,7 +57,7 @@ export default function BusinessBookingsPage() {
         date: formData.date,
         time: formData.time,
         serviceName: formData.serviceName,
-        status: "pending", // default 'sin confirmar'
+        status: "pending", 
         customerId: newCust.id,
         businessId: Number(businessId),
       };
@@ -66,6 +70,34 @@ export default function BusinessBookingsPage() {
       console.error("Error creating booking", err);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEditStatus = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editBookingId) return;
+    setIsSubmitting(true);
+    try {
+      await updateBooking(editBookingId, { status: editStatus });
+      await fetchBookings();
+      setIsEditOpen(false);
+      setEditBookingId(null);
+      setRowActionsId(null);
+    } catch (err) {
+      console.error("Error updating booking", err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("¿Seguro que quieres eliminar esta reserva?")) return;
+    try {
+      await deleteBooking(id);
+      await fetchBookings();
+      setRowActionsId(null);
+    } catch (err) {
+      console.error("Error deleting booking", err);
     }
   };
 
@@ -136,6 +168,7 @@ export default function BusinessBookingsPage() {
               <th>Servicio</th>
               <th>ID Cliente</th>
               <th>Estado</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -148,11 +181,54 @@ export default function BusinessBookingsPage() {
                 <td>
                   <Badge status={b.status as any} />
                 </td>
+                <td>
+                  {rowActionsId === b.id ? (
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button 
+                        type="button" 
+                        className="secondary-btn" 
+                        style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px' }}
+                        onClick={() => {
+                          setEditBookingId(b.id);
+                          setEditStatus(b.status as BookingStatus);
+                          setIsEditOpen(true);
+                        }}
+                      >
+                        Editar Estado
+                      </button>
+                      <button 
+                        type="button" 
+                        className="danger-btn" 
+                        style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px' }}
+                        onClick={() => handleDelete(b.id)}
+                      >
+                        Eliminar
+                      </button>
+                      <button 
+                        type="button" 
+                        className="secondary-btn" 
+                        style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px', background: 'transparent', border: 'none' }}
+                        onClick={() => setRowActionsId(null)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      type="button" 
+                      className="secondary-btn" 
+                      style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px' }}
+                      onClick={() => setRowActionsId(b.id)}
+                    >
+                      Modificar
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
             {bookings.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center', padding: '60px', color: 'var(--muted)' }}>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '60px', color: 'var(--muted)' }}>
                   No hay reservas en este local.
                 </td>
               </tr>
@@ -160,6 +236,34 @@ export default function BusinessBookingsPage() {
           </tbody>
         </table>
       </section>
+
+      {/* Edit Status Modal */}
+      {isEditOpen && (
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setIsEditOpen(false) }}>
+          <div className="modal-card">
+            <h3 className="modal-title" style={{ marginBottom: 16 }}>Editar Estado de Reserva</h3>
+            <form onSubmit={handleEditStatus} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <select 
+                className="select" 
+                value={editStatus} 
+                onChange={e => setEditStatus(e.target.value as BookingStatus)}
+                required
+              >
+                <option value="pending">Pendiente (Sin confirmar)</option>
+                <option value="confirmed">Confirmada</option>
+                <option value="paid">Pagada</option>
+              </select>
+              
+              <div className="modal-actions" style={{ marginTop: 8 }}>
+                <button type="button" className="secondary-btn" onClick={() => setIsEditOpen(false)}>Cancelar</button>
+                <button type="submit" className="primary-btn" disabled={isSubmitting}>
+                  {isSubmitting ? "Guardando..." : "Actualizar Estado"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

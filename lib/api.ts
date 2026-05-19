@@ -216,6 +216,23 @@ export async function createBooking(data: CreateBookingDto): Promise<Booking> {
   return handleResponse(res);
 }
 
+export async function updateBooking(id: number, data: UpdateBookingDto): Promise<Booking> {
+  const res = await fetch(`${API_URL}/bookings/${id}`, {
+    method: "PATCH",
+    headers: getHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteBooking(id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/bookings/${id}`, {
+    method: "DELETE",
+    headers: getHeaders(),
+  });
+  return handleResponse(res);
+}
+
 // --- PAYMENTS ---
 
 export async function getPayments(): Promise<Payment[]> {
