@@ -32,25 +32,20 @@ function CustomerCard({ customer }: { customer: typeof initialCustomers[0] }) {
 export default function CustomersPage() {
   const [customers, setCustomers] = useState(initialCustomers);
   const [searchTerm, setSearchTerm] = useState("");
-  const [appliedSearch, setAppliedSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Estado del nuevo cliente
   const [newCustomer, setNewCustomer] = useState({ name: "", phone: "", email: "", business: "" });
 
   const filteredCustomers = useMemo(() => {
-    if (!appliedSearch) return customers;
-    const lower = appliedSearch.toLowerCase();
+    if (!searchTerm) return customers;
+    const lower = searchTerm.toLowerCase();
     return customers.filter(c => 
       c.name.toLowerCase().includes(lower) || 
       c.business.toLowerCase().includes(lower) ||
       c.email.toLowerCase().includes(lower)
     );
-  }, [customers, appliedSearch]);
-
-  function handleFilter() {
-    setAppliedSearch(searchTerm);
-  }
+  }, [customers, searchTerm]);
 
   function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -91,18 +86,19 @@ export default function CustomersPage() {
         </div>
       )}
 
-      <section className="section-card">
-        <div className="search-row">
+      <section className="section-card" style={{ padding: '16px' }}>
+        <div className="search-row" style={{ display: 'flex', alignItems: 'center', background: 'var(--surface-2)', padding: '12px 20px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)', marginRight: '12px' }}>
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
           <input 
-            className="input" 
+            className="input search-input" 
+            style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: 0, flex: 1, outline: 'none', fontSize: '15px' }}
             placeholder="Buscar por nombre, email o negocio..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleFilter()}
           />
-          <button className="secondary-btn" type="button" onClick={handleFilter}>
-            Filtrar
-          </button>
         </div>
       </section>
 
@@ -113,7 +109,7 @@ export default function CustomersPage() {
           ))
         ) : (
           <p style={{ color: "#6b7280", gridColumn: "1 / -1", textAlign: "center", padding: "2rem" }}>
-            No se encontraron clientes con "{appliedSearch}"
+            No se encontraron clientes con "{searchTerm}"
           </p>
         )}
       </section>
