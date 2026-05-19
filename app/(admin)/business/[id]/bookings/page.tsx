@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getAppointments } from "@/lib/api";
-import { Booking } from "@/lib/types";
+import { getBookingsByBusiness, createBooking, createCustomer } from "@/lib/api";
+import { Booking, CreateBookingDto } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
 
@@ -12,22 +12,62 @@ export default function BusinessBookingsPage() {
   const businessId = params.id as string;
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Modal and form state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    date: "",
+    time: "",
+    serviceName: ""
+  });
+
+  const fetchBookings = async () => {
+    try {
+      const data = await getBookingsByBusiness(businessId);
+      setBookings(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const data = await getAppointments();
-        const filtered = data.filter(b => String(b.businessId) === businessId);
-        setBookings(filtered);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
 
     if (businessId) fetchBookings();
   }, [businessId]);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      // Creamos el cliente real en la base de datos para obtener un ID secuencial
+      const newCust = await createCustomer({
+        name: "Cliente Anónimo",
+        email: `anon_${Date.now()}@reserva.local`,
+        phone: ""
+      });
+
+      const newBooking: CreateBookingDto = {
+        date: formData.date,
+        time: formData.time,
+        serviceName: formData.serviceName,
+        status: "pending", // default 'sin confirmar'
+        customerId: newCust.id,
+        businessId: Number(businessId),
+      };
+      
+      await createBooking(newBooking);
+      await fetchBookings();
+      setIsModalOpen(false);
+      setFormData({ date: "", time: "", serviceName: "" });
+    } catch (err) {
+      console.error("Error creating booking", err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (loading) return <div className="p-8">Cargando reservas...</div>;
 
@@ -39,10 +79,48 @@ export default function BusinessBookingsPage() {
           <p>Listado completo de citas para este establecimiento.</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="primary-btn">+ Añadir Reserva</button>
+          <button className="primary-btn" onClick={() => setIsModalOpen(true)}>+ Añadir Reserva</button>
           <Link href={`/business/${businessId}`} className="secondary-btn">Volver al Panel</Link>
         </div>
       </header>
+
+      {isModalOpen && (
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false) }}>
+          <div className="modal-card">
+            <h3 className="modal-title" style={{ marginBottom: 16 }}>Nueva Reserva</h3>
+            <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <input 
+                required 
+                type="date" 
+                className="input" 
+                value={formData.date} 
+                onChange={e => setFormData({...formData, date: e.target.value})} 
+              />
+              <input 
+                required 
+                type="time" 
+                className="input" 
+                value={formData.time} 
+                onChange={e => setFormData({...formData, time: e.target.value})} 
+              />
+              <input 
+                required 
+                className="input" 
+                placeholder="Servicio" 
+                value={formData.serviceName} 
+                onChange={e => setFormData({...formData, serviceName: e.target.value})} 
+              />
+              
+              <div className="modal-actions" style={{ marginTop: 8 }}>
+                <button type="button" className="secondary-btn" onClick={() => setIsModalOpen(false)}>Cancelar</button>
+                <button type="submit" className="primary-btn" disabled={isSubmitting}>
+                  {isSubmitting ? "Guardando..." : "Guardar reserva"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <section className="section-card">
         <div className="panel-title-row">

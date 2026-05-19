@@ -200,6 +200,22 @@ export async function deleteAppointment(id: number): Promise<void> {
   return handleResponse(res);
 }
 
+// --- BOOKINGS (NEW) ---
+
+export async function getBookingsByBusiness(businessId: string): Promise<Booking[]> {
+  const res = await fetch(`${API_URL}/bookings/business/${businessId}`, { headers: getHeaders() });
+  return handleResponse(res) || [];
+}
+
+export async function createBooking(data: CreateBookingDto): Promise<Booking> {
+  const res = await fetch(`${API_URL}/bookings`, {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
 // --- PAYMENTS ---
 
 export async function getPayments(): Promise<Payment[]> {
