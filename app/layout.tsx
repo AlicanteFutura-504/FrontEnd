@@ -5,7 +5,13 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Outfit } from "next/font/google";
 import { AuthProvider } from "@/components/AuthProvider";
+
+const outfit = Outfit({ 
+  subsets: ["latin"],
+  variable: "--font-outfit",
+});
 
 export const metadata: Metadata = {
   title: "Bookings Admin",
@@ -18,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning className={outfit.variable}>
       <head>
         <Script
           id="theme-initializer"
@@ -36,7 +42,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>
+      <body className="font-sans antialiased">
         <AuthProvider>
           {children}
         </AuthProvider>

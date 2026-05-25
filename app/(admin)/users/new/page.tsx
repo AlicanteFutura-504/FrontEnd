@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { createUsuario } from "@/lib/api";
+import { registerAdmin } from "@/lib/api";
 
 /**
  * Página de creación de usuarios (Exclusiva para 'root').
@@ -28,7 +28,7 @@ export default function NewUserPage() {
     setLoading(true);
 
     try {
-      await createUsuario(nombre, contrasena);
+      await registerAdmin({ username: nombre, contrasena, email: `${nombre}@empresa.com`, nombreCompleto: nombre, dni: '' });
       setAlert({
         type: "success",
         message: `¡Usuario '${nombre}' creado exitosamente en la base de datos!`,
