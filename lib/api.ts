@@ -207,6 +207,11 @@ export async function getBookingsByBusiness(businessId: string): Promise<Booking
   return handleResponse(res) || [];
 }
 
+export async function getBookingsByCustomer(customerId: number): Promise<Booking[]> {
+  const res = await fetch(`${API_URL}/bookings/customer/${customerId}`, { headers: getHeaders() });
+  return handleResponse(res) || [];
+}
+
 export async function createBooking(data: CreateBookingDto): Promise<Booking> {
   const res = await fetch(`${API_URL}/bookings`, {
     method: "POST",

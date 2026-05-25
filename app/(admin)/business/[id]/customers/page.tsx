@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { getCustomers } from "@/lib/api";
-import { Customer } from "@/lib/types";
+import { getCustomers, getBookingsByCustomer } from "@/lib/api";
+import { Customer, Booking } from "@/lib/types";
 import Link from "next/link";
 
 export default function BusinessCustomersPage() {
@@ -12,6 +12,11 @@ export default function BusinessCustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Modal states
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [customerBookings, setCustomerBookings] = useState<Booking[]>([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -39,6 +44,28 @@ export default function BusinessCustomersPage() {
       (c.phone && c.phone.includes(lower))
     );
   }, [customers, searchTerm]);
+
+  const handleViewHistory = async (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setLoadingBookings(true);
+    try {
+      const bookings = await getBookingsByCustomer(customer.id);
+      // Filter bookings that belong to this business if needed, though they are fetched by customer.
+      // If we only want bookings for THIS business:
+      const businessBookings = bookings.filter(b => b.businessId === parseInt(businessId, 10));
+      setCustomerBookings(businessBookings);
+    } catch (err) {
+      console.error(err);
+      setCustomerBookings([]);
+    } finally {
+      setLoadingBookings(false);
+    }
+  };
+
+  const closeHistoryModal = () => {
+    setSelectedCustomer(null);
+    setCustomerBookings([]);
+  };
 
   if (loading) return <div className="p-8">Cargando clientes...</div>;
 
@@ -83,7 +110,11 @@ export default function BusinessCustomersPage() {
               <p className="customer-meta" style={{ fontSize: '13px' }}>📞 {c.phone || 'N/A'}</p>
               
               <div className="customer-next" style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
-                <button className="panel-subtle-link" style={{ width: '100%', textAlign: 'center' }}>
+                <button 
+                  className="panel-subtle-link" 
+                  style={{ width: '100%', textAlign: 'center' }}
+                  onClick={() => handleViewHistory(c)}
+                >
                   Ver historial de citas
                 </button>
               </div>
@@ -95,6 +126,68 @@ export default function BusinessCustomersPage() {
           </p>
         )}
       </div>
+
+      {/* Modal for Appointment History */}
+      {selectedCustomer && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }}>
+          <div className="modal-card" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+                Historial de citas
+              </h3>
+              <button 
+                onClick={closeHistoryModal}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--muted)' }}
+              >
+                &times;
+              </button>
+            </div>
+            
+            <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>
+              Cliente: <strong>{selectedCustomer.name} {selectedCustomer.surname}</strong>
+            </p>
+
+            {loadingBookings ? (
+              <p>Cargando citas...</p>
+            ) : customerBookings.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {customerBookings.map(b => (
+                  <div key={b.id} style={{ 
+                    padding: '12px', 
+                    border: '1px solid var(--border)', 
+                    borderRadius: '8px',
+                    background: 'var(--surface-2)' 
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontWeight: 600 }}>{b.serviceName || 'Servicio General'}</span>
+                      <span className="status-badge status-confirmed" style={{ fontSize: '12px', padding: '2px 8px' }}>
+                        {b.status}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '14px', color: 'var(--muted)', display: 'flex', gap: '12px' }}>
+                      <span>📅 {b.date}</span>
+                      <span>⏰ {b.time}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)', background: 'var(--surface-2)', borderRadius: '8px' }}>
+                Este cliente no tiene citas registradas en tu local.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
