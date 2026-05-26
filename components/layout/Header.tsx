@@ -59,7 +59,7 @@ export default function Header() {
               style={{ position: 'fixed', inset: 0, zIndex: 10 }}
               onClick={() => setIsMenuOpen(false)}
             />
-            <div className="section-card" style={{ 
+            <div className="section-card profile-panel" style={{ 
               position: 'absolute', 
               right: 0, 
               top: 'calc(100% + 10px)', 
