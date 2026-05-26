@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { getCustomers, getBookingsByCustomer, getBookingsByBusiness, getPayments } from "@/lib/api";
+import { getCustomers, getBookingsByCustomer, getBookingsByBusiness, getPayments, updateCustomer } from "@/lib/api";
 import { Customer, Booking } from "@/lib/types";
 import Link from "next/link";
 
@@ -17,6 +17,8 @@ export default function BusinessCustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [customerBookings, setCustomerBookings] = useState<Booking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [editFormData, setEditFormData] = useState({ name: "", surname: "" });
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -126,7 +128,17 @@ export default function BusinessCustomersPage() {
               <p className="customer-meta">{c.email}</p>
               <p className="customer-meta" style={{ fontSize: '13px' }}>📞 {c.phone || 'N/A'}</p>
               
-              <div className="customer-next" style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+              <div className="customer-next" style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <button 
+                  className="panel-subtle-link" 
+                  style={{ width: '100%', textAlign: 'center' }}
+                  onClick={() => {
+                    setEditingCustomer(c);
+                    setEditFormData({ name: c.name || "", surname: c.surname || "" });
+                  }}
+                >
+                  Editar Cliente
+                </button>
                 <button 
                   className="panel-subtle-link" 
                   style={{ width: '100%', textAlign: 'center' }}
@@ -202,6 +214,61 @@ export default function BusinessCustomersPage() {
                 Este cliente no tiene citas registradas en tu local.
               </p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal for Editing Customer */}
+      {editingCustomer && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }}>
+          <div className="modal-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+                Editar Cliente
+              </h3>
+              <button 
+                onClick={() => setEditingCustomer(null)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--muted)' }}
+              >
+                &times;
+              </button>
+            </div>
+            
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const updated = await updateCustomer(editingCustomer.id, {
+                  name: editFormData.name,
+                  surname: editFormData.surname
+                });
+                setCustomers(customers.map(c => c.id === editingCustomer.id ? { ...c, name: updated.name, surname: updated.surname } : c));
+                setEditingCustomer(null);
+              } catch (error) {
+                alert("Error al actualizar cliente");
+              }
+            }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Nombre</label>
+                <input required className="input" value={editFormData.name} onChange={e => setEditFormData({...editFormData, name: e.target.value})} placeholder="Nombre" />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Apellidos</label>
+                <input className="input" value={editFormData.surname} onChange={e => setEditFormData({...editFormData, surname: e.target.value})} placeholder="Apellidos" />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+                <button type="button" onClick={() => setEditingCustomer(null)} className="secondary-btn">Cancelar</button>
+                <button type="submit" className="primary-btn">Guardar</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
