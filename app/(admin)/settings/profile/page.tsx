@@ -3,7 +3,7 @@
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { updateMe as updateProfileApi, uploadAvatar } from "@/lib/api";
+import { updateMe as updateProfileApi } from "@/lib/api";
 import Image from "next/image";
 
 export default function ProfilePage() {
@@ -14,6 +14,7 @@ export default function ProfilePage() {
     username: user?.username || "",
     email: user?.email || "",
     dni: user?.dni || "",
+    profilePicture: user?.profilePicture || "",
   });
 
   // Sincronizar el formulario con los datos del usuario si estos cambian
@@ -24,6 +25,7 @@ export default function ProfilePage() {
         username: user.username || "",
         email: user.email || "",
         dni: user.dni || "",
+        profilePicture: user.profilePicture || "",
       });
     }
   }, [user]);
@@ -36,11 +38,12 @@ export default function ProfilePage() {
   const [passwordData, setPasswordData] = useState({ newPassword: "", confirmPassword: "" });
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  // Referencia para el input de archivo oculto
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  // Estados para Modal Unsplash
+  const [isUnsplashModalOpen, setIsUnsplashModalOpen] = useState(false);
+  const [unsplashQuery, setUnsplashQuery] = useState("");
+  const [unsplashResults, setUnsplashResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [unsplashError, setUnsplashError] = useState<string | null>(null);
 
   if (!user) return <div className="p-8">Cargando perfil...</div>;
 
@@ -54,49 +57,49 @@ export default function ProfilePage() {
     setIsLoading(true);
     setError(null);
     try {
-      let finalProfilePicture = user.profilePicture;
-      
-      // Si hay una foto seleccionada, la subimos primero
-      if (selectedAvatarFile) {
-        setIsUploadingAvatar(true);
-        const uploadResult = await uploadAvatar(selectedAvatarFile);
-        finalProfilePicture = uploadResult.profilePicture;
-        setIsUploadingAvatar(false);
-      }
-
-      // Luego guardamos los demás datos
+      // Guardamos los datos con la URL de la foto incluida
       const updatedUser = await updateProfileApi(formData);
       
-      // Combinamos los resultados (por si updateProfileApi no devolvió la foto más reciente)
-      updateUser({ ...updatedUser, profilePicture: finalProfilePicture });
+      updateUser(updatedUser);
       
       setIsEditing(false);
-      setSelectedAvatarFile(null);
-      setAvatarPreview(null);
     } catch (err: any) {
       setError(err.message || "Error al actualizar el perfil");
-      setIsUploadingAvatar(false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
+  const handleSearchOnline = () => {
+    setIsUnsplashModalOpen(true);
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const searchUnsplash = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!unsplashQuery.trim()) return;
     
-    // Verificamos tamaño y tipo en el frontend por seguridad adicional
-    if (file.size > 20 * 1024 * 1024) {
-      alert("La imagen es demasiado grande. Máximo 20MB.");
-      return;
+    setIsSearching(true);
+    setUnsplashError(null);
+    try {
+      const accessKey = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
+      if (!accessKey) {
+        throw new Error("Falta la clave de API de Unsplash en el archivo .env (NEXT_PUBLIC_UNSPLASH_ACCESS_KEY)");
+      }
+      const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(unsplashQuery)}&per_page=12`, {
+        headers: {
+          Authorization: `Client-ID ${accessKey}`
+        }
+      });
+      
+      if (!res.ok) throw new Error("Error al buscar imágenes en Unsplash. Verifica tu API Key.");
+      
+      const data = await res.json();
+      setUnsplashResults(data.results || []);
+    } catch (err: any) {
+      setUnsplashError(err.message);
+    } finally {
+      setIsSearching(false);
     }
-
-    setSelectedAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -141,6 +144,7 @@ export default function ProfilePage() {
                   username: user.username || "",
                   email: user.email || "",
                   dni: user.dni || "",
+                  profilePicture: user.profilePicture || "",
                 });
                 setIsEditing(true);
               }} 
@@ -152,8 +156,7 @@ export default function ProfilePage() {
             <button 
               onClick={() => {
                 setIsEditing(false);
-                setSelectedAvatarFile(null);
-                setAvatarPreview(null);
+                setFormData(prev => ({ ...prev, profilePicture: user.profilePicture || "" }));
               }} 
               className="secondary-btn"
               disabled={isLoading}
@@ -180,39 +183,56 @@ export default function ProfilePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', gap: '24px', alignItems: 'center', padding: '20px', background: 'var(--surface-2)', borderRadius: '18px' }}>
               <div 
-                className={`admin-avatar ${isEditing ? 'hover-avatar' : ''}`} 
+                className="admin-avatar"
                 style={{ 
                   width: '80px', 
                   height: '80px', 
                   fontSize: '32px', 
-                  cursor: isEditing ? 'pointer' : 'default',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  opacity: isUploadingAvatar ? 0.5 : 1
+                  overflow: 'hidden'
                 }}
-                onClick={isEditing ? handleAvatarClick : undefined}
-                title={isEditing ? "Haz clic para cambiar tu foto de perfil" : undefined}
               >
-                {avatarPreview || user.profilePicture ? (
+                {(isEditing ? formData.profilePicture : user.profilePicture) ? (
                   <img 
-                    src={avatarPreview || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${user.profilePicture}`} 
+                    src={isEditing ? formData.profilePicture : (user.profilePicture?.startsWith('http') ? user.profilePicture : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${user.profilePicture}`)} 
                     alt="Perfil" 
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + (user.nombreCompleto || user.username) + '&background=random';
+                    }}
                   />
                 ) : (
                   user.nombreCompleto?.charAt(0) || user.username.charAt(0)
                 )}
               </div>
-              <input 
-                type="file" 
-                accept="image/*" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                style={{ display: 'none' }} 
-              />
-              <div>
+              
+              <div style={{ flex: 1 }}>
                 <h4 style={{ margin: 0, fontSize: '20px' }}>{user.nombreCompleto || "Nombre no especificado"}</h4>
                 <p style={{ margin: '4px 0 0', color: 'var(--muted)' }}>{user.role === 'admin' ? 'Administrador Global' : 'Gestor de Negocio'}</p>
+                
+                {isEditing && (
+                  <div style={{ marginTop: '16px', display: 'flex', gap: '8px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: '250px' }}>
+                      <input 
+                        type="url" 
+                        name="profilePicture"
+                        value={formData.profilePicture}
+                        onChange={handleInputChange}
+                        className="input"
+                        placeholder="Pega aquí la URL de la foto"
+                        style={{ padding: '10px 14px', fontSize: '14px' }}
+                      />
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={handleSearchOnline}
+                      className="secondary-btn"
+                      style={{ padding: '10px 16px', fontSize: '13px' }}
+                      title="Abrir galería de imágenes en otra pestaña"
+                    >
+                      Buscar foto online
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -363,6 +383,59 @@ export default function ProfilePage() {
           </div>
         </section>
       </div>
+
+      {isUnsplashModalOpen && (
+        <div className="modal-backdrop" onClick={() => setIsUnsplashModalOpen(false)}>
+          <div className="modal-card" style={{ width: '80%', maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+            <h3 className="modal-title">Buscar Foto de Perfil</h3>
+            <p className="modal-text">Busca en Unsplash la imagen que prefieras.</p>
+            
+            <form onSubmit={searchUnsplash} style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+              <input 
+                type="text" 
+                className="input" 
+                value={unsplashQuery}
+                onChange={e => setUnsplashQuery(e.target.value)}
+                placeholder="Ej. persona, cara, oficina..."
+                style={{ flex: 1 }}
+              />
+              <button type="submit" className="primary-btn" disabled={isSearching}>
+                {isSearching ? "Buscando..." : "Buscar"}
+              </button>
+            </form>
+            
+            {unsplashError && <p style={{ color: '#ef4444', marginBottom: '16px' }}>{unsplashError}</p>}
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '16px' }}>
+              {unsplashResults.map((img: any) => (
+                <div 
+                  key={img.id} 
+                  style={{ 
+                    cursor: 'pointer', 
+                    borderRadius: '12px', 
+                    overflow: 'hidden', 
+                    aspectRatio: '1/1',
+                    border: formData.profilePicture === img.urls.regular ? '4px solid var(--accent-1)' : '2px solid transparent',
+                    transition: 'transform 0.2s ease',
+                  }}
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, profilePicture: img.urls.regular }));
+                    setIsUnsplashModalOpen(false);
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <img src={img.urls.small} alt={img.alt_description || "Unsplash"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              ))}
+            </div>
+            
+            <div className="modal-actions" style={{ marginTop: '24px' }}>
+              <button className="secondary-btn" onClick={() => setIsUnsplashModalOpen(false)}>Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
