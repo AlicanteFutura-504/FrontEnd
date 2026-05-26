@@ -100,6 +100,7 @@ export interface Business {
   telefono?: string;
   usuarioId: number;
   businessUserId?: number;
+  usuario?: User;
 }
 
 export interface Customer {
