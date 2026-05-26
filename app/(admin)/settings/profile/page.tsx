@@ -39,6 +39,8 @@ export default function ProfilePage() {
   // Referencia para el input de archivo oculto
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   if (!user) return <div className="p-8">Cargando perfil...</div>;
 
@@ -52,11 +54,28 @@ export default function ProfilePage() {
     setIsLoading(true);
     setError(null);
     try {
+      let finalProfilePicture = user.profilePicture;
+      
+      // Si hay una foto seleccionada, la subimos primero
+      if (selectedAvatarFile) {
+        setIsUploadingAvatar(true);
+        const uploadResult = await uploadAvatar(selectedAvatarFile);
+        finalProfilePicture = uploadResult.profilePicture;
+        setIsUploadingAvatar(false);
+      }
+
+      // Luego guardamos los demás datos
       const updatedUser = await updateProfileApi(formData);
-      updateUser(updatedUser);
+      
+      // Combinamos los resultados (por si updateProfileApi no devolvió la foto más reciente)
+      updateUser({ ...updatedUser, profilePicture: finalProfilePicture });
+      
       setIsEditing(false);
+      setSelectedAvatarFile(null);
+      setAvatarPreview(null);
     } catch (err: any) {
       setError(err.message || "Error al actualizar el perfil");
+      setIsUploadingAvatar(false);
     } finally {
       setIsLoading(false);
     }
@@ -69,18 +88,15 @@ export default function ProfilePage() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setIsUploadingAvatar(true);
-    try {
-      const result = await uploadAvatar(file);
-      updateUser({ ...user, profilePicture: result.profilePicture });
-    } catch (err: any) {
-      console.error("Upload error details:", err);
-      alert(`Error al subir la imagen: ${err.message || 'Error desconocido'}\n(Asegúrate de que es un JPG, PNG o WEBP menor a 20MB)`);
-    } finally {
-      setIsUploadingAvatar(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+    
+    // Verificamos tamaño y tipo en el frontend por seguridad adicional
+    if (file.size > 20 * 1024 * 1024) {
+      alert("La imagen es demasiado grande. Máximo 20MB.");
+      return;
     }
+
+    setSelectedAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -134,7 +150,11 @@ export default function ProfilePage() {
             </button>
           ) : (
             <button 
-              onClick={() => setIsEditing(false)} 
+              onClick={() => {
+                setIsEditing(false);
+                setSelectedAvatarFile(null);
+                setAvatarPreview(null);
+              }} 
               className="secondary-btn"
               disabled={isLoading}
             >
@@ -173,9 +193,9 @@ export default function ProfilePage() {
                 onClick={isEditing ? handleAvatarClick : undefined}
                 title={isEditing ? "Haz clic para cambiar tu foto de perfil" : undefined}
               >
-                {user.profilePicture ? (
+                {avatarPreview || user.profilePicture ? (
                   <img 
-                    src={`http://localhost:3000${user.profilePicture}`} 
+                    src={avatarPreview || `http://localhost:3000${user.profilePicture}`} 
                     alt="Perfil" 
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                   />
