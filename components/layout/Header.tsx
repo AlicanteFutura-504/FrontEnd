@@ -48,8 +48,16 @@ export default function Header() {
             <p style={{ margin: 0, fontSize: '13px', fontWeight: 700 }}>{user?.nombreCompleto || user?.username}</p>
             <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 800 }}>{user?.role}</p>
           </div>
-          <div className="admin-avatar" style={{ width: '32px', height: '32px', fontSize: '14px' }}>
-            {initial}
+          <div className="admin-avatar" style={{ width: '32px', height: '32px', fontSize: '14px', overflow: 'hidden' }}>
+            {user?.profilePicture ? (
+              <img 
+                src={`http://localhost:3000${user.profilePicture}`} 
+                alt="Perfil" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
+            ) : (
+              initial
+            )}
           </div>
         </button>
 

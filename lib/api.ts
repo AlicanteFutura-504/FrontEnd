@@ -120,6 +120,24 @@ export async function updateMe(data: UpdateUserDto): Promise<User> {
   return handleResponse(res);
 }
 
+export async function uploadAvatar(file: File): Promise<{ profilePicture: string }> {
+  // Para multipart/form-data NO usamos getHeaders() con Content-Type: application/json
+  const token = localStorage.getItem("access_token");
+  const headers: HeadersInit = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${API_URL}/usuarios/me/avatar`, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+  return handleResponse(res);
+}
+
 export async function updateUser(id: number, data: UpdateUserDto): Promise<User> {
   const res = await fetch(`${API_URL}/usuarios/${id}`, {
     method: "PATCH",

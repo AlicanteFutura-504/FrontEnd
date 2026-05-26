@@ -2,8 +2,9 @@
 
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { updateMe as updateProfileApi } from "@/lib/api";
+import { useState, useEffect, useRef } from "react";
+import { updateMe as updateProfileApi, uploadAvatar } from "@/lib/api";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
@@ -35,6 +36,10 @@ export default function ProfilePage() {
   const [passwordData, setPasswordData] = useState({ newPassword: "", confirmPassword: "" });
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
+  // Referencia para el input de archivo oculto
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
   if (!user) return <div className="p-8">Cargando perfil...</div>;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,6 +59,27 @@ export default function ProfilePage() {
       setError(err.message || "Error al actualizar el perfil");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingAvatar(true);
+    try {
+      const result = await uploadAvatar(file);
+      updateUser({ ...user, profilePicture: result.profilePicture });
+    } catch (err: any) {
+      console.error("Upload error details:", err);
+      alert(`Error al subir la imagen: ${err.message || 'Error desconocido'}\n(Asegúrate de que es un JPG, PNG o WEBP menor a 20MB)`);
+    } finally {
+      setIsUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -133,9 +159,37 @@ export default function ProfilePage() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', gap: '24px', alignItems: 'center', padding: '20px', background: 'var(--surface-2)', borderRadius: '18px' }}>
-              <div className="admin-avatar" style={{ width: '80px', height: '80px', fontSize: '32px' }}>
-                {user.nombreCompleto?.charAt(0) || user.username.charAt(0)}
+              <div 
+                className="admin-avatar hover-avatar" 
+                style={{ 
+                  width: '80px', 
+                  height: '80px', 
+                  fontSize: '32px', 
+                  cursor: 'pointer',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  opacity: isUploadingAvatar ? 0.5 : 1
+                }}
+                onClick={handleAvatarClick}
+                title="Haz clic para cambiar tu foto de perfil"
+              >
+                {user.profilePicture ? (
+                  <img 
+                    src={`http://localhost:3000${user.profilePicture}`} 
+                    alt="Perfil" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                ) : (
+                  user.nombreCompleto?.charAt(0) || user.username.charAt(0)
+                )}
               </div>
+              <input 
+                type="file" 
+                accept="image/*" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                style={{ display: 'none' }} 
+              />
               <div>
                 <h4 style={{ margin: 0, fontSize: '20px' }}>{user.nombreCompleto || "Nombre no especificado"}</h4>
                 <p style={{ margin: '4px 0 0', color: 'var(--muted)' }}>{user.role === 'admin' ? 'Administrador Global' : 'Gestor de Negocio'}</p>

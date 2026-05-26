@@ -81,6 +81,7 @@ export interface User {
   role: 'admin' | 'business';
   nombreCompleto?: string;
   dni?: string;
+  profilePicture?: string;
 }
 
 export interface UpdateUserDto {
@@ -89,6 +90,7 @@ export interface UpdateUserDto {
   nombreCompleto?: string;
   dni?: string;
   contrasena?: string;
+  profilePicture?: string;
 }
 
 export interface Business {
