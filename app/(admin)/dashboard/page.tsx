@@ -124,17 +124,17 @@ export default function DashboardPage() {
         </div>
 
         <div className="info-stack">
-          <div className="info-box border-l-4 border-blue-500">
+          <div className="info-box" style={{ borderLeft: '4px solid var(--info)' }}>
             <p className="info-box__eyebrow">Estado de Red</p>
             <p className="info-box__title">{data.businesses.length} Locales Activos</p>
             <p className="info-box__text">Sincronización en tiempo real activa</p>
           </div>
-          <div className="info-box border-l-4 border-green-500">
+          <div className="info-box" style={{ borderLeft: '4px solid var(--success)' }}>
             <p className="info-box__eyebrow">Rendimiento</p>
             <p className="info-box__title">Crecimiento Constante</p>
             <p className="info-box__text">Datos consolidados de la última semana</p>
           </div>
-          <div className="info-box border-l-4 border-purple-500">
+          <div className="info-box" style={{ borderLeft: '4px solid var(--accent-2)' }}>
             <p className="info-box__eyebrow">Aviso del Sistema</p>
             <p className="info-box__title">Seguridad Reforzada</p>
             <p className="info-box__text">Todas las conexiones usan cifrado JWT</p>

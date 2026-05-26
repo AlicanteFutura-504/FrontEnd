@@ -130,7 +130,7 @@ export default function BusinessDashboardPage() {
             )}
           </div>
 
-          <div className="info-box" style={{ borderLeft: '4px solid #10b981' }}>
+          <div className="info-box" style={{ borderLeft: '4px solid var(--success)' }}>
             <p className="info-box__eyebrow">Rendimiento Financiero</p>
             <p className="info-box__title">Promedio por Servicio</p>
             <p className="info-box__text">
