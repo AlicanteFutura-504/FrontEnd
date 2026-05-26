@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Registrarse | BookFlow Admin",
-  description: "Crea una nueva cuenta de usuario en la plataforma de gestión BookFlow.",
+  title: "Registrarse | Yoku Admin",
+  description: "Crea una nueva cuenta de usuario en la plataforma de gestión Yoku.",
 };
 
 export default function RegisterLayout({

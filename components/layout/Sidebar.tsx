@@ -84,7 +84,7 @@ export default function Sidebar() {
     <aside className={`admin-sidebar ${collapsed ? 'admin-sidebar--collapsed' : ''}`}>
       <div className="admin-sidebar__brand-row" style={{ display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-start', gap: collapsed ? '0' : '10px' }}>
         <h2 className={`admin-sidebar__title ${collapsed ? 'collapsed-hide' : ''}`}>
-          BookFlow
+          Yoku
         </h2>
         <button className={`sidebar-toggle ${collapsed ? 'sidebar-toggle--collapsed' : ''}`} onClick={handleToggle}>
           <span className="arrow">

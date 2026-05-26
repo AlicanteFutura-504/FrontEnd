@@ -66,7 +66,7 @@ export default function LoginPage() {
               <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
             </svg>
           </div>
-          <h1 className="login-header__title">Bienvenido a BookFlow</h1>
+          <h1 className="login-header__title">Bienvenido a Yoku</h1>
           <p className="login-header__subtitle">
             Ingresa tus credenciales para acceder al panel de control
           </p>
@@ -165,7 +165,7 @@ export default function LoginPage() {
 
         <div style={{ marginTop: "28px", paddingTop: "20px", borderTop: "1px solid rgba(255, 255, 255, 0.1)", textAlign: "center" }}>
           <p style={{ color: "#94a3b8", fontSize: "14px", margin: "0 0 12px" }}>
-            ¿No tienes una cuenta en BookFlow?
+            ¿No tienes una cuenta en Yoku?
           </p>
           <button
             type="button"

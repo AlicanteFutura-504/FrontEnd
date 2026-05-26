@@ -69,7 +69,7 @@ export default function RegisterPage() {
           </div>
           <h1 className="login-header__title">Crear Cuenta</h1>
           <p className="login-header__subtitle">
-            Regístrate para acceder al espacio de administración de BookFlow
+            Regístrate para acceder al espacio de administración de Yoku
           </p>
         </header>
 

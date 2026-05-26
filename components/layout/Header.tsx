@@ -32,7 +32,7 @@ export default function Header() {
   return (
     <header className="admin-header">
       <div>
-        <h1 className="admin-header__title">BookFlow Admin</h1>
+        <h1 className="admin-header__title">Yoku Admin</h1>
         <p className="admin-header__subtitle">Panel de gestión consolidado</p>
       </div>
 
