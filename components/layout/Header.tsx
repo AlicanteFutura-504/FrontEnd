@@ -51,7 +51,7 @@ export default function Header() {
           <div className="admin-avatar" style={{ width: '32px', height: '32px', fontSize: '14px', overflow: 'hidden' }}>
             {user?.profilePicture ? (
               <img 
-                src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${user.profilePicture}`} 
+                src={user.profilePicture?.startsWith('http') ? user.profilePicture : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${user.profilePicture}`} 
                 alt="Perfil" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
               />
