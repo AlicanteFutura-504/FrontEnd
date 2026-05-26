@@ -59,13 +59,8 @@ export default function RegisterPage() {
       </div>
       <section className="login-card">
         <header className="login-header">
-          <div className="login-header__brand" style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="8.5" cy="7" r="4"></circle>
-              <line x1="20" y1="8" x2="20" y2="14"></line>
-              <line x1="23" y1="11" x2="17" y2="11"></line>
-            </svg>
+          <div className="login-header__brand" style={{ background: "transparent" }}>
+            <img src="/favicon.ico" alt="Yoku Logo" style={{ width: 64, height: 64, objectFit: 'contain' }} />
           </div>
           <h1 className="login-header__title">Crear Cuenta</h1>
           <p className="login-header__subtitle">

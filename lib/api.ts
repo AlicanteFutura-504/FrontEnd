@@ -296,6 +296,14 @@ export async function getCustomers(): Promise<Customer[]> {
   return handleResponse(res) || [];
 }
 
+export async function getCustomerByEmail(email: string): Promise<Customer | null> {
+  const res = await fetch(`${API_URL}/customers/by-email/${encodeURIComponent(email)}`, {
+    headers: getHeaders(),
+  });
+  if (res.status === 404) return null;
+  return handleResponse(res);
+}
+
 export async function getCustomersByBusiness(businessId: string): Promise<Customer[]> {
   const res = await fetch(`${API_URL}/customers/business/${businessId}`, { headers: getHeaders() });
   return handleResponse(res) || [];

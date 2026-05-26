@@ -14,7 +14,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Bookings Admin",
+  title: "Yoku Admin",
   description: "Base inicial del proyecto de gestión de reservas",
 };
 

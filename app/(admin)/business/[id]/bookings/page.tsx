@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getBookingsByBusiness, createBooking, createCustomer, updateBooking, deleteBooking } from "@/lib/api";
+import { getBookingsByBusiness, createBooking, createCustomer, getCustomerByEmail, updateBooking, deleteBooking } from "@/lib/api";
+import type { Customer } from "@/lib/api";
 import { Booking, CreateBookingDto, BookingStatus } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
@@ -19,8 +20,14 @@ export default function BusinessBookingsPage() {
   const [formData, setFormData] = useState({
     date: "",
     time: "",
-    serviceName: ""
+    serviceName: "",
+    customerEmail: "",
+    customerName: "",
+    customerSurname: "",
+    customerPhone: "",
   });
+  const [foundCustomer, setFoundCustomer] = useState<Customer | null | undefined>(undefined);
+  const [searchingCustomer, setSearchingCustomer] = useState(false);
   
   // Edit and Delete state
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -47,25 +54,32 @@ export default function BusinessBookingsPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const newCust = await createCustomer({
-        name: "Cliente Anónimo",
-        email: `anon_${Date.now()}@reserva.local`,
-        phone: ""
-      });
+      let customerId: number;
+      if (foundCustomer) {
+        customerId = foundCustomer.id;
+      } else {
+        const newCust = await createCustomer({
+          name: formData.customerName,
+          surname: formData.customerSurname || undefined,
+          email: formData.customerEmail,
+          phone: formData.customerPhone || undefined,
+          businessId: Number(businessId),
+        });
+        customerId = newCust.id;
+      }
 
-      const newBooking: CreateBookingDto = {
+      await createBooking({
         date: formData.date,
         time: formData.time,
         serviceName: formData.serviceName,
-        status: "pending", 
-        customerId: newCust.id,
+        status: "pending",
+        customerId,
         businessId: Number(businessId),
-      };
-      
-      await createBooking(newBooking);
+      });
       await fetchBookings();
       setIsModalOpen(false);
-      setFormData({ date: "", time: "", serviceName: "" });
+      setFormData({ date: "", time: "", serviceName: "", customerEmail: "", customerName: "", customerSurname: "", customerPhone: "" });
+      setFoundCustomer(undefined);
     } catch (err) {
       console.error("Error creating booking", err);
     } finally {
@@ -117,36 +131,95 @@ export default function BusinessBookingsPage() {
       </header>
 
       {isModalOpen && (
-        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false) }}>
-          <div className="modal-card">
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) { setIsModalOpen(false); setFoundCustomer(undefined); } }}>
+          <div className="modal-card" style={{ maxWidth: 520, width: '100%' }}>
             <h3 className="modal-title" style={{ marginBottom: 16 }}>Nueva Reserva</h3>
             <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input 
-                required 
-                type="date" 
-                className="input" 
-                value={formData.date} 
-                onChange={e => setFormData({...formData, date: e.target.value})} 
-              />
-              <input 
-                required 
-                type="time" 
-                className="input" 
-                value={formData.time} 
-                onChange={e => setFormData({...formData, time: e.target.value})} 
-              />
-              <input 
-                required 
-                className="input" 
-                placeholder="Servicio" 
-                value={formData.serviceName} 
-                onChange={e => setFormData({...formData, serviceName: e.target.value})} 
-              />
-              
+
+              {/* ── Datos del cliente ── */}
+              <p style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Datos del cliente</p>
+
+              <div style={{ position: 'relative' }}>
+                <input
+                  required
+                  type="email"
+                  className="input"
+                  placeholder="Email del cliente *"
+                  value={formData.customerEmail}
+                  style={{ width: '100%' }}
+                  onChange={e => {
+                    const email = e.target.value;
+                    setFormData(f => ({ ...f, customerEmail: email }));
+                    setFoundCustomer(undefined);
+                    const t = setTimeout(async () => {
+                      if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) return;
+                      setSearchingCustomer(true);
+                      try {
+                        const c = await getCustomerByEmail(email);
+                        setFoundCustomer(c);
+                        if (c) setFormData(f => ({ ...f, customerName: c.name, customerSurname: c.surname ?? '', customerPhone: c.phone ?? '' }));
+                      } catch { setFoundCustomer(null); }
+                      finally { setSearchingCustomer(false); }
+                    }, 600);
+                    return () => clearTimeout(t);
+                  }}
+                />
+                {searchingCustomer && <span style={{ position: 'absolute', right: 10, top: 10, fontSize: 12, color: '#9ca3af' }}>Buscando…</span>}
+              </div>
+
+              {foundCustomer && (
+                <div style={{ fontSize: 12, color: '#065f46', background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: 6, padding: '6px 10px' }}>
+                  ✓ Cliente encontrado: <strong>{foundCustomer.name} {foundCustomer.surname ?? ''}</strong> (ID #{foundCustomer.id})
+                </div>
+              )}
+              {foundCustomer === null && formData.customerEmail && !searchingCustomer && (
+                <div style={{ fontSize: 12, color: '#6b7280', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 10px' }}>
+                  ✦ Cliente nuevo — se creará al guardar.
+                </div>
+              )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <input
+                  required
+                  className="input"
+                  placeholder="Nombre *"
+                  value={formData.customerName}
+                  readOnly={!!foundCustomer}
+                  style={foundCustomer ? { background: '#f0fdf4' } : {}}
+                  onChange={e => setFormData(f => ({ ...f, customerName: e.target.value }))}
+                />
+                <input
+                  className="input"
+                  placeholder="Apellido"
+                  value={formData.customerSurname}
+                  readOnly={!!foundCustomer}
+                  style={foundCustomer ? { background: '#f0fdf4' } : {}}
+                  onChange={e => setFormData(f => ({ ...f, customerSurname: e.target.value }))}
+                />
+                <input
+                  className="input"
+                  placeholder="Teléfono"
+                  type="tel"
+                  value={formData.customerPhone}
+                  readOnly={!!foundCustomer}
+                  style={foundCustomer ? { background: '#f0fdf4' } : {}}
+                  onChange={e => setFormData(f => ({ ...f, customerPhone: e.target.value }))}
+                />
+              </div>
+
+              <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '4px 0' }} />
+
+              {/* ── Datos de la reserva ── */}
+              <p style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Datos de la reserva</p>
+
+              <input required type="date" className="input" value={formData.date} onChange={e => setFormData(f => ({ ...f, date: e.target.value }))} />
+              <input required type="time" className="input" value={formData.time} onChange={e => setFormData(f => ({ ...f, time: e.target.value }))} />
+              <input required className="input" placeholder="Servicio *" value={formData.serviceName} onChange={e => setFormData(f => ({ ...f, serviceName: e.target.value }))} />
+
               <div className="modal-actions" style={{ marginTop: 8 }}>
-                <button type="button" className="secondary-btn" onClick={() => setIsModalOpen(false)}>Cancelar</button>
-                <button type="submit" className="primary-btn" disabled={isSubmitting}>
-                  {isSubmitting ? "Guardando..." : "Guardar reserva"}
+                <button type="button" className="secondary-btn" onClick={() => { setIsModalOpen(false); setFoundCustomer(undefined); }}>Cancelar</button>
+                <button type="submit" className="primary-btn" disabled={isSubmitting || foundCustomer === undefined}>
+                  {isSubmitting ? 'Guardando...' : foundCustomer ? 'Crear reserva (cliente existente)' : 'Crear reserva (cliente nuevo)'}
                 </button>
               </div>
             </form>

@@ -60,11 +60,8 @@ export default function LoginPage() {
       </div>
       <section className="login-card">
         <header className="login-header">
-          <div className="login-header__brand">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-            </svg>
+          <div className="login-header__brand" style={{ background: 'transparent' }}>
+            <img src="/favicon.ico" alt="Yoku Logo" style={{ width: 64, height: 64, objectFit: 'contain' }} />
           </div>
           <h1 className="login-header__title">Bienvenido a Yoku</h1>
           <p className="login-header__subtitle">

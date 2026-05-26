@@ -31,9 +31,12 @@ export default function Header() {
 
   return (
     <header className="admin-header">
-      <div>
-        <h1 className="admin-header__title">Yoku Admin</h1>
-        <p className="admin-header__subtitle">Panel de gestión consolidado</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <img src="/favicon.ico" alt="Yoku Logo" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+        <div>
+          <h1 className="admin-header__title">Yoku Admin</h1>
+          <p className="admin-header__subtitle">Panel de gestión consolidado</p>
+        </div>
       </div>
 
       <div className="admin-header__actions" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '16px' }}>

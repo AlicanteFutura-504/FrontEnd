@@ -1,7 +1,11 @@
-import PaymentsClient from "./PaymentsClient";
-import { getPayments } from "@/lib/api";
+/**
+ * @fileoverview Ruta /payments deshabilitada.
+ * Los pagos se gestionan por negocio desde /business/[id].
+ * Cualquier acceso directo a esta ruta es redirigido al dashboard.
+ */
 
-export default async function PaymentsPage() {
-  const payments = await getPayments();
-  return <PaymentsClient initialPayments={payments} />;
+import { redirect } from "next/navigation";
+
+export default function PaymentsPage() {
+  redirect("/dashboard");
 }
