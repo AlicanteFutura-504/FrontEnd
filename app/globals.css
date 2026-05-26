@@ -221,7 +221,8 @@ body::after {
 }
 
 .admin-sidebar--collapsed .admin-sidebar__title,
-.admin-sidebar--collapsed .admin-sidebar__subtitle {
+.admin-sidebar--collapsed .admin-sidebar__subtitle,
+.admin-sidebar--collapsed .admin-sidebar__section-label {
   display: none;
 }
 
