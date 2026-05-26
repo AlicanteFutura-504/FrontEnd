@@ -195,7 +195,7 @@ export default function ProfilePage() {
               >
                 {avatarPreview || user.profilePicture ? (
                   <img 
-                    src={avatarPreview || `http://localhost:3000${user.profilePicture}`} 
+                    src={avatarPreview || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${user.profilePicture}`} 
                     alt="Perfil" 
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                   />
