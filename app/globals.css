@@ -202,7 +202,9 @@ body::after {
   font-weight: 800;
   background: var(--accent-gradient);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
   letter-spacing: -0.02em;
   margin: 0;
   text-align: center;
@@ -555,7 +557,9 @@ body::after {
   line-height: 1;
   background: var(--kpi-value-gradient);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
   margin-bottom: 12px;
 }
 
