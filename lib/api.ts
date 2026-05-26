@@ -286,3 +286,12 @@ export async function createCustomer(data: Partial<Customer>): Promise<Customer>
   });
   return handleResponse(res);
 }
+
+export async function updateCustomer(id: number, data: Partial<Customer>): Promise<Customer> {
+  const res = await fetch(`${API_URL}/customers/${id}`, {
+    method: "PATCH",
+    headers: getHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
