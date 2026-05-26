@@ -29,12 +29,18 @@ export default function DashboardPage() {
 
     const fetchAllData = async () => {
       try {
-        const [bookings, payments, customers, businesses] = await Promise.all([
+        const [allBookings, allPayments, allCustomers, businesses] = await Promise.all([
           getAppointments(),
           getPayments(),
           getCustomers(),
           getBusinesses()
         ]);
+        
+        const businessIds = businesses.map(b => b.id);
+        const bookings = allBookings.filter(b => businessIds.includes(b.businessId));
+        const payments = allPayments.filter(p => p.businessId && businessIds.includes(p.businessId));
+        const customers = allCustomers.filter(c => c.businessId && businessIds.includes(c.businessId));
+
         setData({ bookings, payments, customers, businesses });
       } catch (err) {
         console.error("Error al cargar datos del dashboard:", err);
