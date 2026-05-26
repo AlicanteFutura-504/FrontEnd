@@ -279,6 +279,7 @@ body::after {
 
 .admin-sidebar--collapsed .admin-sidebar__link span:nth-child(2) {
   display: none;
+  padding: 14px;
 }
 
 .sidebar-toggle {

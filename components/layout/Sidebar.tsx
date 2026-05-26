@@ -83,10 +83,11 @@ export default function Sidebar() {
   return (
     <aside className={`admin-sidebar ${collapsed ? 'admin-sidebar--collapsed' : ''}`}>
       <div className="admin-sidebar__brand-row" style={{ display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-start', gap: collapsed ? '0' : '10px' }}>
-        <h2 className={`admin-sidebar__title ${collapsed ? 'collapsed-hide' : ''}`}>
-          BookFlow
+        <img src="/favicon.ico" alt="Yoku Logo" style={{ width: 36, height: 36, objectFit: 'contain' }} className={collapsed ? '' : 'shrink-0'} />
+        <h2 className={`admin-sidebar__title ${collapsed ? 'collapsed-hide' : ''}`} style={{ fontSize: '24px' }}>
+          Yoku
         </h2>
-        <button className={`sidebar-toggle ${collapsed ? 'sidebar-toggle--collapsed' : ''}`} onClick={handleToggle}>
+        <button className={`sidebar-toggle ${collapsed ? 'sidebar-toggle--collapsed' : ''}`} onClick={handleToggle} style={{ marginLeft: collapsed ? '0' : 'auto' }}>
           <span className="arrow">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6"/>
@@ -117,7 +118,7 @@ export default function Sidebar() {
             <Link 
               href="/business" 
               className={`admin-sidebar__link ${pathname === "/business" ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
-              style={{ flex: 1, paddingRight: collapsed ? '0' : '4px' }}
+              style={{ flex: 1, paddingRight: collapsed ? undefined : '4px' }}
               title={collapsed ? "Business" : ""}
             >
               <span className="shrink-0"><BriefcaseIcon /></span>
