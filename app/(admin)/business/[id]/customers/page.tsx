@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { getCustomers, getBookingsByCustomer } from "@/lib/api";
+import { getCustomers, getBookingsByCustomer, getBookingsByBusiness, getPayments } from "@/lib/api";
 import { Customer, Booking } from "@/lib/types";
 import Link from "next/link";
 
@@ -21,9 +21,24 @@ export default function BusinessCustomersPage() {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const data = await getCustomers();
-        // Nota: En este MVP los clientes son globales, pero mostramos el listado con el estilo adecuado
-        setCustomers(data);
+        const [allCustomers, businessBookings, allPayments] = await Promise.all([
+          getCustomers(),
+          getBookingsByBusiness(businessId),
+          getPayments()
+        ]);
+
+        const businessPayments = allPayments.filter(p => String(p.businessId) === businessId);
+
+        const validCustomerIds = new Set<number>();
+        businessBookings.forEach(b => {
+          if (b.customerId) validCustomerIds.add(b.customerId);
+        });
+        businessPayments.forEach(p => {
+          if (p.customerId) validCustomerIds.add(p.customerId);
+        });
+
+        const filteredCustomers = allCustomers.filter(c => validCustomerIds.has(c.id));
+        setCustomers(filteredCustomers);
       } catch (err) {
         console.error(err);
       } finally {
@@ -31,8 +46,10 @@ export default function BusinessCustomersPage() {
       }
     };
 
-    fetchCustomers();
-  }, []);
+    if (businessId) {
+      fetchCustomers();
+    }
+  }, [businessId]);
 
   const filteredCustomers = useMemo(() => {
     if (!searchTerm) return customers;

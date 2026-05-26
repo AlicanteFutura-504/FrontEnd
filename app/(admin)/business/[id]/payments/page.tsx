@@ -148,7 +148,7 @@ export default function BusinessPaymentsPage() {
                 {editingId === p.id ? (
                   <>
                     <td style={{ fontWeight: 600 }}>
-                      {editFormData.clientName}
+                      <input className="input" type="text" style={{ padding: '8px', fontSize: '14px', width: '150px' }} value={editFormData.clientName || ''} onChange={(e) => setEditFormData({...editFormData, clientName: e.target.value})} />
                     </td>
                     <td>
                       <input className="input" type="number" style={{ padding: '8px', fontSize: '14px', width: '80px' }} value={editFormData.amount || 0} onChange={(e) => setEditFormData({...editFormData, amount: parseFloat(e.target.value)})} /> €
