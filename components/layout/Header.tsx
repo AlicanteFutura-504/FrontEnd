@@ -39,7 +39,7 @@ export default function Header() {
       <div className="admin-header__actions" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '16px' }}>
         <ThemeToggle />
 
-        <button 
+        <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="secondary-btn"
           style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', borderRadius: '18px' }}
@@ -50,10 +50,10 @@ export default function Header() {
           </div>
           <div className="admin-avatar" style={{ width: '32px', height: '32px', fontSize: '14px', overflow: 'hidden' }}>
             {user?.profilePicture ? (
-              <img 
-                src={user.profilePicture?.startsWith('http') ? user.profilePicture : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${user.profilePicture}`} 
-                alt="Perfil" 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              <img
+                src={user.profilePicture?.startsWith('http') ? user.profilePicture : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${user.profilePicture}`}
+                alt="Perfil"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
               initial
@@ -63,23 +63,23 @@ export default function Header() {
 
         {isMenuOpen && (
           <>
-            <div 
+            <div
               style={{ position: 'fixed', inset: 0, zIndex: 10 }}
               onClick={() => setIsMenuOpen(false)}
             />
-            <div className="section-card" style={{ 
-              position: 'absolute', 
-              right: 0, 
-              top: 'calc(100% + 10px)', 
-              width: '220px', 
-              zIndex: 20, 
+            <div className="section-card" style={{
+              position: 'absolute',
+              right: 0,
+              top: 'calc(100% + 10px)',
+              width: '220px',
+              zIndex: 20,
               padding: '8px',
               display: 'flex',
               flexDirection: 'column',
               gap: '4px'
             }}>
-              <Link 
-                href="/settings/profile" 
+              <Link
+                href="/settings/profile"
                 className="admin-sidebar__link"
                 style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}
                 onClick={() => setIsMenuOpen(false)}
@@ -88,7 +88,7 @@ export default function Header() {
               </Link>
 
               <div style={{ height: '1px', background: 'var(--border)', margin: '4px 0' }} />
-              <button 
+              <button
                 onClick={() => {
                   setIsMenuOpen(false);
                   logout();
