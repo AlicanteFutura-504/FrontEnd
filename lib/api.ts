@@ -278,6 +278,11 @@ export async function getCustomers(): Promise<Customer[]> {
   return handleResponse(res) || [];
 }
 
+export async function getCustomersByBusiness(businessId: string): Promise<Customer[]> {
+  const res = await fetch(`${API_URL}/customers/business/${businessId}`, { headers: getHeaders() });
+  return handleResponse(res) || [];
+}
+
 export async function createCustomer(data: Partial<Customer>): Promise<Customer> {
   const res = await fetch(`${API_URL}/customers`, {
     method: "POST",
