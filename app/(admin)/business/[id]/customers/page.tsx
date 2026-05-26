@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { getCustomers, getBookingsByCustomer, getBookingsByBusiness, getPayments, updateCustomer } from "@/lib/api";
+import { getCustomers, getCustomersByBusiness, getBookingsByCustomer, getBookingsByBusiness, getPayments, updateCustomer, createCustomer } from "@/lib/api";
 import { Customer, Booking } from "@/lib/types";
 import Link from "next/link";
 
@@ -12,6 +12,10 @@ export default function BusinessCustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Modal states para creacion
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addFormData, setAddFormData] = useState({ name: "", surname: "", email: "", phone: "" });
 
   // Modal states
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -39,7 +43,9 @@ export default function BusinessCustomersPage() {
           if (p.customerId) validCustomerIds.add(p.customerId);
         });
 
-        const filteredCustomers = allCustomers.filter(c => validCustomerIds.has(c.id));
+        const filteredCustomers = allCustomers.filter(c => 
+          String(c.businessId) === businessId || validCustomerIds.has(c.id)
+        );
         setCustomers(filteredCustomers);
       } catch (err) {
         console.error(err);
@@ -95,7 +101,12 @@ export default function BusinessCustomersPage() {
           <h2>Clientes Vinculados</h2>
           <p>Base de datos de clientes registrados en el sistema.</p>
         </div>
-        <Link href={`/business/${businessId}`} className="secondary-btn">Volver al Panel</Link>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button onClick={() => setIsAddModalOpen(true)} className="primary-btn">
+            + Añadir Cliente
+          </button>
+          <Link href={`/business/${businessId}`} className="secondary-btn">Volver al Panel</Link>
+        </div>
       </header>
 
       <section className="section-card" style={{ padding: '16px' }}>
@@ -267,6 +278,72 @@ export default function BusinessCustomersPage() {
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
                 <button type="button" onClick={() => setEditingCustomer(null)} className="secondary-btn">Cancelar</button>
                 <button type="submit" className="primary-btn">Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for Add Customer */}
+      {isAddModalOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }}>
+          <div className="modal-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+                Añadir Nuevo Cliente
+              </h3>
+              <button 
+                onClick={() => setIsAddModalOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--muted)' }}
+              >
+                &times;
+              </button>
+            </div>
+            
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const newCustomer = await createCustomer({
+                  ...addFormData,
+                  businessId: parseInt(businessId, 10)
+                });
+                setCustomers([...customers, newCustomer]);
+                setIsAddModalOpen(false);
+                setAddFormData({ name: "", surname: "", email: "", phone: "" });
+              } catch (error) {
+                alert("Error al añadir cliente. Revisa si el email ya existe.");
+              }
+            }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Nombre</label>
+                  <input required className="input" value={addFormData.name} onChange={e => setAddFormData({...addFormData, name: e.target.value})} placeholder="Nombre" />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Apellidos</label>
+                  <input className="input" value={addFormData.surname} onChange={e => setAddFormData({...addFormData, surname: e.target.value})} placeholder="Apellidos" />
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Email</label>
+                <input required type="email" className="input" value={addFormData.email} onChange={e => setAddFormData({...addFormData, email: e.target.value})} placeholder="correo@ejemplo.com" />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Teléfono</label>
+                <input className="input" value={addFormData.phone} onChange={e => setAddFormData({...addFormData, phone: e.target.value})} placeholder="600123456" />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+                <button type="button" onClick={() => setIsAddModalOpen(false)} className="secondary-btn">Cancelar</button>
+                <button type="submit" className="primary-btn">Añadir Cliente</button>
               </div>
             </form>
           </div>

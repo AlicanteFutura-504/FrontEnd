@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getPayments, updatePayment, deletePayment, createPayment } from "@/lib/api";
+import { getPayments, updatePayment, deletePayment, createPayment, createCustomer } from "@/lib/api";
 import { Payment, PaymentStatus, PaymentTypeEnum } from "@/lib/types";
 import KpiCard from "@/components/ui/KpiCard";
 import Badge from "@/components/ui/Badge";
@@ -64,10 +64,24 @@ export default function BusinessPaymentsPage() {
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // 1. Auto-crear el cliente primero
+      const parts = addFormData.clientName.trim().split(/\s+/);
+      const name = parts[0] || 'Cliente';
+      const surname = parts.slice(1).join(' ') || '';
+      
+      const newCustomer = await createCustomer({
+        name,
+        surname,
+        email: `cliente_${Date.now()}@pendiente.com`,
+        businessId: parseInt(businessId, 10)
+      });
+
+      // 2. Crear el pago vinculado a este nuevo cliente
       const newPayment = await createPayment({
         ...addFormData,
         businessName: "Negocio Actual",
         businessId: parseInt(businessId, 10),
+        customerId: newCustomer.id,
       });
       setPayments([...payments, newPayment]);
       setIsAddModalOpen(false);
@@ -79,7 +93,7 @@ export default function BusinessPaymentsPage() {
         date: new Date().toISOString().split('T')[0]
       });
     } catch (err) {
-      alert("Error al crear pago");
+      alert("Error al crear el pago o el cliente");
     }
   };
 
