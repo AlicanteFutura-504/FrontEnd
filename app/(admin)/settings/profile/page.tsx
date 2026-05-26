@@ -160,18 +160,18 @@ export default function ProfilePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', gap: '24px', alignItems: 'center', padding: '20px', background: 'var(--surface-2)', borderRadius: '18px' }}>
               <div 
-                className="admin-avatar hover-avatar" 
+                className={`admin-avatar ${isEditing ? 'hover-avatar' : ''}`} 
                 style={{ 
                   width: '80px', 
                   height: '80px', 
                   fontSize: '32px', 
-                  cursor: 'pointer',
+                  cursor: isEditing ? 'pointer' : 'default',
                   position: 'relative',
                   overflow: 'hidden',
                   opacity: isUploadingAvatar ? 0.5 : 1
                 }}
-                onClick={handleAvatarClick}
-                title="Haz clic para cambiar tu foto de perfil"
+                onClick={isEditing ? handleAvatarClick : undefined}
+                title={isEditing ? "Haz clic para cambiar tu foto de perfil" : undefined}
               >
                 {user.profilePicture ? (
                   <img 
