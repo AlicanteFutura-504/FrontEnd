@@ -106,4 +106,5 @@ export interface Customer {
   surname?: string;
   email: string;
   phone?: string;
+  businessId?: number;
 }
