@@ -218,6 +218,14 @@ export async function deleteAppointment(id: number): Promise<void> {
   return handleResponse(res);
 }
 
+export async function getAppointmentsByRange(from: string, to: string): Promise<Booking[]> {
+  const res = await fetch(
+    `${API_URL}/bookings/calendar?from=${from}&to=${to}`,
+    { headers: getHeaders() }
+  );
+  return handleResponse(res) || [];
+}
+
 // --- BOOKINGS (NEW) ---
 
 export async function getBookingsByBusiness(businessId: string): Promise<Booking[]> {
