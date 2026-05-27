@@ -38,12 +38,10 @@ export default function ProfilePage() {
   const [passwordData, setPasswordData] = useState({ newPassword: "", confirmPassword: "" });
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  // Estados para Modal Unsplash
-  const [isUnsplashModalOpen, setIsUnsplashModalOpen] = useState(false);
-  const [unsplashQuery, setUnsplashQuery] = useState("");
-  const [unsplashResults, setUnsplashResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [unsplashError, setUnsplashError] = useState<string | null>(null);
+  // Estados para subida de imagen
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   if (!user) return <div className="p-8">Cargando perfil...</div>;
 
@@ -70,35 +68,41 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSearchOnline = () => {
-    setIsUnsplashModalOpen(true);
-  };
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const searchUnsplash = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!unsplashQuery.trim()) return;
-    
-    setIsSearching(true);
-    setUnsplashError(null);
+    setIsUploadingImage(true);
+    setUploadError(null);
+
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !uploadPreset) {
+      setUploadError("La configuración de Cloudinary no está presente en el entorno.");
+      setIsUploadingImage(false);
+      return;
+    }
+
     try {
-      const accessKey = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
-      if (!accessKey) {
-        throw new Error("Falta la clave de API de Unsplash en el archivo .env (NEXT_PUBLIC_UNSPLASH_ACCESS_KEY)");
-      }
-      const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(unsplashQuery)}&per_page=12`, {
-        headers: {
-          Authorization: `Client-ID ${accessKey}`
-        }
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+      formDataUpload.append("upload_preset", uploadPreset);
+
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: "POST",
+        body: formDataUpload,
       });
-      
-      if (!res.ok) throw new Error("Error al buscar imágenes en Unsplash. Verifica tu API Key.");
-      
+
+      if (!res.ok) throw new Error("Error al subir la imagen a Cloudinary.");
+
       const data = await res.json();
-      setUnsplashResults(data.results || []);
+      setFormData((prev) => ({ ...prev, profilePicture: data.secure_url }));
     } catch (err: any) {
-      setUnsplashError(err.message);
+      setUploadError(err.message || "Error inesperado al subir la imagen.");
     } finally {
-      setIsSearching(false);
+      setIsUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -210,27 +214,37 @@ export default function ProfilePage() {
                 <p style={{ margin: '4px 0 0', color: 'var(--muted)' }}>{user.role === 'admin' ? 'Administrador Global' : 'Gestor de Negocio'}</p>
                 
                 {isEditing && (
-                  <div style={{ marginTop: '16px', display: 'flex', gap: '8px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: '250px' }}>
-                      <input 
-                        type="url" 
-                        name="profilePicture"
-                        value={formData.profilePicture}
-                        onChange={handleInputChange}
-                        className="input"
-                        placeholder="Pega aquí la URL de la foto"
-                        style={{ padding: '10px 14px', fontSize: '14px' }}
-                      />
+                  <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-start' }}>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      style={{ display: 'none' }}
+                    />
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <button 
+                        type="button" 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="secondary-btn"
+                        style={{ padding: '10px 16px', fontSize: '13px' }}
+                        disabled={isUploadingImage}
+                      >
+                        {isUploadingImage ? "Subiendo..." : "Subir nueva foto"}
+                      </button>
+                      {formData.profilePicture && (
+                        <button 
+                          type="button" 
+                          onClick={() => setFormData(prev => ({ ...prev, profilePicture: "" }))}
+                          className="secondary-btn"
+                          style={{ padding: '10px 16px', fontSize: '13px', color: '#ef4444', borderColor: '#ef4444' }}
+                          disabled={isUploadingImage}
+                        >
+                          Eliminar
+                        </button>
+                      )}
                     </div>
-                    <button 
-                      type="button" 
-                      onClick={handleSearchOnline}
-                      className="secondary-btn"
-                      style={{ padding: '10px 16px', fontSize: '13px' }}
-                      title="Abrir galería de imágenes en otra pestaña"
-                    >
-                      Buscar foto online
-                    </button>
+                    {uploadError && <p style={{ color: '#ef4444', fontSize: '12px', margin: 0 }}>{uploadError}</p>}
                   </div>
                 )}
               </div>
@@ -384,58 +398,6 @@ export default function ProfilePage() {
         </section>
       </div>
 
-      {isUnsplashModalOpen && (
-        <div className="modal-backdrop" onClick={() => setIsUnsplashModalOpen(false)}>
-          <div className="modal-card" style={{ width: '80%', maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">Buscar Foto de Perfil</h3>
-            <p className="modal-text">Busca en Unsplash la imagen que prefieras.</p>
-            
-            <form onSubmit={searchUnsplash} style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              <input 
-                type="text" 
-                className="input" 
-                value={unsplashQuery}
-                onChange={e => setUnsplashQuery(e.target.value)}
-                placeholder="Ej. persona, cara, oficina..."
-                style={{ flex: 1 }}
-              />
-              <button type="submit" className="primary-btn" disabled={isSearching}>
-                {isSearching ? "Buscando..." : "Buscar"}
-              </button>
-            </form>
-            
-            {unsplashError && <p style={{ color: '#ef4444', marginBottom: '16px' }}>{unsplashError}</p>}
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '16px' }}>
-              {unsplashResults.map((img: any) => (
-                <div 
-                  key={img.id} 
-                  style={{ 
-                    cursor: 'pointer', 
-                    borderRadius: '12px', 
-                    overflow: 'hidden', 
-                    aspectRatio: '1/1',
-                    border: formData.profilePicture === img.urls.regular ? '4px solid var(--accent-1)' : '2px solid transparent',
-                    transition: 'transform 0.2s ease',
-                  }}
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, profilePicture: img.urls.regular }));
-                    setIsUnsplashModalOpen(false);
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                >
-                  <img src={img.urls.small} alt={img.alt_description || "Unsplash"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-              ))}
-            </div>
-            
-            <div className="modal-actions" style={{ marginTop: '24px' }}>
-              <button className="secondary-btn" onClick={() => setIsUnsplashModalOpen(false)}>Cerrar</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
