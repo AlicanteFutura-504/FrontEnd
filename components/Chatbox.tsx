@@ -75,7 +75,7 @@ export default function Chatbox() {
   return (
     <div className="chatbox-container">
       {isOpen && (
-        <div className="chatbox-window dark-theme">
+        <div className="chatbox-window">
           <div className="chatbox-header">
             <div
               style={{
@@ -101,7 +101,7 @@ export default function Chatbox() {
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              style={{ marginLeft: "auto", background: "none", border: "none", color: "#fff", cursor: "pointer", opacity: 0.6 }}
+              className="chatbox-close-btn"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -112,7 +112,7 @@ export default function Chatbox() {
 
           <div className="chatbox-messages">
             {messages.length === 0 && (
-              <div style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", marginTop: "auto", marginBottom: "auto" }}>
+              <div className="chatbox-empty-state">
                 <p>¡Hola! Soy tu asistente virtual.</p>
                 <p style={{ fontSize: 12 }}>¿En qué te puedo ayudar hoy?</p>
               </div>
