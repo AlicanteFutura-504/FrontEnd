@@ -48,12 +48,14 @@ export default function BusinessListPage() {
           <h2>Mis Negocios</h2>
           <p>Gestiona y monitoriza todos tus locales desde una vista centralizada.</p>
         </div>
-        <Link 
-          href="/business/new" 
-          className="primary-btn"
-        >
-          + Añadir Negocio
-        </Link>
+        {user?.role === 'admin' && (
+          <Link 
+            href="/business/new" 
+            className="primary-btn"
+          >
+            + Añadir Negocio
+          </Link>
+        )}
       </header>
 
       {error && <div className="message-error" style={{ padding: '12px', background: 'var(--warning-bg)', borderRadius: '12px' }}>{error}</div>}
@@ -166,9 +168,11 @@ export default function BusinessListPage() {
           {businesses.length === 0 && (
             <div className="section-card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px' }}>
               <p style={{ color: 'var(--muted)' }}>Aún no has añadido ningún negocio.</p>
-              <Link href="/business/new" className="panel-subtle-link" style={{ marginTop: '12px', display: 'inline-block' }}>
-                Empezar ahora
-              </Link>
+              {user?.role === 'admin' && (
+                <Link href="/business/new" className="panel-subtle-link" style={{ marginTop: '12px', display: 'inline-block' }}>
+                  Empezar ahora
+                </Link>
+              )}
             </div>
           )}
         </div>
