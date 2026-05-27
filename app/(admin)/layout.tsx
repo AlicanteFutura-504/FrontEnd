@@ -7,6 +7,7 @@
 
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import Chatbox from "@/components/Chatbox";
 
 /**
  * Layout del panel de administración.
@@ -32,6 +33,7 @@ export default function AdminLayout({
         <Header />
         <main className="admin-content">{children}</main>
       </div>
+      <Chatbox />
     </div>
   );
 }
