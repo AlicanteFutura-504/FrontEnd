@@ -82,6 +82,8 @@ export interface User {
   nombreCompleto?: string;
   dni?: string;
   profilePicture?: string;
+  /** ID del negocio asociado. Solo presente cuando role === 'business'. */
+  businessId?: number | null;
 }
 
 export interface UpdateUserDto {
