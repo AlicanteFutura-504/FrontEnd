@@ -48,8 +48,11 @@ export default function Chatbox() {
         }),
       });
 
-      if (!res.ok) throw new Error("Error from server");
-
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error("Server Error Response:", errText);
+        throw new Error(`Server error: ${res.status}`);
+      }
       const data = await res.json();
       setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
     } catch (error) {
