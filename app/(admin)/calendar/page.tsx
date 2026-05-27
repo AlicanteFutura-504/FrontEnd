@@ -10,8 +10,8 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import Badge from "@/components/ui/Badge";
-import { getAppointmentsByRange, getBusinesses } from "@/lib/api";
-import type { Booking, Business } from "@/lib/types";
+import { getAppointmentsByRange, getBusinesses, getCustomers } from "@/lib/api";
+import type { Booking, Business, Customer } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
 // Helpers de fecha
@@ -87,6 +87,7 @@ export default function CalendarPage() {
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState<string | null>(toYMD(today));
 
@@ -101,12 +102,14 @@ export default function CalendarPage() {
     if (!user) return;
     setLoading(true);
     try {
-      const [appts, bizs] = await Promise.all([
+      const [appts, bizs, custs] = await Promise.all([
         getAppointmentsByRange(from, to),
         getBusinesses(),
+        getCustomers(),
       ]);
       setBookings(appts);
       setBusinesses(bizs);
+      setCustomers(custs || []);
     } catch (err) {
       console.error("Error cargando calendario:", err);
     } finally {
@@ -134,6 +137,12 @@ export default function CalendarPage() {
 
   const businessName = (id: number) =>
     businesses.find((b) => b.id === id)?.nombre ?? `Negocio #${id}`;
+
+  const customerName = (id: number) => {
+    const c = customers.find((x) => x.id === id);
+    if (!c) return null;
+    return `${c.name}${c.surname ? " " + c.surname : ""}`;
+  };
 
   function prevMonth() {
     if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
@@ -309,7 +318,7 @@ export default function CalendarPage() {
                     {b.serviceName}
                   </p>
                   <p style={{ fontSize: 11, marginTop: 2, color: "var(--text-muted)" }}>
-                    {businessName(b.businessId)} · Cliente #{b.customerId}
+                    {businessName(b.businessId)} · Cliente #{b.customerId}{customerName(b.customerId) ? ` - ${customerName(b.customerId)}` : ""}
                   </p>
                 </div>
               ))}
