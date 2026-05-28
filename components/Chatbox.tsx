@@ -97,7 +97,7 @@ export default function Chatbox() {
             </div>
             <div>
               <h3>Asistente IA</h3>
-              <p>Alicante Futura</p>
+              <p>Yoku</p>
             </div>
             <button
               onClick={() => setIsOpen(false)}
