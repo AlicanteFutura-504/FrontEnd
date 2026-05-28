@@ -12,6 +12,7 @@ import { useAuth } from "@/components/AuthProvider";
 import Badge from "@/components/ui/Badge";
 import { getAppointmentsByRange, getBusinesses, getCustomers } from "@/lib/api";
 import type { Booking, Business, Customer } from "@/lib/types";
+import Link from "next/link";
 
 // ---------------------------------------------------------------------------
 // Helpers de fecha
@@ -108,7 +109,7 @@ export default function CalendarPage() {
         getCustomers(),
       ]);
       setBookings(appts);
-      setBusinesses(bizs);
+      setBusinesses(Array.isArray(bizs) ? bizs : (bizs?.data || []));
       setCustomers(custs || []);
     } catch (err) {
       console.error("Error cargando calendario:", err);
@@ -201,7 +202,7 @@ export default function CalendarPage() {
       </section>
 
       {/* Main layout */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 24, alignItems: "start" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 32, alignItems: "stretch" }}>
 
         {/* Calendar grid */}
         <div style={calendarContainerStyle}>
@@ -305,9 +306,21 @@ export default function CalendarPage() {
               </p>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {selectedBookings.map((b) => (
-                <div key={b.id} style={bookingCardStyle}>
+            <>
+              <div style={{ 
+                display: "grid", 
+                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", 
+                gap: 16,
+                maxHeight: "500px",
+                overflowY: "auto",
+                paddingRight: "8px"
+              }}>
+                {selectedBookings.slice(0, 50).map((b) => (
+                <Link 
+                  href={`/business/${b.businessId}/bookings`}
+                  key={b.id} 
+                  style={{ ...bookingCardStyle, textDecoration: "none", cursor: "pointer", display: "block" }}
+                >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>
                       {b.time}
@@ -317,12 +330,18 @@ export default function CalendarPage() {
                   <p style={{ fontSize: 13, marginTop: 4, color: "var(--text)" }}>
                     {b.serviceName}
                   </p>
-                  <p style={{ fontSize: 11, marginTop: 2, color: "var(--text-muted)" }}>
+                  <p style={{ fontSize: 11, marginTop: 6, color: "var(--text-muted)", background: "var(--surface)", padding: "4px 8px", borderRadius: "4px", display: "inline-block" }}>
                     {businessName(b.businessId)} · Cliente #{b.customerId}{customerName(b.customerId) ? ` - ${customerName(b.customerId)}` : ""}
                   </p>
-                </div>
+                </Link>
               ))}
-            </div>
+              </div>
+              {selectedBookings.length > 50 && (
+                <div style={{ marginTop: 16, textAlign: "center", padding: 12, background: "var(--warning-bg)", color: "var(--warning)", borderRadius: 8, fontWeight: 600 }}>
+                  Mostrando 50 de {selectedBookings.length} reservas. Utiliza el listado principal para verlas todas.
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -400,9 +419,7 @@ const panelStyle: React.CSSProperties = {
   background: "var(--surface)",
   border: "1px solid var(--border)",
   borderRadius: "var(--radius-md)",
-  padding: 20,
-  position: "sticky",
-  top: 24,
+  padding: 24,
 };
 
 const bookingCardStyle: React.CSSProperties = {

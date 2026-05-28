@@ -11,15 +11,36 @@ export default function BusinessListPage() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("id");
+  const [sortOrder, setSortOrder] = useState("DESC");
+  const [filterField, setFilterField] = useState("");
+  const [filterValue, setFilterValue] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    fetchBusinesses();
-  }, []);
+    // Debounce simple para la búsqueda
+    const timer = setTimeout(() => {
+      fetchBusinesses(page, search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [page, search, sortBy, sortOrder, filterField, filterValue]);
 
-  const fetchBusinesses = async () => {
+  const fetchBusinesses = async (p: number, s: string) => {
+    setLoading(true);
     try {
-      const data = await getBusinesses();
-      setBusinesses(data);
+      const result = await getBusinesses(p, 20, s, sortBy, sortOrder, filterField, filterValue);
+      if (Array.isArray(result)) {
+        // Fallback local en caso de que el backend envíe todo el array
+        const start = (p - 1) * 20;
+        setBusinesses(result.slice(start, start + 20));
+        setTotal(result.length);
+      } else {
+        setBusinesses(result?.data || []);
+        setTotal(result?.total || 0);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -58,123 +79,181 @@ export default function BusinessListPage() {
         )}
       </header>
 
-      {error && <div className="message-error" style={{ padding: '12px', background: 'var(--warning-bg)', borderRadius: '12px' }}>{error}</div>}
-
-      {user?.username === 'root' ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {Object.entries(
-            businesses.reduce((acc, business) => {
-              const ownerName = business.usuario?.nombreCompleto || business.usuario?.username || 'Sin Propietario';
-              if (!acc[ownerName]) acc[ownerName] = [];
-              acc[ownerName].push(business);
-              return acc;
-            }, {} as Record<string, Business[]>)
-          ).map(([owner, ownerBusinesses]) => (
-            <div key={owner} style={{ background: 'var(--surface)', padding: '24px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-              <h3 style={{ marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ background: 'var(--primary-soft)', padding: '4px 8px', borderRadius: '6px', fontSize: '14px' }}>👤 Empresario</span> 
-                {owner}
-              </h3>
-              <div className="customer-grid">
-                {ownerBusinesses.map((b) => (
-                  <div 
-                    key={b.id} 
-                    className="customer-card"
-                    style={{ cursor: 'pointer', position: 'relative' }}
-                    onClick={() => window.location.href = `/business/${b.id}`}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ fontSize: '24px', background: 'var(--primary-soft)', padding: '10px', borderRadius: '12px' }}>🏢</div>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <Link 
-                          href={`/business/edit/${b.id}`}
-                          className="secondary-btn"
-                          style={{ padding: '6px 10px', fontSize: '12px' }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          ✎
-                        </Link>
-                        <button 
-                          onClick={(e) => handleDelete(e, b.id)}
-                          className="secondary-btn"
-                          style={{ padding: '6px 10px', fontSize: '12px', color: '#ef4444' }}
-                        >
-                          🗑
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <h3 className="customer-name" style={{ marginTop: '16px' }}>{b.nombre}</h3>
-                    <p className="customer-meta">{b.direccion || "Sin dirección registrada"}</p>
-                    
-                    <div className="customer-tag">
-                      📞 {b.telefono || "N/A"}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-
-          {businesses.length === 0 && (
-            <div className="section-card" style={{ textAlign: 'center', padding: '60px' }}>
-              <p style={{ color: 'var(--muted)' }}>El sistema aún no tiene ningún negocio registrado.</p>
-            </div>
-          )}
+      <div style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <input 
+            type="text" 
+            placeholder="Búsqueda inteligente: nombre, dirección, teléfono o propietario..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            style={{ padding: '12px', flex: 1, borderRadius: '8px', border: '1px solid var(--border)' }}
+          />
+          <button 
+            onClick={() => setShowFilters(!showFilters)}
+            className="secondary-btn"
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+            Filtros y Ordenación
+          </button>
         </div>
-      ) : (
-        <div className="customer-grid">
-          {businesses.map((b) => (
-            <div 
-              key={b.id} 
-              className="customer-card"
-              style={{ cursor: 'pointer', position: 'relative' }}
-              onClick={() => window.location.href = `/business/${b.id}`}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ fontSize: '24px', background: 'var(--primary-soft)', padding: '10px', borderRadius: '12px' }}>🏢</div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <Link 
-                    href={`/business/edit/${b.id}`}
-                    className="secondary-btn"
-                    style={{ padding: '6px 10px', fontSize: '12px' }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    ✎
-                  </Link>
-                  <button 
-                    onClick={(e) => handleDelete(e, b.id)}
-                    className="secondary-btn"
-                    style={{ padding: '6px 10px', fontSize: '12px', color: '#ef4444' }}
-                  >
-                    🗑
-                  </button>
-                </div>
+
+        {showFilters && (
+          <div style={{ padding: '20px', background: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minWidth: '200px' }}>
+              <label style={{ fontSize: '14px', fontWeight: 600 }}>Ordenar por</label>
+              <select 
+                value={sortBy} 
+                onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
+                style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}
+              >
+                <option value="id">Fecha de creación (ID)</option>
+                <option value="nombre">Nombre de la empresa</option>
+                <option value="direccion">Dirección</option>
+              </select>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minWidth: '150px' }}>
+              <label style={{ fontSize: '14px', fontWeight: 600 }}>Dirección del orden</label>
+              <select 
+                value={sortOrder} 
+                onChange={(e) => { setSortOrder(e.target.value); setPage(1); }}
+                style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}
+              >
+                <option value="DESC">Descendente (Nuevos / Z-A)</option>
+                <option value="ASC">Ascendente (Antiguos / A-Z)</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minWidth: '200px' }}>
+              <label style={{ fontSize: '14px', fontWeight: 600 }}>Filtro Específico</label>
+              <select 
+                value={filterField} 
+                onChange={(e) => { setFilterField(e.target.value); setFilterValue(""); setPage(1); }}
+                style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}
+              >
+                <option value="">Ninguno</option>
+                <option value="has_phone">Tiene Teléfono Registrado</option>
+                <option value="has_address">Tiene Dirección Registrada</option>
+              </select>
+            </div>
+
+            {filterField && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minWidth: '150px' }}>
+                <label style={{ fontSize: '14px', fontWeight: 600 }}>Valor</label>
+                <select 
+                  value={filterValue} 
+                  onChange={(e) => { setFilterValue(e.target.value); setPage(1); }}
+                  style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="true">Sí</option>
+                  <option value="false">No</option>
+                </select>
               </div>
-              
-              <h3 className="customer-name" style={{ marginTop: '16px' }}>{b.nombre}</h3>
-              <p className="customer-meta">{b.direccion || "Sin dirección registrada"}</p>
-              
+            )}
+          </div>
+        )}
+      </div>
+
+      {error && <div className="message-error" style={{ padding: '12px', background: 'var(--warning-bg)', borderRadius: '12px', marginBottom: '16px' }}>{error}</div>}
+
+      <div className="customer-grid">
+        {businesses.map((b) => (
+          <div 
+            key={b.id} 
+            className="customer-card"
+            style={{ cursor: 'pointer', position: 'relative' }}
+            onClick={() => window.location.href = `/business/${b.id}`}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ fontSize: '24px', background: 'var(--primary-soft)', padding: '10px', borderRadius: '12px' }}>🏢</div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <Link 
+                  href={`/business/edit/${b.id}`}
+                  className="secondary-btn"
+                  style={{ padding: '6px 10px', fontSize: '12px' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  ✎
+                </Link>
+                <button 
+                  onClick={(e) => handleDelete(e, b.id)}
+                  className="secondary-btn"
+                  style={{ padding: '6px 10px', fontSize: '12px', color: '#ef4444' }}
+                >
+                  🗑
+                </button>
+              </div>
+            </div>
+            
+            <h3 className="customer-name" style={{ marginTop: '16px' }}>{b.nombre}</h3>
+            <p className="customer-meta">{b.direccion || "Sin dirección registrada"}</p>
+            
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <div className="customer-tag">
                 📞 {b.telefono || "N/A"}
               </div>
-
-              <div className="customer-next" style={{ color: 'var(--accent)', fontWeight: 600, marginTop: '16px' }}>
-                Gestionar local →
-              </div>
-            </div>
-          ))}
-
-          {businesses.length === 0 && (
-            <div className="section-card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px' }}>
-              <p style={{ color: 'var(--muted)' }}>Aún no has añadido ningún negocio.</p>
-              {user?.role === 'admin' && (
-                <Link href="/business/new" className="panel-subtle-link" style={{ marginTop: '12px', display: 'inline-block' }}>
-                  Empezar ahora
-                </Link>
+              {user?.username === 'root' && (
+                <div className="customer-tag" style={{ background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent-1)' }}>
+                  👤 {b.usuario?.nombreCompleto || b.usuario?.username || 'Sin Propietario'}
+                </div>
               )}
             </div>
-          )}
+
+            <div className="customer-next" style={{ color: 'var(--accent)', fontWeight: 600, marginTop: '16px' }}>
+              Gestionar local →
+            </div>
+          </div>
+        ))}
+
+        {businesses.length === 0 && (
+          <div className="section-card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px' }}>
+            <p style={{ color: 'var(--muted)' }}>Aún no hay ningún negocio para mostrar.</p>
+            {user?.role === 'admin' && (
+              <Link href="/business/new" className="panel-subtle-link" style={{ marginTop: '12px', display: 'inline-block' }}>
+                Añadir el primero
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
+
+      {total > 20 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '32px', paddingBottom: '32px' }}>
+          <button 
+            disabled={page === 1} 
+            onClick={() => setPage(p => p - 1)}
+            className="secondary-btn"
+          >
+            Anterior
+          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px', color: 'var(--muted)' }}>Página</span>
+            <input 
+              type="number" 
+              min={1} 
+              max={Math.ceil(total / 20)} 
+              value={page}
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                if (!isNaN(val) && val >= 1 && val <= Math.ceil(total / 20)) {
+                  setPage(val);
+                }
+              }}
+              style={{ width: '70px', padding: '8px', textAlign: 'center', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface)' }}
+            />
+            <span style={{ fontSize: '14px', color: 'var(--muted)' }}>de {Math.ceil(total / 20)}</span>
+          </div>
+
+          <button 
+            disabled={page >= Math.ceil(total / 20)} 
+            onClick={() => setPage(p => p + 1)}
+            className="secondary-btn"
+          >
+            Siguiente
+          </button>
         </div>
       )}
     </div>

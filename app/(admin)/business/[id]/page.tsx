@@ -26,13 +26,14 @@ export default function BusinessDashboardPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [allBookings, allPayments, allCustomers, allBusinesses] = await Promise.all([
+        const [allBookings, allPayments, allCustomers, allBusinessesResp] = await Promise.all([
           getAppointments(),
           getPayments(),
           getCustomers(),
           getBusinesses()
         ]);
 
+        const allBusinesses = Array.isArray(allBusinessesResp) ? allBusinessesResp : (allBusinessesResp?.data || []);
         const currentBusiness = allBusinesses.find(b => String(b.id) === businessId) || null;
         const businessBookings = allBookings.filter(b => String(b.businessId) === businessId);
         const businessPayments = allPayments.filter(p => String(p.businessId) === businessId);

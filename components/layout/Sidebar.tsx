@@ -23,9 +23,16 @@ export default function Sidebar() {
       setCollapsed(true);
     }
     if (user) {
-      getBusinesses()
-        .then(setBusinesses)
-        .catch(console.error);
+      if (user.username !== 'root') {
+        getBusinesses()
+          .then(res => {
+            if (Array.isArray(res)) setBusinesses(res);
+            else setBusinesses(res?.data || []);
+          })
+          .catch(console.error);
+      } else {
+        setBusinesses([]);
+      }
     }
   }, [user]);
 
@@ -135,7 +142,7 @@ export default function Sidebar() {
               <span className="shrink-0"><BriefcaseIcon /></span>
               <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Business</span>
             </Link>
-            {!collapsed && businesses.length > 0 && (
+            {!collapsed && user?.username !== 'root' && businesses.length > 0 && (
               <button 
                 onClick={() => setIsBusinessOpen(!isBusinessOpen)}
                 className={`dropdown-toggle ${isBusinessOpen ? 'dropdown-toggle--open' : ''}`}
@@ -145,7 +152,7 @@ export default function Sidebar() {
             )}
           </div>
 
-          {!collapsed && isBusinessOpen && (
+          {!collapsed && user?.username !== 'root' && isBusinessOpen && (
             <div className="admin-sidebar__submenu">
               {businesses.map((b) => (
                 <Link

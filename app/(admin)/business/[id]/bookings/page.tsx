@@ -13,6 +13,9 @@ export default function BusinessBookingsPage() {
   const businessId = params.id as string;
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
   
   // Modal and form state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,10 +38,19 @@ export default function BusinessBookingsPage() {
   const [editStatus, setEditStatus] = useState<BookingStatus>("pending");
   const [rowActionsId, setRowActionsId] = useState<number | null>(null);
 
-  const fetchBookings = async () => {
+  const fetchBookings = async (p: number, s: string) => {
+    setLoading(true);
     try {
-      const data = await getBookingsByBusiness(businessId);
-      setBookings(data);
+      const result = await getBookingsByBusiness(businessId, p, 20, s);
+      if (Array.isArray(result)) {
+        // Fallback local en caso de que el backend envíe todo el array
+        const start = (p - 1) * 20;
+        setBookings(result.slice(start, start + 20));
+        setTotal(result.length);
+      } else {
+        setBookings(result?.data || []);
+        setTotal(result?.total || 0);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -47,8 +59,12 @@ export default function BusinessBookingsPage() {
   };
 
   useEffect(() => {
-    if (businessId) fetchBookings();
-  }, [businessId]);
+    if (!businessId) return;
+    const timer = setTimeout(() => {
+      fetchBookings(page, search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [businessId, page, search]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +92,7 @@ export default function BusinessBookingsPage() {
         customerId,
         businessId: Number(businessId),
       });
-      await fetchBookings();
+      await fetchBookings(page, search);
       setIsModalOpen(false);
       setFormData({ date: "", time: "", serviceName: "", customerEmail: "", customerName: "", customerSurname: "", customerPhone: "" });
       setFoundCustomer(undefined);
@@ -93,7 +109,7 @@ export default function BusinessBookingsPage() {
     setIsSubmitting(true);
     try {
       await updateBooking(editBookingId, { status: editStatus });
-      await fetchBookings();
+      await fetchBookings(page, search);
       setIsEditOpen(false);
       setEditBookingId(null);
       setRowActionsId(null);
@@ -108,7 +124,7 @@ export default function BusinessBookingsPage() {
     if (!confirm("¿Seguro que quieres eliminar esta reserva?")) return;
     try {
       await deleteBooking(id);
-      await fetchBookings();
+      await fetchBookings(page, search);
       setRowActionsId(null);
     } catch (err) {
       console.error("Error deleting booking", err);
@@ -230,7 +246,17 @@ export default function BusinessBookingsPage() {
       <section className="section-card">
         <div className="panel-title-row">
           <h3 className="panel-title">Historial de Citas</h3>
-          <span style={{ color: "var(--muted)", fontSize: '14px' }}>{bookings.length} registros</span>
+          <span style={{ color: "var(--muted)", fontSize: '14px' }}>{total} registros en total</span>
+        </div>
+
+        <div style={{ marginBottom: '24px', display: 'flex', gap: '16px' }}>
+          <input 
+            type="text" 
+            placeholder="Buscar por servicio..." 
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            style={{ padding: '12px', flex: 1, borderRadius: '8px', border: '1px solid var(--border)' }}
+          />
         </div>
 
         <table className="data-table">
@@ -308,6 +334,44 @@ export default function BusinessBookingsPage() {
             )}
           </tbody>
         </table>
+
+        {total > 20 && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '32px' }}>
+            <button 
+              disabled={page === 1} 
+              onClick={() => setPage(p => p - 1)}
+              className="secondary-btn"
+            >
+              Anterior
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '14px', color: 'var(--muted)' }}>Página</span>
+              <input 
+                type="number" 
+                min={1} 
+                max={Math.ceil(total / 20)} 
+                value={page}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val) && val >= 1 && val <= Math.ceil(total / 20)) {
+                    setPage(val);
+                  }
+                }}
+                style={{ width: '70px', padding: '8px', textAlign: 'center', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface)' }}
+              />
+              <span style={{ fontSize: '14px', color: 'var(--muted)' }}>de {Math.ceil(total / 20)}</span>
+            </div>
+
+            <button 
+              disabled={page >= Math.ceil(total / 20)} 
+              onClick={() => setPage(p => p + 1)}
+              className="secondary-btn"
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Edit Status Modal */}

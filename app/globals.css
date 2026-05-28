@@ -802,6 +802,8 @@ body::after {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  max-width: 450px;
+  width: 100%;
 }
 
 .customer-card:hover {

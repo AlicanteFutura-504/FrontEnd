@@ -149,9 +149,23 @@ export async function updateUser(id: number, data: UpdateUserDto): Promise<User>
 
 // --- BUSINESS ---
 
-export async function getBusinesses(): Promise<Business[]> {
-  const res = await fetch(`${API_URL}/business`, { headers: getHeaders() });
-  return handleResponse(res) || [];
+export async function getBusinesses(
+  page: number = 1, 
+  limit: number = 20, 
+  search: string = '',
+  sortBy: string = '',
+  sortOrder: string = '',
+  filterField: string = '',
+  filterValue: string = ''
+): Promise<{ data: Business[], total: number }> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
+  if (sortBy) params.append('sortBy', sortBy);
+  if (sortOrder) params.append('sortOrder', sortOrder);
+  if (filterField) params.append('filterField', filterField);
+  if (filterValue) params.append('filterValue', filterValue);
+
+  const res = await fetch(`${API_URL}/business?${params.toString()}`, { headers: getHeaders() });
+  return handleResponse(res) || { data: [], total: 0 };
 }
 
 export async function createBusiness(data: any): Promise<Business> {
@@ -182,6 +196,11 @@ export async function deleteBusiness(id: number): Promise<void> {
     method: "DELETE",
     headers: getHeaders(),
   });
+  return handleResponse(res);
+}
+
+export async function getDashboardSummary() {
+  const res = await fetch(`${API_URL}/dashboard/summary`, { headers: getHeaders() });
   return handleResponse(res);
 }
 
@@ -228,9 +247,10 @@ export async function getAppointmentsByRange(from: string, to: string): Promise<
 
 // --- BOOKINGS (NEW) ---
 
-export async function getBookingsByBusiness(businessId: string): Promise<Booking[]> {
-  const res = await fetch(`${API_URL}/bookings/business/${businessId}`, { headers: getHeaders() });
-  return handleResponse(res) || [];
+export async function getBookingsByBusiness(businessId: string, page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: Booking[], total: number }> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
+  const res = await fetch(`${API_URL}/bookings/business/${businessId}?${params.toString()}`, { headers: getHeaders() });
+  return handleResponse(res) || { data: [], total: 0 };
 }
 
 export async function getBookingsByCustomer(customerId: number): Promise<Booking[]> {
