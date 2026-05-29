@@ -2,50 +2,50 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getAppointments, getPayments, getCustomers, getBusinesses } from "@/lib/api";
-import { Booking, Payment, Customer, Business } from "@/lib/types";
+import { getBusiness, getBusinessDashboardSummary } from "@/lib/api";
+import { Booking, Business } from "@/lib/types";
 import KpiCard from "@/components/ui/KpiCard";
 import Link from "next/link";
+
+interface BusinessSummary {
+  totalBookings: number;
+  pendingBookings: number;
+  totalCustomers: number;
+  totalRevenue: number;
+  pendingRevenue: number;
+  latestBookings: Booking[];
+}
 
 export default function BusinessDashboardPage() {
   const params = useParams();
   const businessId = params.id as string;
-  const [data, setData] = useState<{
-    business: Business | null;
-    bookings: Booking[];
-    payments: Payment[];
-    customersCount: number;
-  }>({
-    business: null,
-    bookings: [],
-    payments: [],
-    customersCount: 0,
-  });
+  const [business, setBusiness] = useState<Business | null>(null);
+  const [summary, setSummary] = useState<BusinessSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      setError(null);
       try {
-        const [allBookings, allPayments, allCustomers, allBusinessesResp] = await Promise.all([
-          getAppointments(),
-          getPayments(),
-          getCustomers(),
-          getBusinesses()
+        // Two parallel requests: business info + aggregated KPIs from backend
+        // No rows downloaded — all counts computed server-side in SQL
+        const [businessResp, summaryResp] = await Promise.all([
+          getBusiness(Number(businessId)).catch((e) => {
+            console.error('getBusiness error:', e);
+            return null;
+          }),
+          getBusinessDashboardSummary(businessId).catch((e) => {
+            console.error('getBusinessDashboardSummary error:', e);
+            return null;
+          }),
         ]);
 
-        const allBusinesses = Array.isArray(allBusinessesResp) ? allBusinessesResp : (allBusinessesResp?.data || []);
-        const currentBusiness = allBusinesses.find(b => String(b.id) === businessId) || null;
-        const businessBookings = allBookings.filter(b => String(b.businessId) === businessId);
-        const businessPayments = allPayments.filter(p => String(p.businessId) === businessId);
-        
-        setData({
-          business: currentBusiness,
-          bookings: businessBookings,
-          payments: businessPayments,
-          customersCount: allCustomers.length, // Opcional: filtrar si los clientes estuvieran ligados a business
-        });
-      } catch (err) {
-        console.error(err);
+        setBusiness(businessResp);
+        setSummary(summaryResp);
+      } catch (err: any) {
+        console.error('Error fetching business dashboard:', err);
+        setError(err?.message || 'Error al cargar los datos del negocio');
       } finally {
         setLoading(false);
       }
@@ -55,10 +55,12 @@ export default function BusinessDashboardPage() {
   }, [businessId]);
 
   if (loading) return <div className="p-8">Cargando panel del negocio...</div>;
-  if (!data.business) return <div className="p-8 text-red-600">Negocio no encontrado.</div>;
+  if (error) return <div className="p-8" style={{ color: 'var(--danger)' }}>Error: {error}</div>;
+  if (!business) return <div className="p-8" style={{ color: 'var(--danger)' }}>Negocio no encontrado o sin acceso. ID: {businessId}</div>;
 
-  const totalRevenue = data.payments.reduce((acc, p) => acc + (p.status === 'pagado' ? p.amount : 0), 0);
-  const pendingRevenue = data.payments.reduce((acc, p) => acc + (p.status === 'pendiente' ? p.amount : 0), 0);
+  const avgPerService = summary && summary.totalBookings > 0
+    ? (summary.totalRevenue / summary.totalBookings).toFixed(2)
+    : '0.00';
 
   return (
     <div className="page-stack">
@@ -66,8 +68,8 @@ export default function BusinessDashboardPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div style={{ fontSize: '40px', background: 'var(--primary-soft)', padding: '15px', borderRadius: '20px' }}>🏢</div>
           <div>
-            <h2>Dashboard: {data.business.nombre}</h2>
-            <p>{data.business.direccion || 'Sin dirección'} · {data.business.telefono || 'Sin teléfono'}</p>
+            <h2>Dashboard: {business.nombre}</h2>
+            <p>{business.direccion || 'Sin dirección'} · {business.telefono || 'Sin teléfono'}</p>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
@@ -77,10 +79,10 @@ export default function BusinessDashboardPage() {
       </header>
 
       <section className="kpi-grid">
-        <KpiCard title="Ingresos Totales" value={`${totalRevenue} €`} subtitle="Cobros confirmados" variant="positive" />
-        <KpiCard title="Pendiente de Cobro" value={`${pendingRevenue} €`} subtitle="Acción requerida" variant="warning" />
-        <KpiCard title="Total Reservas" value={data.bookings.length.toString()} subtitle="Histórico acumulado" />
-        <KpiCard title="Clientes" value={data.customersCount.toString()} subtitle="Base de datos global" />
+        <KpiCard title="Ingresos Totales" value={`${summary?.totalRevenue ?? 0} €`} subtitle="Cobros confirmados" variant="positive" />
+        <KpiCard title="Pendiente de Cobro" value={`${summary?.pendingRevenue ?? 0} €`} subtitle="Acción requerida" variant="warning" />
+        <KpiCard title="Total Reservas" value={(summary?.totalBookings ?? 0).toString()} subtitle="Histórico acumulado" />
+        <KpiCard title="Clientes" value={(summary?.totalCustomers ?? 0).toString()} subtitle="Registrados en este local" />
       </section>
 
       <div className="dashboard-grid">
@@ -98,7 +100,7 @@ export default function BusinessDashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {data.bookings.slice(0, 5).map(b => (
+              {(summary?.latestBookings ?? []).map(b => (
                 <tr key={b.id}>
                   <td style={{ fontWeight: 600 }}>{b.date}</td>
                   <td>{b.serviceName}</td>
@@ -107,7 +109,7 @@ export default function BusinessDashboardPage() {
                   </td>
                 </tr>
               ))}
-              {data.bookings.length === 0 && (
+              {(summary?.latestBookings?.length ?? 0) === 0 && (
                 <tr>
                   <td colSpan={3} style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>
                     No hay actividad registrada para este local.
@@ -121,10 +123,10 @@ export default function BusinessDashboardPage() {
         <section className="info-stack">
           <div className="info-box" style={{ borderLeft: '4px solid var(--accent)' }}>
             <p className="info-box__eyebrow">Próxima Cita</p>
-            {data.bookings[0] ? (
+            {summary?.latestBookings?.[0] ? (
               <>
-                <p className="info-box__title">{data.bookings[0].serviceName}</p>
-                <p className="info-box__text">{data.bookings[0].date} a las {data.bookings[0].time}</p>
+                <p className="info-box__title">{summary.latestBookings[0].serviceName}</p>
+                <p className="info-box__text">{summary.latestBookings[0].date} a las {summary.latestBookings[0].time}</p>
               </>
             ) : (
               <p className="info-box__text">Sin citas próximas</p>
@@ -134,9 +136,15 @@ export default function BusinessDashboardPage() {
           <div className="info-box" style={{ borderLeft: '4px solid var(--success)' }}>
             <p className="info-box__eyebrow">Rendimiento Financiero</p>
             <p className="info-box__title">Promedio por Servicio</p>
-            <p className="info-box__text">
-              {data.bookings.length > 0 ? (totalRevenue / data.bookings.length).toFixed(2) : 0} € / servicio
-            </p>
+            <p className="info-box__text">{avgPerService} € / servicio</p>
+          </div>
+
+          <div className="info-box" style={{ borderLeft: '4px solid var(--warning)' }}>
+            <p className="info-box__eyebrow">Pendientes</p>
+            <p className="info-box__title">{summary?.pendingBookings ?? 0} reservas sin confirmar</p>
+            <Link href={`/business/${businessId}/bookings`} className="panel-subtle-link" style={{ fontSize: '13px' }}>
+              Gestionar →
+            </Link>
           </div>
         </section>
       </div>
