@@ -27,26 +27,8 @@ export default function BusinessCustomersPage() {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const [allCustomers, businessBookings, allPayments] = await Promise.all([
-          getCustomers(),
-          getBookingsByBusiness(businessId),
-          getPayments()
-        ]);
-
-        const businessPayments = allPayments.filter(p => String(p.businessId) === businessId);
-
-        const validCustomerIds = new Set<number>();
-        businessBookings.forEach(b => {
-          if (b.customerId) validCustomerIds.add(b.customerId);
-        });
-        businessPayments.forEach(p => {
-          if (p.customerId) validCustomerIds.add(p.customerId);
-        });
-
-        const filteredCustomers = allCustomers.filter(c => 
-          String(c.businessId) === businessId || validCustomerIds.has(c.id)
-        );
-        setCustomers(filteredCustomers);
+        const businessCustomers = await getCustomersByBusiness(businessId);
+        setCustomers(businessCustomers);
       } catch (err) {
         console.error(err);
       } finally {

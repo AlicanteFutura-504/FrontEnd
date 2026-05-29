@@ -31,7 +31,80 @@ export default function DashboardPage() {
   }, [user]);
 
   function handleExport() {
-    alert("Exportación de los 30.000 registros no disponible en la vista de resumen global.");
+    if (!data) return;
+    
+    const tableHtml = `
+      <table border="1">
+        <thead>
+          <tr><th colspan="2" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Resumen de KPIs</th></tr>
+          <tr><th style="background-color: #e5e7eb;">Indicador</th><th style="background-color: #e5e7eb;">Valor</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Locales Activos</td><td>${data.totalBusinesses}</td></tr>
+          <tr><td>Reservas Totales</td><td>${data.totalBookings}</td></tr>
+          <tr><td>Ingresos Totales (€)</td><td>${data.totalEarnings}</td></tr>
+          <tr><td>Reservas Pendientes</td><td>${data.pendingBookings}</td></tr>
+          <tr><td>Clientes Base</td><td>${data.totalCustomers}</td></tr>
+        </tbody>
+      </table>
+      <br/>
+      <table border="1">
+        <thead>
+          <tr><th colspan="4" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Últimas Reservas</th></tr>
+          <tr>
+            <th style="background-color: #e5e7eb;">Fecha</th>
+            <th style="background-color: #e5e7eb;">Servicio</th>
+            <th style="background-color: #e5e7eb;">Negocio</th>
+            <th style="background-color: #e5e7eb;">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.latestBookings.map((b: any) => `
+            <tr>
+              <td>${b.date}</td>
+              <td>${b.serviceName}</td>
+              <td>${b.businessName}</td>
+              <td>${b.status}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+
+    const htmlContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8" />
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>Reporte Global</x:Name>
+                <x:WorksheetOptions>
+                  <x:DisplayGridlines/>
+                </x:WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+      </head>
+      <body>
+        ${tableHtml}
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "reporte_global.xls";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   if (loading || !data) return <div className="p-8">Cargando visión global super rápida...</div>;

@@ -26,10 +26,10 @@ export default function BusinessDashboardPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [allBookings, allPayments, allCustomers, allBusinessesResp] = await Promise.all([
+        const [allBookings, allPayments, businessCustomers, allBusinessesResp] = await Promise.all([
           getAppointments(),
           getPayments(),
-          getCustomers(),
+          getCustomersByBusiness(businessId),
           getBusinesses()
         ]);
 
@@ -42,7 +42,7 @@ export default function BusinessDashboardPage() {
           business: currentBusiness,
           bookings: businessBookings,
           payments: businessPayments,
-          customersCount: allCustomers.length, // Opcional: filtrar si los clientes estuvieran ligados a business
+          customersCount: businessCustomers.length,
         });
       } catch (err) {
         console.error(err);
