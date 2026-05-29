@@ -100,9 +100,8 @@ export default function BusinessPaymentsPage() {
   useEffect(() => {
     const fetchPayments = async () => {
       try {
-        const data = await getPayments();
-        const filtered = data.filter(p => String(p.businessId) === businessId);
-        setPayments(filtered);
+        const response = await getPayments(1, 50, '', businessId);
+        setPayments(response.data || []);
       } catch (err) {
         console.error(err);
       } finally {

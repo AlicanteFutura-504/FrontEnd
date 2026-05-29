@@ -204,11 +204,17 @@ export async function getDashboardSummary() {
   return handleResponse(res);
 }
 
+export async function getBusinessDashboardSummary(businessId: string | number) {
+  const res = await fetch(`${API_URL}/dashboard/business/${businessId}`, { headers: getHeaders() });
+  return handleResponse(res);
+}
+
 // --- APPOINTMENTS ---
 
-export async function getAppointments(): Promise<Booking[]> {
-  const res = await fetch(`${API_URL}/appointments`, { headers: getHeaders() });
-  return handleResponse(res) || [];
+export async function getAppointments(page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: Booking[], total: number }> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
+  const res = await fetch(`${API_URL}/appointments?${params.toString()}`, { headers: getHeaders() });
+  return handleResponse(res) || { data: [], total: 0 };
 }
 
 export async function createAppointment(data: CreateBookingDto): Promise<Booking> {
@@ -286,9 +292,11 @@ export async function deleteBooking(id: number): Promise<void> {
 
 // --- PAYMENTS ---
 
-export async function getPayments(): Promise<Payment[]> {
-  const res = await fetch(`${API_URL}/payments`, { headers: getHeaders() });
-  return handleResponse(res) || [];
+export async function getPayments(page: number = 1, limit: number = 20, search: string = '', businessId: string = ''): Promise<{ data: Payment[], total: number }> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
+  if (businessId) params.append('businessId', businessId);
+  const res = await fetch(`${API_URL}/payments?${params.toString()}`, { headers: getHeaders() });
+  return handleResponse(res) || { data: [], total: 0 };
 }
 
 export async function createPayment(data: CreatePaymentDtoReq): Promise<Payment> {
@@ -319,9 +327,10 @@ export async function deletePayment(id: number): Promise<void> {
 
 // --- CUSTOMERS ---
 
-export async function getCustomers(): Promise<Customer[]> {
-  const res = await fetch(`${API_URL}/customers`, { headers: getHeaders() });
-  return handleResponse(res) || [];
+export async function getCustomers(page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: Customer[], total: number }> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
+  const res = await fetch(`${API_URL}/customers?${params.toString()}`, { headers: getHeaders() });
+  return handleResponse(res) || { data: [], total: 0 };
 }
 
 export async function getCustomerByEmail(email: string): Promise<Customer | null> {
@@ -332,9 +341,10 @@ export async function getCustomerByEmail(email: string): Promise<Customer | null
   return handleResponse(res);
 }
 
-export async function getCustomersByBusiness(businessId: string): Promise<Customer[]> {
-  const res = await fetch(`${API_URL}/customers/business/${businessId}`, { headers: getHeaders() });
-  return handleResponse(res) || [];
+export async function getCustomersByBusiness(businessId: string, page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: Customer[], total: number }> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
+  const res = await fetch(`${API_URL}/customers/business/${businessId}?${params.toString()}`, { headers: getHeaders() });
+  return handleResponse(res) || { data: [], total: 0 };
 }
 
 export async function createCustomer(data: Partial<Customer>): Promise<Customer> {

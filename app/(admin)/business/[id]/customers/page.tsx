@@ -12,6 +12,9 @@ export default function BusinessCustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const LIMIT = 50;
 
   // Modal states para creacion
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -27,8 +30,10 @@ export default function BusinessCustomersPage() {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const businessCustomers = await getCustomersByBusiness(businessId);
-        setCustomers(businessCustomers);
+        setLoading(true);
+        const res = await getCustomersByBusiness(businessId, page, LIMIT, searchTerm);
+        setCustomers(res.data || []);
+        setTotal(res.total || 0);
       } catch (err) {
         console.error(err);
       } finally {
@@ -37,20 +42,12 @@ export default function BusinessCustomersPage() {
     };
 
     if (businessId) {
-      fetchCustomers();
+      const timeoutId = setTimeout(() => fetchCustomers(), 300);
+      return () => clearTimeout(timeoutId);
     }
-  }, [businessId]);
+  }, [businessId, searchTerm, page]);
 
-  const filteredCustomers = useMemo(() => {
-    if (!searchTerm) return customers;
-    const lower = searchTerm.toLowerCase();
-    return customers.filter(c => 
-      c.name.toLowerCase().includes(lower) || 
-      (c.surname && c.surname.toLowerCase().includes(lower)) ||
-      c.email.toLowerCase().includes(lower) ||
-      (c.phone && c.phone.includes(lower))
-    );
-  }, [customers, searchTerm]);
+  const filteredCustomers = customers; // Eliminado filtro local, ahora es Server-Side
 
   const handleViewHistory = async (customer: Customer) => {
     setSelectedCustomer(customer);
@@ -81,7 +78,7 @@ export default function BusinessCustomersPage() {
       <header className="page-hero">
         <div>
           <h2>Clientes Vinculados</h2>
-          <p>Base de datos de clientes registrados en el sistema.</p>
+          <p>Base de datos de clientes registrados en el sistema. {total > 0 && <strong>({total} en total)</strong>}</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <button onClick={() => setIsAddModalOpen(true)} className="primary-btn">
@@ -102,7 +99,7 @@ export default function BusinessCustomersPage() {
             style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: 0, flex: 1, outline: 'none', fontSize: '15px' }}
             placeholder="Buscar por nombre, email o teléfono..." 
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
           />
         </div>
       </section>
@@ -148,6 +145,41 @@ export default function BusinessCustomersPage() {
           </p>
         )}
       </div>
+
+      {/* Paginación */}
+      {total > LIMIT && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '32px', paddingBottom: '32px' }}>
+          <button
+            disabled={page === 1}
+            onClick={() => setPage(p => p - 1)}
+            className="secondary-btn"
+          >
+            Anterior
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px', color: 'var(--muted)' }}>Página</span>
+            <input
+              type="number"
+              min={1}
+              max={Math.ceil(total / LIMIT)}
+              value={page}
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                if (!isNaN(val) && val >= 1 && val <= Math.ceil(total / LIMIT)) setPage(val);
+              }}
+              style={{ width: '70px', padding: '8px', textAlign: 'center', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface)' }}
+            />
+            <span style={{ fontSize: '14px', color: 'var(--muted)' }}>de {Math.ceil(total / LIMIT)} ({total} clientes)</span>
+          </div>
+          <button
+            disabled={page >= Math.ceil(total / LIMIT)}
+            onClick={() => setPage(p => p + 1)}
+            className="secondary-btn"
+          >
+            Siguiente
+          </button>
+        </div>
+      )}
 
       {/* Modal for Appointment History */}
       {selectedCustomer && (

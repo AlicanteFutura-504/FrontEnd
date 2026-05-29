@@ -110,7 +110,7 @@ export default function CalendarPage() {
       ]);
       setBookings(appts);
       setBusinesses(Array.isArray(bizs) ? bizs : (bizs?.data || []));
-      setCustomers(custs || []);
+      setCustomers(custs?.data || []);
     } catch (err) {
       console.error("Error cargando calendario:", err);
     } finally {

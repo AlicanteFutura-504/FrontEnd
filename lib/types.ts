@@ -78,7 +78,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  role: 'admin' | 'business';
+  role: 'superadmin' | 'admin' | 'business';
   nombreCompleto?: string;
   dni?: string;
   profilePicture?: string;
