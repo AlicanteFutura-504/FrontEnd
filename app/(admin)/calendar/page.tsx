@@ -8,9 +8,10 @@
  */
 
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import Badge from "@/components/ui/Badge";
-import { getAppointmentsByRange, getBusinesses, getCustomers } from "@/lib/api";
+import { getAppointmentsByRange, getBusinesses, getCustomers, getCustomersByBusiness } from "@/lib/api";
 import type { Booking, Business, Customer } from "@/lib/types";
 import Link from "next/link";
 
@@ -82,6 +83,8 @@ const STATUS_DOT: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 export default function CalendarPage() {
+  const params = useParams();
+  const businessId = params?.id as string | undefined;
   const { user } = useAuth();
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
@@ -104,9 +107,9 @@ export default function CalendarPage() {
     setLoading(true);
     try {
       const [appts, bizs, custs] = await Promise.all([
-        getAppointmentsByRange(from, to),
+        getAppointmentsByRange(from, to, businessId),
         getBusinesses(),
-        getCustomers(),
+        businessId ? getCustomersByBusiness(businessId) : getCustomers(),
       ]);
       setBookings(appts);
       setBusinesses(Array.isArray(bizs) ? bizs : (bizs?.data || []));
@@ -116,7 +119,7 @@ export default function CalendarPage() {
     } finally {
       setLoading(false);
     }
-  }, [user, from, to]);
+  }, [user, from, to, businessId]);
 
   useEffect(() => {
     fetchData();

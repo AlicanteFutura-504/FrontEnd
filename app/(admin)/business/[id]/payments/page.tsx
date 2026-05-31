@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getPayments, updatePayment, deletePayment, createPayment, createCustomer } from "@/lib/api";
-import { Payment, PaymentStatus, PaymentTypeEnum } from "@/lib/types";
+import { getPayments, updatePayment, deletePayment, createPayment, getBookingsByBusiness } from "@/lib/api";
+import { Payment, PaymentStatus, PaymentTypeEnum, Booking } from "@/lib/types";
 import KpiCard from "@/components/ui/KpiCard";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
@@ -18,15 +18,52 @@ export default function BusinessPaymentsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Payment>>({});
 
-  // States para modal de creacion
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [addFormData, setAddFormData] = useState({
-    clientName: '',
+    bookingId: '',
     amount: 0,
     type: 'tarjeta' as PaymentTypeEnum,
     status: 'pagado' as PaymentStatus,
     date: new Date().toISOString().split('T')[0]
   });
+
+
+
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (!addFormData.bookingId) {
+        alert("Selecciona una reserva");
+        return;
+      }
+      
+      const newPayment = await createPayment({
+        bookingId: parseInt(addFormData.bookingId, 10),
+        amount: addFormData.amount,
+        type: addFormData.type,
+        status: addFormData.status,
+        date: addFormData.date
+      });
+      
+      const selectedBooking = bookings.find(b => b.id === parseInt(addFormData.bookingId, 10));
+      if (selectedBooking) {
+        (newPayment as any).customer = { name: `Cliente #${selectedBooking.customerId}` };
+      }
+
+      setPayments([newPayment, ...payments]);
+      setIsAddModalOpen(false);
+      setAddFormData({
+        bookingId: '',
+        amount: 0,
+        type: 'tarjeta',
+        status: 'pagado',
+        date: new Date().toISOString().split('T')[0]
+      });
+    } catch (err) {
+      alert("Error al crear el pago");
+    }
+  };
 
   const handleEditClick = (p: Payment) => {
     setEditingId(p.id);
@@ -37,7 +74,6 @@ export default function BusinessPaymentsPage() {
     if (!editingId) return;
     try {
       const updated = await updatePayment(editingId, {
-        clientName: editFormData.clientName,
         amount: editFormData.amount,
         type: editFormData.type,
         status: editFormData.status,
@@ -61,41 +97,7 @@ export default function BusinessPaymentsPage() {
     }
   };
 
-  const handleCreateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      // 1. Auto-crear el cliente primero
-      const parts = addFormData.clientName.trim().split(/\s+/);
-      const name = parts[0] || 'Cliente';
-      const surname = parts.slice(1).join(' ') || '';
-      
-      const newCustomer = await createCustomer({
-        name,
-        surname,
-        email: `cliente_${Date.now()}@pendiente.com`,
-        businessId: parseInt(businessId, 10)
-      });
 
-      // 2. Crear el pago vinculado a este nuevo cliente
-      const newPayment = await createPayment({
-        ...addFormData,
-        businessName: "Negocio Actual",
-        businessId: parseInt(businessId, 10),
-        customerId: newCustomer.id,
-      });
-      setPayments([...payments, newPayment]);
-      setIsAddModalOpen(false);
-      setAddFormData({
-        clientName: '',
-        amount: 0,
-        type: 'tarjeta',
-        status: 'pagado',
-        date: new Date().toISOString().split('T')[0]
-      });
-    } catch (err) {
-      alert("Error al crear el pago o el cliente");
-    }
-  };
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -128,7 +130,11 @@ export default function BusinessPaymentsPage() {
           <p>Control financiero detallado de este local.</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={() => setIsAddModalOpen(true)} className="primary-btn">
+          <button onClick={async () => {
+            setIsAddModalOpen(true);
+            const res = await getBookingsByBusiness(businessId, 1, 100);
+            setBookings(res.data || []);
+          }} className="primary-btn">
             + Añadir pago
           </button>
           <Link href={`/business/${businessId}`} className="secondary-btn">Volver al Panel</Link>
@@ -161,8 +167,8 @@ export default function BusinessPaymentsPage() {
               <tr key={p.id}>
                 {editingId === p.id ? (
                   <>
-                    <td style={{ fontWeight: 600 }}>
-                      {editFormData.clientName}
+                    <td style={{ fontWeight: 600, color: 'var(--text-muted)' }}>
+                      No editable
                     </td>
                     <td>
                       <input className="input" type="number" style={{ padding: '8px', fontSize: '14px', width: '80px' }} value={editFormData.amount || 0} onChange={(e) => setEditFormData({...editFormData, amount: parseFloat(e.target.value)})} /> €
@@ -191,7 +197,7 @@ export default function BusinessPaymentsPage() {
                   </>
                 ) : (
                   <>
-                    <td style={{ fontWeight: 600 }}>{p.clientName}</td>
+                    <td style={{ fontWeight: 600 }}>{(p as any).customer ? `${(p as any).customer.name} ${(p as any).customer.surname || ''}` : 'Sin cliente'}</td>
                     <td>{p.amount} €</td>
                     <td style={{ textTransform: 'capitalize' }}>{p.type}</td>
                     <td>{p.date || 'N/A'}</td>
@@ -224,8 +230,15 @@ export default function BusinessPaymentsPage() {
             
             <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Cliente</label>
-                <input required className="input" value={addFormData.clientName} onChange={e => setAddFormData({...addFormData, clientName: e.target.value})} placeholder="Nombre del cliente" />
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Reserva Asociada</label>
+                <select required className="select" value={addFormData.bookingId} onChange={e => setAddFormData({...addFormData, bookingId: e.target.value})}>
+                  <option value="" disabled>Selecciona una reserva...</option>
+                  {bookings.map(b => (
+                    <option key={b.id} value={b.id}>
+                      {b.date} {b.time} - {b.serviceName}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>

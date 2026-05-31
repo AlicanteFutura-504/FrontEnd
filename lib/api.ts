@@ -237,11 +237,10 @@ export async function deleteAppointment(id: number): Promise<void> {
   return handleResponse(res);
 }
 
-export async function getAppointmentsByRange(from: string, to: string): Promise<Booking[]> {
-  const res = await fetch(
-    `${API_URL}/bookings/calendar?from=${from}&to=${to}`,
-    { headers: getHeaders() }
-  );
+export async function getAppointmentsByRange(from: string, to: string, businessId?: string): Promise<Booking[]> {
+  let url = `${API_URL}/bookings/calendar?from=${from}&to=${to}`;
+  if (businessId) url += `&businessId=${businessId}`;
+  const res = await fetch(url, { headers: getHeaders() });
   return handleResponse(res) || [];
 }
 
