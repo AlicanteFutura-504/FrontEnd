@@ -14,8 +14,13 @@ export default function Sidebar() {
   const { user } = useAuth();
   const pathname = usePathname();
 
-  const isInsideBusiness = pathname.startsWith("/business/");
-  const activeBusinessId = isInsideBusiness ? pathname.split("/")[2] : null;
+  const isInsideBusiness = pathname.startsWith("/business/") && pathname !== "/business";
+  const urlBusinessId = isInsideBusiness ? pathname.split("/")[2] : null;
+
+  const isBusinessRole = user?.role === 'business';
+  const showGlobalMenu = !isBusinessRole && (!isInsideBusiness || user?.username === 'root');
+  const effectiveBusinessId = isBusinessRole && businesses.length > 0 ? String(businesses[0].id) : urlBusinessId;
+  const showBusinessMenu = isBusinessRole || (isInsideBusiness && effectiveBusinessId && effectiveBusinessId !== "new");
 
   useEffect(() => {
     const storedState = localStorage.getItem("sidebar_collapsed");
@@ -119,11 +124,11 @@ export default function Sidebar() {
       </p>
 
       <nav className="admin-sidebar__nav" style={{ marginTop: '20px' }}>
-        {menuItems.map((item) => (
+        {showGlobalMenu && menuItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className={`admin-sidebar__link ${pathname === item.href ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
+            className={`admin-sidebar__link ${pathname === item.href && !isInsideBusiness ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
             title={collapsed ? item.label : ""}
           >
             <span className="shrink-0">{item.icon}</span>
@@ -131,49 +136,67 @@ export default function Sidebar() {
           </Link>
         ))}
 
-        <div className="admin-sidebar__dropdown-container">
-          <div className="admin-sidebar__link-wrapper">
-            <Link 
-              href="/business" 
-              className={`admin-sidebar__link ${pathname === "/business" ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
-              style={{ flex: 1, paddingRight: collapsed ? undefined : '4px' }}
-              title={collapsed ? "Business" : ""}
-            >
-              <span className="shrink-0"><BriefcaseIcon /></span>
-              <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Business</span>
-            </Link>
-            {!collapsed && user?.username !== 'root' && businesses.length > 0 && (
-              <button 
-                onClick={() => setIsBusinessOpen(!isBusinessOpen)}
-                className={`dropdown-toggle ${isBusinessOpen ? 'dropdown-toggle--open' : ''}`}
+        {showGlobalMenu && (
+          <div className="admin-sidebar__dropdown-container">
+            <div className="admin-sidebar__link-wrapper">
+              <Link 
+                href="/business" 
+                className={`admin-sidebar__link ${pathname === "/business" || (isInsideBusiness && user?.username === 'root') ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
+                style={{ flex: 1, paddingRight: collapsed ? undefined : '4px' }}
+                title={collapsed ? "Business" : ""}
               >
-                ▼
-              </button>
+                <span className="shrink-0"><BriefcaseIcon /></span>
+                <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Business</span>
+              </Link>
+              {!collapsed && user?.username !== 'root' && businesses.length > 0 && (
+                <button 
+                  onClick={() => setIsBusinessOpen(!isBusinessOpen)}
+                  className={`dropdown-toggle ${isBusinessOpen ? 'dropdown-toggle--open' : ''}`}
+                >
+                  ▼
+                </button>
+              )}
+            </div>
+
+            {!collapsed && user?.username !== 'root' && isBusinessOpen && (
+              <div className="admin-sidebar__submenu">
+                {businesses.map((b) => (
+                  <Link
+                    key={b.id}
+                    href={`/business/${b.id}`}
+                    className={`admin-sidebar__submenu-link ${activeBusinessId === String(b.id) ? "admin-sidebar__submenu-link--active" : ""}`}
+                  >
+                    {b.nombre}
+                  </Link>
+                ))}
+              </div>
             )}
           </div>
+        )}
 
-          {!collapsed && user?.username !== 'root' && isBusinessOpen && (
-            <div className="admin-sidebar__submenu">
-              {businesses.map((b) => (
-                <Link
-                  key={b.id}
-                  href={`/business/${b.id}`}
-                  className={`admin-sidebar__submenu-link ${activeBusinessId === String(b.id) ? "admin-sidebar__submenu-link--active" : ""}`}
-                >
-                  {b.nombre}
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {isInsideBusiness && activeBusinessId && activeBusinessId !== "new" && (
-          <div className="admin-sidebar__active-business-menu">
+        {showBusinessMenu && effectiveBusinessId && (
+          <div className="admin-sidebar__active-business-menu" style={{ marginTop: user?.username === 'root' ? '24px' : '0', paddingTop: user?.username === 'root' ? '16px' : '0', borderTop: user?.username === 'root' ? '1px solid var(--border)' : 'none' }}>
             <p className={`admin-sidebar__section-label ${collapsed ? 'collapsed-hide' : ''}`}>
-              {businesses.find(b => String(b.id) === activeBusinessId)?.nombre || 'Gestión'}
+              {businesses.find(b => String(b.id) === effectiveBusinessId)?.nombre || 'Gestión'}
             </p>
             <Link 
-              href={`/business/${activeBusinessId}/bookings`} 
+              href={`/business/${effectiveBusinessId}`} 
+              className={`admin-sidebar__link ${pathname === `/business/${effectiveBusinessId}` ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
+              title={collapsed ? "Dashboard" : ""}
+            >
+              <span className="shrink-0"><DashboardIcon /></span>
+              <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Dashboard</span>
+            </Link>
+            <Link 
+              href={`/business/${effectiveBusinessId}/calendar`} 
+              className={`admin-sidebar__link ${pathname.includes("/calendar") ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
+              title={collapsed ? "Calendario" : ""}
+            >
+              <span className="shrink-0"><CalendarGlobalIcon /></span>
+              <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Calendario</span>
+            </Link>
+            <Link 
+              href={`/business/${effectiveBusinessId}/bookings`} 
               className={`admin-sidebar__link ${pathname.includes("/bookings") ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
               title={collapsed ? "Reservas" : ""}
             >
@@ -181,7 +204,7 @@ export default function Sidebar() {
               <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Reservas</span>
             </Link>
             <Link 
-              href={`/business/${activeBusinessId}/customers`} 
+              href={`/business/${effectiveBusinessId}/customers`} 
               className={`admin-sidebar__link ${pathname.includes("/customers") ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
               title={collapsed ? "Clientes" : ""}
             >
@@ -189,7 +212,7 @@ export default function Sidebar() {
               <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Clientes</span>
             </Link>
             <Link 
-              href={`/business/${activeBusinessId}/payments`} 
+              href={`/business/${effectiveBusinessId}/payments`} 
               className={`admin-sidebar__link ${pathname.includes("/payments") ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
               title={collapsed ? "Pagos" : ""}
             >

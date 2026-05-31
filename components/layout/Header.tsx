@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { usePathname } from "next/navigation";
+import { getBusiness } from "@/lib/api";
 
 /**
  * Componente Header.
@@ -12,6 +14,24 @@ import ThemeToggle from "@/components/ui/ThemeToggle";
 export default function Header() {
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const [businessName, setBusinessName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (pathname?.startsWith("/business/")) {
+      const parts = pathname.split("/");
+      const id = parts[2];
+      if (id && id !== "new") {
+        getBusiness(Number(id))
+          .then(b => setBusinessName(b?.nombre || null))
+          .catch(() => setBusinessName(null));
+      } else {
+        setBusinessName(null);
+      }
+    } else {
+      setBusinessName(null);
+    }
+  }, [pathname]);
   const initial = (user?.nombreCompleto || user?.username || 'U').charAt(0).toUpperCase();
 
   const UserIcon = () => (
@@ -34,8 +54,8 @@ export default function Header() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <img src="/favicon.ico" alt="Yoku Logo" style={{ width: 40, height: 40, objectFit: 'contain' }} />
         <div>
-          <h1 className="admin-header__title">Yoku Admin</h1>
-          <p className="admin-header__subtitle">Panel de gestión consolidado</p>
+          <h1 className="admin-header__title">{businessName ? businessName : "Yoku Admin"}</h1>
+          <p className="admin-header__subtitle">{businessName ? "Gestión de Empresa" : "Panel de gestión consolidado"}</p>
         </div>
       </div>
 

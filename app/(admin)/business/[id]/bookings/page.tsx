@@ -249,7 +249,7 @@ export default function BusinessBookingsPage() {
           <span style={{ color: "var(--muted)", fontSize: '14px' }}>{total} registros en total</span>
         </div>
 
-        <div style={{ marginBottom: '24px', display: 'flex', gap: '16px' }}>
+        <div className="sticky-search" style={{ marginBottom: '24px', display: 'flex', gap: '16px', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
           <input 
             type="text" 
             placeholder="Buscar por servicio..." 
@@ -265,6 +265,7 @@ export default function BusinessBookingsPage() {
               <th>Fecha</th>
               <th>Hora</th>
               <th>Servicio</th>
+              <th>Importe</th>
               <th>ID Cliente</th>
               <th>Estado</th>
               <th>Acciones</th>
@@ -276,6 +277,15 @@ export default function BusinessBookingsPage() {
                 <td style={{ fontWeight: 600 }}>{b.date}</td>
                 <td>{b.time}</td>
                 <td>{b.serviceName}</td>
+                <td>
+                  {b.payment?.amount ? (
+                    <span style={{ fontWeight: 600, color: 'var(--text)' }}>
+                      {b.payment.amount.toFixed(2)} €
+                    </span>
+                  ) : (
+                    <span style={{ color: 'var(--muted)' }}>--</span>
+                  )}
+                </td>
                 <td>#{b.customerId}</td>
                 <td>
                   <Badge status={b.status as any} />

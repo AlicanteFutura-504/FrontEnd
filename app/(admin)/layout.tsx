@@ -5,8 +5,10 @@
  * @module app/(admin)/layout
  */
 
+import { AuthProvider } from "@/components/AuthProvider";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 import Chatbox from "@/components/Chatbox";
 
 /**
@@ -31,9 +33,12 @@ export default function AdminLayout({
 
       <div className="admin-main">
         <Header />
-        <main className="admin-content">{children}</main>
+        <main className="admin-content">
+          {children}
+        </main>
       </div>
       <Chatbox />
+      <ScrollToTop />
     </div>
   );
 }
