@@ -19,6 +19,7 @@ export interface Booking {
   customerId: number;
   businessId: number;
   serviceName: string;
+  payment?: Pick<Payment, "amount" | "status" | "type"> | null;
 }
 
 export interface CreateBookingDto {
@@ -50,6 +51,7 @@ export interface Payment {
   businessName: string;
   amount: number;
   date?: string;
+  bookingId?: number;
   customerId?: number;
   businessId?: number;
 }
@@ -57,10 +59,11 @@ export interface Payment {
 export interface CreatePaymentDtoReq {
   status: PaymentStatus;
   type: PaymentTypeEnum;
-  clientName: string;
-  businessName: string;
+  clientName?: string;
+  businessName?: string;
   amount: number;
   date?: string;
+  bookingId?: number;
   customerId?: number;
   businessId?: number;
 }
@@ -104,6 +107,10 @@ export interface Business {
   businessUserId?: number;
   usuario?: User;
 }
+
+export type BusinessPayload = Partial<
+  Pick<Business, "nombre" | "direccion" | "telefono" | "usuarioId" | "businessUserId">
+>;
 
 export interface Customer {
   id: number;

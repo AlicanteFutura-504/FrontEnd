@@ -81,8 +81,8 @@ export default function Chatbox() {
               style={{
                 width: 32,
                 height: 32,
-                background: "linear-gradient(135deg, #0070f3, #a200ff)",
-                borderRadius: "50%",
+                background: "var(--accent-gradient)",
+                borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

@@ -7,6 +7,25 @@ import ThemeToggle from "@/components/ui/ThemeToggle";
 import { usePathname } from "next/navigation";
 import { getBusiness } from "@/lib/api";
 
+function UserIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "4px" }}>
+      <path d="M10 22H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h5"></path>
+      <polyline points="17 16 21 12 17 8"></polyline>
+      <line x1="21" y1="12" x2="9" y2="12"></line>
+    </svg>
+  );
+}
+
 /**
  * Componente Header.
  * Renderiza la barra superior con el perfil del usuario y un menú desplegable.
@@ -15,39 +34,31 @@ export default function Header() {
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
-  const [businessName, setBusinessName] = useState<string | null>(null);
+  const [businessContext, setBusinessContext] = useState<{ id: string; name: string | null } | null>(null);
+  const rawBusinessId = pathname?.startsWith("/business/") ? pathname.split("/")[2] : null;
+  const activeBusinessId = rawBusinessId && rawBusinessId !== "new" ? rawBusinessId : null;
 
   useEffect(() => {
-    if (pathname?.startsWith("/business/")) {
-      const parts = pathname.split("/");
-      const id = parts[2];
-      if (id && id !== "new") {
-        getBusiness(Number(id))
-          .then(b => setBusinessName(b?.nombre || null))
-          .catch(() => setBusinessName(null));
-      } else {
-        setBusinessName(null);
-      }
-    } else {
-      setBusinessName(null);
+    if (!activeBusinessId) {
+      return;
     }
-  }, [pathname]);
+
+    let alive = true;
+    getBusiness(Number(activeBusinessId))
+      .then(b => {
+        if (alive) setBusinessContext({ id: activeBusinessId, name: b?.nombre || null });
+      })
+      .catch(() => {
+        if (alive) setBusinessContext({ id: activeBusinessId, name: null });
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [activeBusinessId]);
+
+  const businessName = activeBusinessId && businessContext?.id === activeBusinessId ? businessContext.name : null;
   const initial = (user?.nombreCompleto || user?.username || 'U').charAt(0).toUpperCase();
-
-  const UserIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-      <circle cx="12" cy="7" r="4"></circle>
-    </svg>
-  );
-
-  const LogoutIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "4px" }}>
-      <path d="M10 22H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h5"></path>
-      <polyline points="17 16 21 12 17 8"></polyline>
-      <line x1="21" y1="12" x2="9" y2="12"></line>
-    </svg>
-  );
 
   return (
     <header className="admin-header">
@@ -65,7 +76,7 @@ export default function Header() {
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="secondary-btn"
-          style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', borderRadius: '18px' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 14px', borderRadius: '6px' }}
         >
           <div style={{ textAlign: 'right', lineHeight: '1.2' }} className="hidden sm:block">
             <p style={{ margin: 0, fontSize: '13px', fontWeight: 700 }}>{user?.nombreCompleto || user?.username}</p>

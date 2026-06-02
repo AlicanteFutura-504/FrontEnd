@@ -164,7 +164,7 @@ export default function Sidebar() {
                   <Link
                     key={b.id}
                     href={`/business/${b.id}`}
-                    className={`admin-sidebar__submenu-link ${activeBusinessId === String(b.id) ? "admin-sidebar__submenu-link--active" : ""}`}
+                    className={`admin-sidebar__submenu-link ${effectiveBusinessId === String(b.id) ? "admin-sidebar__submenu-link--active" : ""}`}
                   >
                     {b.nombre}
                   </Link>

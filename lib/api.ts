@@ -11,7 +11,8 @@ import type {
   UpdateUserDto,
   BookingStatus,
   PaymentStatus,
-  PaymentTypeEnum
+  PaymentTypeEnum,
+  BusinessPayload
 } from "./types";
 
 export type {
@@ -27,7 +28,8 @@ export type {
   UpdateUserDto,
   BookingStatus,
   PaymentStatus,
-  PaymentTypeEnum
+  PaymentTypeEnum,
+  BusinessPayload
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -168,7 +170,7 @@ export async function getBusinesses(
   return handleResponse(res) || { data: [], total: 0 };
 }
 
-export async function createBusiness(data: any): Promise<Business> {
+export async function createBusiness(data: BusinessPayload): Promise<Business> {
   const res = await fetch(`${API_URL}/business`, {
     method: "POST",
     headers: getHeaders(),
@@ -182,7 +184,7 @@ export async function getBusiness(id: number): Promise<Business> {
   return handleResponse(res);
 }
 
-export async function updateBusiness(id: number, data: any): Promise<Business> {
+export async function updateBusiness(id: number, data: BusinessPayload): Promise<Business> {
   const res = await fetch(`${API_URL}/business/${id}`, {
     method: "PATCH",
     headers: getHeaders(),

@@ -160,33 +160,14 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={{ marginTop: "28px", paddingTop: "20px", borderTop: "1px solid rgba(255, 255, 255, 0.1)", textAlign: "center" }}>
-          <p style={{ color: "#94a3b8", fontSize: "14px", margin: "0 0 12px" }}>
+        <div className="auth-footer">
+          <p>
             ¿No tienes una cuenta en Yoku?
           </p>
           <button
             type="button"
             onClick={() => router.push("/register")}
-            style={{
-              width: "100%",
-              padding: "14px",
-              borderRadius: "16px",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-              background: "rgba(255, 255, 255, 0.05)",
-              color: "white",
-              fontSize: "15px",
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.15)";
-              e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.3)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-              e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)";
-            }}
+            className="secondary-btn auth-footer__button"
           >
             Registrarse
           </button>
