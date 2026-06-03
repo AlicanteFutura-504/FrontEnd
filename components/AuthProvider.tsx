@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
-    router.push("/login");
+    window.location.href = "/";
   };
 
   const updateUser = (newUser: User) => {
