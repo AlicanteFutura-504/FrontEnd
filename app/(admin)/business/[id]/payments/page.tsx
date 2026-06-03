@@ -220,7 +220,7 @@ export default function BusinessPaymentsPage() {
       </section>
 
       {isAddModalOpen && (
-        <div className="modal-backdrop" style={{ display: 'flex' }}>
+        <div className="modal-backdrop">
           <div className="modal-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Añadir nuevo pago</h3>
