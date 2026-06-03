@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Redirección si no está autenticado (excepto en login/register)
     if (!isLoading) {
-      const isPublicPath = pathname === "/login" || pathname === "/register" || pathname === "/";
+      const isPublicPath = pathname === "/login" || pathname === "/register" || pathname === "/" || pathname === "/precios";
       if (!token && !isPublicPath) {
         router.push("/login");
       } else if (token && isPublicPath && pathname !== "/") {

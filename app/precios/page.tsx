@@ -50,9 +50,11 @@ export default function PricingPage() {
               </div>
             </div>
 
-            <Link href="/register" className={styles.btnSecondary} style={{ width: '100%' }}>
-              Empezar gratis
-            </Link>
+            <div style={{ textAlign: 'center' }}>
+              <Link href="/register" className={styles.btnSecondary}>
+                Empezar gratis
+              </Link>
+            </div>
           </div>
 
           {/* Plan Pro */}
@@ -84,9 +86,11 @@ export default function PricingPage() {
               </div>
             </div>
 
-            <Link href="/register" className={styles.btnPrimary} style={{ width: '100%' }}>
-              Probar 14 días gratis
-            </Link>
+            <div style={{ textAlign: 'center' }}>
+              <Link href="/register" className={styles.btnPrimary}>
+                Probar 14 días gratis
+              </Link>
+            </div>
           </div>
 
           {/* Plan Premium */}
@@ -117,9 +121,11 @@ export default function PricingPage() {
               </div>
             </div>
 
-            <Link href="/register" className={styles.btnSecondary} style={{ width: '100%' }}>
-              Obtener Premium
-            </Link>
+            <div style={{ textAlign: 'center' }}>
+              <Link href="/register" className={styles.btnSecondary}>
+                Obtener Premium
+              </Link>
+            </div>
           </div>
 
         </div>
