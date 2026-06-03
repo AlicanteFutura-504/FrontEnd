@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Loading from "@/components/ui/Loading";
 import { getPayments, updatePayment, deletePayment, createPayment, getBookingsByBusiness } from "@/lib/api";
 import { Payment, PaymentStatus, PaymentTypeEnum, Booking } from "@/lib/types";
 import KpiCard from "@/components/ui/KpiCard";
@@ -114,7 +115,7 @@ export default function BusinessPaymentsPage() {
     if (businessId) fetchPayments();
   }, [businessId]);
 
-  if (loading) return <div className="p-8">Cargando pagos...</div>;
+  if (loading) return <Loading />;
 
   const stats = {
     total: payments.reduce((acc, p) => acc + (p.status === 'pagado' ? p.amount : 0), 0),

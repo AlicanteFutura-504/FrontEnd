@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Loading from "@/components/ui/Loading";
 import { useAuth } from "@/components/AuthProvider";
 import { getBusinesses, deleteBusiness } from "@/lib/api";
 import { Business } from "@/lib/types";
@@ -60,7 +61,7 @@ export default function BusinessListPage() {
     }
   };
 
-  if (loading) return <div className="p-8">Cargando negocios...</div>;
+  if (loading) return <Loading />;
 
   return (
     <div className="page-stack">
