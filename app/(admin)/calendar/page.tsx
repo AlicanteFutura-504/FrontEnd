@@ -11,6 +11,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import Badge from "@/components/ui/Badge";
+import Loading from "@/components/ui/Loading";
 import { getAppointmentsByRange, getBusinesses, getCustomers, getCustomersByBusiness } from "@/lib/api";
 import type { Booking, Business, Customer } from "@/lib/types";
 import Link from "next/link";
@@ -92,7 +93,9 @@ export default function CalendarPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingAppointments, setLoadingAppointments] = useState(true);
+  const [loadingMetadata, setLoadingMetadata] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(toYMD(today));
 
   // Compute the from/to for the current view (include surrounding days)
@@ -102,28 +105,51 @@ export default function CalendarPage() {
     return { from: f, to: t };
   }, [viewYear, viewMonth]);
 
-  const fetchData = useCallback(async () => {
+  const fetchMetadata = useCallback(async () => {
     if (!user) return;
-    setLoading(true);
+    setLoadingMetadata(true);
+    setError(null);
+
     try {
-      const [appts, bizs, custs] = await Promise.all([
-        getAppointmentsByRange(from, to, businessId),
-        getBusinesses(),
-        businessId ? getCustomersByBusiness(businessId) : getCustomers(),
+      const [bizs, custs] = await Promise.all([
+        getBusinesses(1, 1000),
+        businessId ? getCustomersByBusiness(businessId, 1, 1000) : getCustomers(1, 1000),
       ]);
-      setBookings(appts);
       setBusinesses(Array.isArray(bizs) ? bizs : (bizs?.data || []));
       setCustomers(custs?.data || []);
     } catch (err) {
-      console.error("Error cargando calendario:", err);
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("Error cargando datos del calendario:", message);
+      setError(message);
     } finally {
-      setLoading(false);
+      setLoadingMetadata(false);
+    }
+  }, [user, businessId]);
+
+  const fetchAppointments = useCallback(async () => {
+    if (!user) return;
+    setLoadingAppointments(true);
+    setError(null);
+
+    try {
+      const appts = await getAppointmentsByRange(from, to, businessId);
+      setBookings(appts);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("Error cargando citas del calendario:", message);
+      setError(message);
+    } finally {
+      setLoadingAppointments(false);
     }
   }, [user, from, to, businessId]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchMetadata();
+  }, [fetchMetadata]);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
 
   // Group bookings by date string
   const byDate = useMemo(() => {
@@ -135,15 +161,32 @@ export default function CalendarPage() {
     return map;
   }, [bookings]);
 
+  const businessById = useMemo(() => {
+    const map = new Map<number, Business>();
+    for (const business of businesses) {
+      map.set(business.id, business);
+    }
+    return map;
+  }, [businesses]);
+
+  const customerById = useMemo(() => {
+    const map = new Map<number, Customer>();
+    for (const customer of customers) {
+      map.set(customer.id, customer);
+    }
+    return map;
+  }, [customers]);
+
   const grid = useMemo(() => buildCalendarGrid(viewYear, viewMonth), [viewYear, viewMonth]);
 
   const selectedBookings = selectedDay ? (byDate[selectedDay] ?? []) : [];
+  const loading = loadingAppointments || loadingMetadata;
 
   const businessName = (id: number) =>
-    businesses.find((b) => b.id === id)?.nombre ?? `Negocio #${id}`;
+    businessById.get(id)?.nombre ?? `Negocio #${id}`;
 
   const customerName = (id: number) => {
-    const c = customers.find((x) => x.id === id);
+    const c = customerById.get(id);
     if (!c) return null;
     return `${c.name}${c.surname ? " " + c.surname : ""}`;
   };
@@ -204,6 +247,19 @@ export default function CalendarPage() {
         </div>
       </section>
 
+      {error && (
+        <div style={{
+          padding: 16,
+          borderRadius: 12,
+          background: "rgba(248, 113, 113, 0.12)",
+          border: "1px solid rgba(248, 113, 113, 0.25)",
+          color: "#7f1d1d",
+          marginBottom: 8,
+        }}>
+          <strong>Error cargando el calendario:</strong> {error}
+        </div>
+      )}
+
       {/* Main layout */}
       <div style={{ display: "flex", flexDirection: "column", gap: 32, alignItems: "stretch" }}>
 
@@ -218,8 +274,8 @@ export default function CalendarPage() {
 
           {/* Cells */}
           {loading ? (
-            <div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)" }}>
-              Cargando…
+            <div style={{ padding: 40 }}>
+              <Loading text="Cargando calendario..." />
             </div>
           ) : (
             <div style={gridBodyStyle}>

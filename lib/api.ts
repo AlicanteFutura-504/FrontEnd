@@ -246,8 +246,13 @@ export async function deleteAppointment(id: number): Promise<void> {
 export async function getAppointmentsByRange(from: string, to: string, businessId?: string): Promise<Booking[]> {
   let url = `${API_URL}/bookings/calendar?from=${from}&to=${to}`;
   if (businessId) url += `&businessId=${businessId}`;
-  const res = await fetch(url, { headers: getHeaders() });
-  return handleResponse(res) || [];
+  try {
+    const res = await fetch(url, { headers: getHeaders() });
+    return handleResponse(res) || [];
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Error al conectar con el backend (${url}): ${message}`);
+  }
 }
 
 // --- BOOKINGS (NEW) ---
