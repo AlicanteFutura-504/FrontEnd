@@ -432,3 +432,324 @@
   .featureTitle { font-size: 1.75rem; }
   .pricingPrice { font-size: 2.5rem; }
 }
+
+/* ABOUT US PAGE REDESIGN STYLES */
+
+/* 1. Hero 2-Columns */
+.aboutHeroWrapper {
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 100%);
+  padding: 8rem 2rem 6rem;
+}
+
+.aboutHero {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+}
+
+.aboutHeroContent {
+  flex: 1;
+}
+
+.aboutHeroTitle {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 1.5rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.aboutHeroSubtitle {
+  font-size: 1.25rem;
+  color: #4b5563;
+  line-height: 1.7;
+}
+
+.aboutHeroImage {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 2. Stats 4-Columns */
+.statsSection {
+  background-color: #ffffff;
+  padding: 5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.statsGrid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  text-align: center;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.statNumber {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #0066FF;
+}
+
+.statLabel {
+  font-size: 1.125rem;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+/* 3. Values 2x2 */
+.valuesSection {
+  background-color: #f8fafc;
+  padding: 6rem 2rem;
+}
+
+.valuesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.valueCard {
+  background-color: transparent;
+  padding: 1rem;
+}
+
+.valueIconWrapper {
+  width: 3rem;
+  height: 3rem;
+  background-color: #e0f2fe;
+  color: #0066FF;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.valueTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.valueDesc {
+  color: #4b5563;
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+/* 4. Horizontal Timeline */
+.historySection {
+  padding: 6rem 2rem;
+  background-color: #ffffff;
+  overflow: hidden;
+}
+
+.historyContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.timelineWrapper {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+  padding: 2rem 1rem 4rem;
+  scroll-snap-type: x mandatory;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.timelineWrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.timelineCard {
+  min-width: 300px;
+  max-width: 350px;
+  background-color: #ffffff;
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.timelineCard::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -2rem;
+  width: 2rem;
+  height: 4px;
+  background-color: #e0f2fe;
+  z-index: -1;
+}
+
+.timelineYear {
+  display: inline-block;
+  background-color: #0066FF;
+  color: white;
+  padding: 0.25rem 1rem;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.timelineList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.timelineList li {
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+  position: relative;
+  padding-left: 1.25rem;
+  line-height: 1.5;
+}
+
+.timelineList li::before {
+  content: '•';
+  color: #0066FF;
+  position: absolute;
+  left: 0;
+  font-weight: bold;
+}
+
+/* 5. Location */
+.locationSection {
+  background-color: #f8fafc;
+  padding: 6rem 2rem;
+}
+
+.locationContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+}
+
+.locationContent {
+  flex: 1;
+}
+
+.locationImageWrapper {
+  flex: 1;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  aspect-ratio: 16/10;
+  position: relative;
+}
+
+/* 6. Careers Banner */
+.careersSection {
+  padding: 6rem 2rem;
+  background-color: #ffffff;
+}
+
+.careersBanner {
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #1e3a8a; /* Dark navy */
+  border-radius: 2rem;
+  padding: 5rem 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Pseudo-elements for geometric shapes */
+.careersBanner::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  left: -50px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.careersBanner::after {
+  content: '';
+  position: absolute;
+  bottom: -50px;
+  right: 10%;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, rgba(239,68,68,0.2) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.careersTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.careersDesc {
+  color: #bfdbfe;
+  font-size: 1.125rem;
+  max-width: 600px;
+  margin: 0 auto 2.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.careersButton {
+  background-color: #60a5fa;
+  color: #ffffff;
+  padding: 1rem 2.5rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 1.125rem;
+  display: inline-block;
+  transition: all 0.2s;
+  position: relative;
+  z-index: 1;
+}
+
+.careersButton:hover {
+  background-color: #3b82f6;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .aboutHero { flex-direction: column; text-align: center; }
+  .valuesGrid { grid-template-columns: 1fr; }
+  .statsGrid { grid-template-columns: repeat(2, 1fr); }
+  .locationContainer { flex-direction: column; text-align: center; }
+}
+
+@media (max-width: 600px) {
+  .statsGrid { grid-template-columns: 1fr; }
+  .aboutHeroTitle { font-size: 2.5rem; }
+}
