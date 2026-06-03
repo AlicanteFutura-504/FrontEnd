@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { updateMe as updateProfileApi } from "@/lib/api";
 import Image from "next/image";
+import Loading from "@/components/ui/Loading";
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
@@ -43,7 +44,7 @@ export default function ProfilePage() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  if (!user) return <div className="p-8">Cargando perfil...</div>;
+  if (!user) return <Loading />;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

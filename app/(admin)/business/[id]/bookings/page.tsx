@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Loading from "@/components/ui/Loading";
 import { getBookingsByBusiness, createBooking, createCustomer, getCustomerByEmail, updateBooking, deleteBooking } from "@/lib/api";
 import type { Customer } from "@/lib/api";
 import { Booking, CreateBookingDto, BookingStatus } from "@/lib/types";
@@ -131,7 +132,7 @@ export default function BusinessBookingsPage() {
     }
   };
 
-  if (loading) return <div className="p-8">Cargando reservas...</div>;
+  if (loading) return <Loading />;
 
   return (
     <div className="page-stack">

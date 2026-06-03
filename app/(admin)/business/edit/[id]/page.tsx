@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Loading from "@/components/ui/Loading";
 import { getBusiness, updateBusiness } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
@@ -63,7 +64,7 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
     }
   };
 
-  if (fetching) return <div className="p-8">Cargando negocio...</div>;
+  if (fetching) return <Loading />;
 
   return (
     <div className="page-stack">

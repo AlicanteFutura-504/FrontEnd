@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import KpiCard from "@/components/ui/KpiCard";
 import Badge from "@/components/ui/Badge";
+import Loading from "@/components/ui/Loading";
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
 import { getDashboardSummary } from "@/lib/api";
@@ -107,7 +108,7 @@ export default function DashboardPage() {
     URL.revokeObjectURL(url);
   }
 
-  if (loading || !data) return <div className="p-8">Cargando visión global super rápida...</div>;
+  if (loading || !data) return <Loading />;
 
   return (
     <div className="page-stack">

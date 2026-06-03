@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Loading from "@/components/ui/Loading";
 import { getBusiness, getBusinessDashboardSummary } from "@/lib/api";
 import { Booking, Business } from "@/lib/types";
 import KpiCard from "@/components/ui/KpiCard";
@@ -54,7 +55,7 @@ export default function BusinessDashboardPage() {
     if (businessId) fetchData();
   }, [businessId]);
 
-  if (loading) return <div className="p-8">Cargando panel del negocio...</div>;
+  if (loading) return <Loading />;
   if (error) return <div className="p-8" style={{ color: 'var(--danger)' }}>Error: {error}</div>;
   if (!business) return <div className="p-8" style={{ color: 'var(--danger)' }}>Negocio no encontrado o sin acceso. ID: {businessId}</div>;
 
