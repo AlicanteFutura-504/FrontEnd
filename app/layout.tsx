@@ -4,7 +4,6 @@
 
 import "./globals.css";
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Outfit } from "next/font/google";
 import { AuthProvider } from "@/components/AuthProvider";
 
@@ -26,9 +25,9 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning className={outfit.variable}>
       <head>
-        <Script
-          id="theme-initializer"
-          strategy="beforeInteractive"
+      </head>
+      <body className="font-sans antialiased">
+        <script
           dangerouslySetInnerHTML={{
             __html: `
               try {
@@ -41,8 +40,6 @@ export default function RootLayout({
             `,
           }}
         />
-      </head>
-      <body className="font-sans antialiased">
         <AuthProvider>
           {children}
         </AuthProvider>
