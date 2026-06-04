@@ -60,8 +60,8 @@ export default function LandingFooter() {
         {/* Links Column 3 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <h4 style={{ color: '#111827', fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem' }}>Legal</h4>
-          <Link href="#" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Términos y condiciones</Link>
-          <Link href="#" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Política de privacidad</Link>
+          <Link href="/terminos" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Términos y condiciones</Link>
+          <Link href="/privacidad" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Política de privacidad</Link>
           <button style={{ 
             color: '#4b5563', 
             textDecoration: 'none', 
