@@ -17,8 +17,11 @@ export interface Booking {
   time: string;
   status: BookingStatus;
   usuarioId: number;
+  customerId?: number;
   businessId: number;
   serviceName: string;
+  customerName?: string;
+  businessName?: string;
   payment?: {
     amount?: number;
   };
@@ -53,7 +56,7 @@ export interface Payment {
   businessName: string;
   amount: number;
   date?: string;
-  usuarioId?: number;
+  customerId?: number;
   businessId?: number;
 }
 
@@ -64,7 +67,7 @@ export interface CreatePaymentDtoReq {
   businessName?: string;
   amount: number;
   date?: string;
-  usuarioId?: number;
+  customerId?: number;
   businessId?: number;
   bookingId?: number;
 }
@@ -110,11 +113,4 @@ export interface Business {
   usuario?: User;
 }
 
-export interface Customer {
-  id: number;
-  name: string;
-  surname?: string;
-  email: string;
-  phone?: string;
-  businessId?: number;
-}
+// NOTE: Customer table removed; use `User` with role='client' instead.

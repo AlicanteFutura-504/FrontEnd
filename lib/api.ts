@@ -6,7 +6,6 @@ import type {
   CreatePaymentDtoReq,
   UpdatePaymentDtoReq,
   Business,
-  Customer,
   User,
   UpdateUserDto,
   BookingStatus,
@@ -22,7 +21,6 @@ export type {
   CreatePaymentDtoReq,
   UpdatePaymentDtoReq,
   Business,
-  Customer,
   User,
   UpdateUserDto,
   BookingStatus,
@@ -146,7 +144,76 @@ export async function updateUser(id: number, data: UpdateUserDto): Promise<User>
   });
   return handleResponse(res);
 }
+// Backwards-compatible client helpers that use `usuarios` endpoints
+export async function getClients(page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: User[], total: number }> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
+  const res = await fetch(`${API_URL}/usuarios/clients?${params.toString()}`, { headers: getHeaders() });
+  return handleResponse(res) || { data: [], total: 0 };
+}
 
+export async function getAllClients(search: string = ''): Promise<User[]> {
+  const PAGE_LIMIT = 1000;
+  let page = 1;
+  let allClients: User[] = [];
+  let total = 0;
+
+  do {
+    const response = await getClients(page, PAGE_LIMIT, search);
+    allClients = [...allClients, ...response.data];
+    total = response.total;
+    page += 1;
+  } while (allClients.length < total && page <= 20);
+
+  return allClients;
+}
+
+export async function getClientByEmail(email: string): Promise<User | null> {
+  const res = await fetch(`${API_URL}/usuarios/by-email/${encodeURIComponent(email)}`, {
+    headers: getHeaders(),
+  });
+  if (res.status === 404) return null;
+  return handleResponse(res);
+}
+
+export async function getClientsByBusiness(businessId: string, page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: User[], total: number }> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
+  const res = await fetch(`${API_URL}/usuarios/clients/business/${businessId}?${params.toString()}`, { headers: getHeaders() });
+  return handleResponse(res) || { data: [], total: 0 };
+}
+
+export async function createClient(data: Partial<User>): Promise<User> {
+  const res = await fetch(`${API_URL}/usuarios/clients`, {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function updateClient(id: number, data: Partial<User>): Promise<User> {
+  const res = await fetch(`${API_URL}/usuarios/${id}`, {
+    method: "PATCH",
+    headers: getHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function getAllClientsByBusiness(businessId: string, search: string = ''): Promise<User[]> {
+  const PAGE_LIMIT = 1000;
+  let page = 1;
+  let allClients: User[] = [];
+  let total = 0;
+
+  do {
+    const response = await getClientsByBusiness(businessId, page, PAGE_LIMIT, search);
+    allClients = [...allClients, ...response.data];
+    total = response.total;
+    page += 1;
+  } while (allClients.length < total && page <= 20);
+
+  return allClients;
+}
 // --- BUSINESS ---
 
 export async function getBusinesses(
@@ -166,6 +233,22 @@ export async function getBusinesses(
 
   const res = await fetch(`${API_URL}/business?${params.toString()}`, { headers: getHeaders() });
   return handleResponse(res) || { data: [], total: 0 };
+}
+
+export async function getAllBusinesses(search: string = ''): Promise<Business[]> {
+  const PAGE_LIMIT = 1000;
+  let page = 1;
+  let allBusinesses: Business[] = [];
+  let total = 0;
+
+  do {
+    const response = await getBusinesses(page, PAGE_LIMIT, search);
+    allBusinesses = [...allBusinesses, ...response.data];
+    total = response.total;
+    page += 1;
+  } while (allBusinesses.length < total && page <= 20);
+
+  return allBusinesses;
 }
 
 export async function createBusiness(data: any): Promise<Business> {
@@ -301,8 +384,8 @@ export async function getAllBookingsByBusiness(businessId: string, search: strin
   return allBookings;
 }
 
-export async function getBookingsByCustomer(usuarioId: number): Promise<Booking[]> {
-  const res = await fetch(`${API_URL}/bookings/customer/${usuarioId}`, { headers: getHeaders() });
+export async function getBookingsByCustomer(customerId: number): Promise<Booking[]> {
+  const res = await fetch(`${API_URL}/bookings/customer/${customerId}`, { headers: getHeaders() });
   return handleResponse(res) || [];
 }
 
@@ -367,51 +450,6 @@ export async function deletePayment(id: number): Promise<void> {
   return handleResponse(res);
 }
 
-// --- CLIENTS (Replaces Customers) ---
+// --- CUSTOMERS ---
 
-export async function getClients(page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: User[], total: number }> {
-  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
-  const res = await fetch(`${API_URL}/usuarios/clients?${params.toString()}`, { headers: getHeaders() });
-  return handleResponse(res) || { data: [], total: 0 };
-}
-
-export async function getClientByEmail(email: string): Promise<User | null> {
-  // Nota: Esto reutiliza el endpoint general de usuarios
-  const res = await fetch(`${API_URL}/usuarios/by-email/${encodeURIComponent(email)}`, {
-    headers: getHeaders(),
-  });
-  if (res.status === 404) return null;
-  return handleResponse(res);
-}
-
-export async function getClientsByBusiness(businessId: string, page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: User[], total: number }> {
-  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
-  const res = await fetch(`${API_URL}/usuarios/clients/business/${businessId}?${params.toString()}`, { headers: getHeaders() });
-  return handleResponse(res) || { data: [], total: 0 };
-}
-
-export async function createClient(data: Partial<User>): Promise<User> {
-  const res = await fetch(`${API_URL}/usuarios/clients`, {
-    method: "POST",
-    headers: getHeaders(),
-    body: JSON.stringify(data),
-  });
-  return handleResponse(res);
-}
-
-export async function updateClient(id: number, data: Partial<User>): Promise<User> {
-  const res = await fetch(`${API_URL}/usuarios/${id}`, {
-    method: "PATCH",
-    headers: getHeaders(),
-    body: JSON.stringify(data),
-  });
-  return handleResponse(res);
-}
-
-export async function deleteClient(id: number): Promise<void> {
-  const res = await fetch(`${API_URL}/usuarios/${id}`, {
-    method: "DELETE",
-    headers: getHeaders(),
-  });
-  return handleResponse(res);
-}
+// Legacy `/customers` endpoints removed in backend; use `/usuarios/clients` instead.

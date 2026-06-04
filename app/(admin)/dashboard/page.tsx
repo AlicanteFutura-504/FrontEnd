@@ -7,7 +7,7 @@ import Loading from "@/components/ui/Loading";
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getDashboardSummary, getAllBookings } from "@/lib/api";
+import { getDashboardSummary, getAllBookings, getAllBusinesses, getAllClients } from "@/lib/api";
 
 export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
@@ -45,6 +45,14 @@ export default function DashboardPage() {
 
     try {
       const bookings = await getAllBookings();
+      const businesses = await getAllBusinesses();
+      const customers = await getAllClients();
+
+      const businessNamesById = new Map(businesses.map((business: any) => [business.id, business.nombre]));
+      const customerNamesById = new Map(customers.map((user: any) => [
+        user.id,
+        (user.nombreCompleto || user.email || user.username || '').trim(),
+      ]));
 
       const tableHtml = `
       <table border="1">
@@ -63,13 +71,15 @@ export default function DashboardPage() {
       <br/>
       <table border="1">
         <thead>
-          <tr><th colspan="6" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Reservas Exportadas</th></tr>
+          <tr><th colspan="7" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Reservas Exportadas</th></tr>
           <tr>
             <th style="background-color: #e5e7eb;">ID</th>
             <th style="background-color: #e5e7eb;">Fecha</th>
             <th style="background-color: #e5e7eb;">Hora</th>
             <th style="background-color: #e5e7eb;">Servicio</th>
-            <th style="background-color: #e5e7eb;">Negocio ID</th>
+            <th style="background-color: #e5e7eb;">Precio</th>
+            <th style="background-color: #e5e7eb;">Cliente</th>
+            <th style="background-color: #e5e7eb;">Negocio</th>
             <th style="background-color: #e5e7eb;">Estado</th>
           </tr>
         </thead>
@@ -80,11 +90,13 @@ export default function DashboardPage() {
               <td>${b.date}</td>
               <td>${b.time ?? ''}</td>
               <td>${b.serviceName}</td>
-              <td>${b.businessId ?? ''}</td>
+              <td>${b.payment?.amount ?? ''}</td>
+              <td>${b.customerName ?? customerNamesById.get(b.usuarioId) ?? ''}</td>
+              <td>${b.businessName ?? businessNamesById.get(b.businessId) ?? ''}</td>
               <td>${b.status}</td>
             </tr>
           `).join('') : `
-            <tr><td colspan="6" style="text-align:center;">No hay reservas para exportar</td></tr>
+            <tr><td colspan="8" style="text-align:center;">No hay reservas para exportar</td></tr>
           `}
         </tbody>
       </table>

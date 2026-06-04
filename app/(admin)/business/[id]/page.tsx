@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Loading from "@/components/ui/Loading";
-import { getBusiness, getBusinessDashboardSummary, getAllBookingsByBusiness } from "@/lib/api";
+import { getBusiness, getBusinessDashboardSummary, getAllBookingsByBusiness, getAllClientsByBusiness } from "@/lib/api";
 import { Booking, Business } from "@/lib/types";
 import KpiCard from "@/components/ui/KpiCard";
 import Link from "next/link";
@@ -73,6 +73,11 @@ export default function BusinessDashboardPage() {
 
     try {
       const bookings = await getAllBookingsByBusiness(businessId);
+      const customers = await getAllClientsByBusiness(businessId);
+      const customerNamesById = new Map(customers.map((user: any) => [
+        user.id,
+        (user.nombreCompleto || user.email || user.username || '').trim(),
+      ]));
 
       const tableHtml = `
       <table border="1">
@@ -90,12 +95,15 @@ export default function BusinessDashboardPage() {
       <br/>
       <table border="1">
         <thead>
-          <tr><th colspan="5" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Reservas Exportadas</th></tr>
+          <tr><th colspan="7" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Reservas Exportadas</th></tr>
           <tr>
             <th style="background-color: #e5e7eb;">ID</th>
             <th style="background-color: #e5e7eb;">Fecha</th>
             <th style="background-color: #e5e7eb;">Hora</th>
             <th style="background-color: #e5e7eb;">Servicio</th>
+            <th style="background-color: #e5e7eb;">Precio</th>
+            <th style="background-color: #e5e7eb;">Cliente</th>
+            <th style="background-color: #e5e7eb;">Negocio</th>
             <th style="background-color: #e5e7eb;">Estado</th>
           </tr>
         </thead>
@@ -106,10 +114,13 @@ export default function BusinessDashboardPage() {
               <td>${b.date}</td>
               <td>${b.time ?? ''}</td>
               <td>${b.serviceName}</td>
+              <td>${b.payment?.amount ?? ''}</td>
+              <td>${b.customerName ?? customerNamesById.get(b.usuarioId) ?? ''}</td>
+              <td>${b.businessName ?? business.nombre ?? ''}</td>
               <td>${b.status}</td>
             </tr>
           `).join('') : `
-            <tr><td colspan="5" style="text-align:center;">No hay reservas para exportar</td></tr>
+            <tr><td colspan="8" style="text-align:center;">No hay reservas para exportar</td></tr>
           `}
         </tbody>
       </table>
