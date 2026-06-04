@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
 
@@ -62,18 +64,20 @@ export default function LandingFooter() {
           <h4 style={{ color: '#111827', fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem' }}>Legal</h4>
           <Link href="/terminos" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Términos y condiciones</Link>
           <Link href="/privacidad" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Política de privacidad</Link>
-          <button style={{ 
-            color: '#4b5563', 
-            textDecoration: 'none', 
-            fontSize: '0.9rem', 
-            transition: 'color 0.2s',
-            background: 'none',
-            border: 'none',
-            padding: 0,
-            cursor: 'pointer',
-            textAlign: 'left',
-            fontFamily: 'inherit'
-          }}>
+          <button 
+            onClick={() => window.dispatchEvent(new Event('open-cookie-settings'))}
+            style={{ 
+              color: '#4b5563', 
+              textDecoration: 'none', 
+              fontSize: '0.9rem', 
+              transition: 'color 0.2s',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              textAlign: 'left',
+              fontFamily: 'inherit'
+            }}>
             Configuración de cookies
           </button>
         </div>
