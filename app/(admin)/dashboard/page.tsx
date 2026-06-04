@@ -6,6 +6,7 @@ import Badge from "@/components/ui/Badge";
 import Loading from "@/components/ui/Loading";
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { getDashboardSummary } from "@/lib/api";
 
 export default function DashboardPage() {
@@ -13,9 +14,15 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     if (!user) return; // Prevent Unauthorized errors before auth is fully initialized
+
+    if (user.role === 'business' && user.businessId) {
+      router.replace(`/business/${user.businessId}`);
+      return;
+    }
 
     const fetchAllData = async () => {
       try {
