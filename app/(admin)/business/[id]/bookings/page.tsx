@@ -148,9 +148,17 @@ export default function BusinessBookingsPage() {
       </header>
 
       {isModalOpen && (
-        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) { setIsModalOpen(false); setFoundCustomer(undefined); } }}>
+        <div className="modal-backdrop">
           <div className="modal-card" style={{ maxWidth: 520, width: '100%' }}>
-            <h3 className="modal-title" style={{ marginBottom: 16 }}>Nueva Reserva</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 className="modal-title" style={{ margin: 0 }}>Nueva Reserva</h3>
+              <button 
+                onClick={() => { setIsModalOpen(false); setFoundCustomer(undefined); }}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--muted)' }}
+              >
+                &times;
+              </button>
+            </div>
             <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
               {/* ── Datos del cliente ── */}
@@ -387,9 +395,17 @@ export default function BusinessBookingsPage() {
 
       {/* Edit Status Modal */}
       {isEditOpen && (
-        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setIsEditOpen(false) }}>
+        <div className="modal-backdrop">
           <div className="modal-card">
-            <h3 className="modal-title" style={{ marginBottom: 16 }}>Editar Estado de Reserva</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 className="modal-title" style={{ margin: 0 }}>Editar Estado de Reserva</h3>
+              <button 
+                onClick={() => setIsEditOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--muted)' }}
+              >
+                &times;
+              </button>
+            </div>
             <form onSubmit={handleEditStatus} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <select 
                 className="select" 

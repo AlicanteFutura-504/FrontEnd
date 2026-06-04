@@ -10,6 +10,7 @@ export default function ThemeToggle() {
     setMounted(true);
     const stored = localStorage.getItem("darkMode") === "true";
     setIsDarkMode(stored);
+    document.documentElement.setAttribute("data-theme", stored ? "dark" : "light");
   }, []);
 
   const handleToggle = (dark: boolean) => {
