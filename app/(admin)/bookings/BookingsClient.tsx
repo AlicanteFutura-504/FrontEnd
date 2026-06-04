@@ -85,7 +85,7 @@ export default function BookingsClient({
     date: "",
     time: "",
     status: "pending",
-    customerId: 1,
+    usuarioId: 1,
     businessId: 1,
     serviceName: "",
   };
@@ -222,7 +222,7 @@ export default function BookingsClient({
       date: booking.date,
       time: booking.time,
       status: booking.status,
-      customerId: booking.customerId,
+      usuarioId: booking.usuarioId,
       businessId: booking.businessId,
       serviceName: booking.serviceName,
     });
@@ -311,7 +311,7 @@ export default function BookingsClient({
         date: editForm.date,
         time: editForm.time,
         status: editForm.status,
-        customerId: editForm.customerId,
+        usuarioId: editForm.usuarioId,
         businessId: editForm.businessId,
         serviceName: editForm.serviceName,
       };
@@ -456,9 +456,9 @@ export default function BookingsClient({
                 className="input"
                 type="number"
                 min={1}
-                value={createForm.customerId}
+                value={createForm.usuarioId}
                 onChange={(e) =>
-                  updateCreateForm("customerId", Number(e.target.value))
+                  updateCreateForm("usuarioId", Number(e.target.value))
                 }
                 placeholder="Customer ID"
                 required
@@ -536,9 +536,9 @@ export default function BookingsClient({
                 className="input"
                 type="number"
                 min={1}
-                value={editForm.customerId}
+                value={editForm.usuarioId}
                 onChange={(e) =>
-                  updateEditForm("customerId", Number(e.target.value))
+                  updateEditForm("usuarioId", Number(e.target.value))
                 }
                 placeholder="Customer ID"
                 required
@@ -669,7 +669,7 @@ export default function BookingsClient({
                   <td>{formatDate(booking.date)}</td>
                   <td>{booking.time}</td>
                   <td>{booking.serviceName}</td>
-                  <td>{booking.customerId}</td>
+                  <td>{booking.usuarioId}</td>
                   <td>{booking.businessId}</td>
                   <td><Badge status={booking.status} /></td>
                   <td>

@@ -49,7 +49,7 @@ export default function BusinessPaymentsPage() {
       
       const selectedBooking = bookings.find(b => b.id === parseInt(addFormData.bookingId, 10));
       if (selectedBooking) {
-        (newPayment as any).customer = { name: `Cliente #${selectedBooking.customerId}` };
+        (newPayment as any).customer = { name: `Cliente #${selectedBooking.usuarioId}` };
       }
 
       setPayments([newPayment, ...payments]);

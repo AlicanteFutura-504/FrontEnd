@@ -71,9 +71,9 @@ export default function BusinessBookingsPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      let customerId: number;
+      let usuarioId: number;
       if (foundCustomer) {
-        customerId = foundCustomer.id;
+        usuarioId = foundCustomer.id;
       } else {
         const newCust = await createCustomer({
           name: formData.customerName,
@@ -82,7 +82,7 @@ export default function BusinessBookingsPage() {
           phone: formData.customerPhone || undefined,
           businessId: Number(businessId),
         });
-        customerId = newCust.id;
+        usuarioId = newCust.id;
       }
 
       await createBooking({
@@ -90,7 +90,7 @@ export default function BusinessBookingsPage() {
         time: formData.time,
         serviceName: formData.serviceName,
         status: "pending",
-        customerId,
+        usuarioId,
         businessId: Number(businessId),
       });
       await fetchBookings(page, search);
@@ -287,7 +287,7 @@ export default function BusinessBookingsPage() {
                     <span style={{ color: 'var(--muted)' }}>--</span>
                   )}
                 </td>
-                <td>#{b.customerId}</td>
+                <td>#{b.usuarioId}</td>
                 <td>
                   <Badge status={b.status as any} />
                 </td>

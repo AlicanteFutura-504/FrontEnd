@@ -390,7 +390,7 @@ export default function CalendarPage() {
                     {b.serviceName}
                   </p>
                   <p style={{ fontSize: 11, marginTop: 6, color: "var(--text-muted)", background: "var(--surface)", padding: "4px 8px", borderRadius: "4px", display: "inline-block" }}>
-                    {businessName(b.businessId)} · Cliente #{b.customerId}{customerName(b.customerId) ? ` - ${customerName(b.customerId)}` : ""}
+                    {businessName(b.businessId)} · Cliente #{b.usuarioId}{customerName(b.usuarioId) ? ` - ${customerName(b.usuarioId)}` : ""}
                   </p>
                 </Link>
               ))}

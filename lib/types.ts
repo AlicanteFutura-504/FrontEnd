@@ -16,7 +16,7 @@ export interface Booking {
   date: string;
   time: string;
   status: BookingStatus;
-  customerId: number;
+  usuarioId: number;
   businessId: number;
   serviceName: string;
 }
@@ -25,7 +25,7 @@ export interface CreateBookingDto {
   date: string;
   time: string;
   status: BookingStatus;
-  customerId: number;
+  usuarioId: number;
   businessId: number;
   serviceName: string;
 }
@@ -34,7 +34,7 @@ export interface UpdateBookingDto {
   date?: string;
   time?: string;
   status?: BookingStatus;
-  customerId?: number;
+  usuarioId?: number;
   businessId?: number;
   serviceName?: string;
 }
@@ -50,7 +50,7 @@ export interface Payment {
   businessName: string;
   amount: number;
   date?: string;
-  customerId?: number;
+  usuarioId?: number;
   businessId?: number;
 }
 
@@ -61,7 +61,7 @@ export interface CreatePaymentDtoReq {
   businessName: string;
   amount: number;
   date?: string;
-  customerId?: number;
+  usuarioId?: number;
   businessId?: number;
 }
 
@@ -78,9 +78,10 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  role: 'superadmin' | 'admin' | 'business';
+  role: 'superadmin' | 'admin' | 'business' | 'client';
   nombreCompleto?: string;
   dni?: string;
+  phone?: string;
   profilePicture?: string;
   /** ID del negocio asociado. Solo presente cuando role === 'business'. */
   businessId?: number | null;

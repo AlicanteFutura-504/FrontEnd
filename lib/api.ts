@@ -263,8 +263,8 @@ export async function getBookingsByBusiness(businessId: string, page: number = 1
   return handleResponse(res) || { data: [], total: 0 };
 }
 
-export async function getBookingsByCustomer(customerId: number): Promise<Booking[]> {
-  const res = await fetch(`${API_URL}/bookings/customer/${customerId}`, { headers: getHeaders() });
+export async function getBookingsByCustomer(usuarioId: number): Promise<Booking[]> {
+  const res = await fetch(`${API_URL}/bookings/customer/${usuarioId}`, { headers: getHeaders() });
   return handleResponse(res) || [];
 }
 
