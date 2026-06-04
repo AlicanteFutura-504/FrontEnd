@@ -7,6 +7,7 @@ import { getBusiness, getBusinessDashboardSummary } from "@/lib/api";
 import { Booking, Business } from "@/lib/types";
 import KpiCard from "@/components/ui/KpiCard";
 import Link from "next/link";
+import { useAuth } from "@/components/AuthProvider";
 
 interface BusinessSummary {
   totalBookings: number;
@@ -24,6 +25,7 @@ export default function BusinessDashboardPage() {
   const [summary, setSummary] = useState<BusinessSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,6 +65,80 @@ export default function BusinessDashboardPage() {
     ? (summary.totalRevenue / summary.totalBookings).toFixed(2)
     : '0.00';
 
+  function handleExport() {
+    if (!summary || !business) return;
+    
+    const tableHtml = `
+      <table border="1">
+        <thead>
+          <tr><th colspan="2" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Resumen de KPIs - ${business.nombre}</th></tr>
+          <tr><th style="background-color: #e5e7eb;">Indicador</th><th style="background-color: #e5e7eb;">Valor</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Reservas Totales</td><td>${summary.totalBookings}</td></tr>
+          <tr><td>Ingresos Totales (€)</td><td>${summary.totalRevenue}</td></tr>
+          <tr><td>Reservas Pendientes</td><td>${summary.pendingBookings}</td></tr>
+          <tr><td>Clientes Registrados</td><td>${summary.totalCustomers}</td></tr>
+        </tbody>
+      </table>
+      <br/>
+      <table border="1">
+        <thead>
+          <tr><th colspan="3" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Últimas Reservas</th></tr>
+          <tr>
+            <th style="background-color: #e5e7eb;">Fecha</th>
+            <th style="background-color: #e5e7eb;">Servicio</th>
+            <th style="background-color: #e5e7eb;">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${summary.latestBookings.map((b: any) => `
+            <tr>
+              <td>${b.date}</td>
+              <td>${b.serviceName}</td>
+              <td>${b.status}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+
+    const htmlContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8" />
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>Reporte ${business.nombre}</x:Name>
+                <x:WorksheetOptions>
+                  <x:DisplayGridlines/>
+                </x:WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+      </head>
+      <body>
+        ${tableHtml}
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `reporte_${business.nombre.replace(/\s+/g, '_').toLowerCase()}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="page-stack">
       <header className="page-hero">
@@ -74,8 +150,16 @@ export default function BusinessDashboardPage() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <Link href={`/business/${businessId}/bookings`} className="primary-btn">Nueva Reserva</Link>
-          <Link href="/business" className="secondary-btn">Volver al listado</Link>
+          {user?.role === 'business' ? (
+            <button className="primary-btn" type="button" onClick={handleExport}>
+              Exportar Reporte Global
+            </button>
+          ) : (
+            <>
+              <Link href={`/business/${businessId}/bookings`} className="primary-btn">Nueva Reserva</Link>
+              <Link href="/business" className="secondary-btn">Volver al listado</Link>
+            </>
+          )}
         </div>
       </header>
 
