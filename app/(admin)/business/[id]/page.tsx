@@ -8,6 +8,7 @@ import { Booking, Business } from "@/lib/types";
 import KpiCard from "@/components/ui/KpiCard";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
+import Badge from "@/components/ui/Badge";
 
 interface BusinessSummary {
   totalBookings: number;
@@ -208,7 +209,7 @@ export default function BusinessDashboardPage() {
                   <td style={{ fontWeight: 600 }}>{b.date}</td>
                   <td>{b.serviceName}</td>
                   <td>
-                    <span className={`badge badge--${b.status}`}>{b.status}</span>
+                    <Badge status={b.status as any} />
                   </td>
                 </tr>
               ))}
