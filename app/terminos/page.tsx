@@ -7,7 +7,7 @@ import styles from './Terminos.module.css';
 export default function TerminosPage() {
   return (
     <div className={styles.pageWrapper}>
-      <LandingHeader />
+      <LandingHeader hideThemeToggle={true} />
 
       <main className={styles.mainContent}>
         <div className={styles.container}>

@@ -8,7 +8,7 @@ import CookieBanner from '@/components/ui/CookieBanner';
 export default function PricingPage() {
   return (
     <div className={styles.landingWrapper}>
-      <LandingHeader />
+      <LandingHeader hideThemeToggle={true} />
 
       {/* Hero Section */}
       <section className={styles.hero} style={{ paddingBottom: '2rem' }}>

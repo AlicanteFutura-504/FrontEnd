@@ -44,7 +44,7 @@ export default function AboutPage() {
 
   return (
     <div className={styles.landingWrapper}>
-      <LandingHeader />
+      <LandingHeader hideThemeToggle={true} />
 
       {/* 1. Hero Section (2 Columns, Gradient Background) */}
       <section className={styles.aboutHeroWrapper}>

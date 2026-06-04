@@ -7,7 +7,7 @@ import styles from '../terminos/Terminos.module.css';
 export default function PrivacidadPage() {
   return (
     <div className={styles.pageWrapper}>
-      <LandingHeader />
+      <LandingHeader hideThemeToggle={true} />
       
       <main className={styles.mainContent}>
         <div className={styles.container}>
