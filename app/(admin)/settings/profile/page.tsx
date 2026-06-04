@@ -314,7 +314,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="input-group">
                   <label className="kpi-card__label">Correo electrónico</label>
-                  <div className="input" style={{ background: 'var(--surface-2)', border: 'none', fontWeight: 600 }}>{user.email || "No especificado"}</div>
+                  <div className="input" style={{ background: 'var(--surface-2)', border: 'none', fontWeight: 600, wordBreak: 'break-all' }}>{user.email || "No especificado"}</div>
                 </div>
                 <div className="input-group">
                   <label className="kpi-card__label">DNI / Identificación</label>
