@@ -2,13 +2,13 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { registerAdmin } from "@/lib/api";
-import ThemeToggle from "@/components/ui/ThemeToggle";
+import styles from "../Landing.module.css";
+import LandingHeader from "@/components/ui/LandingHeader";
+import LandingFooter from "@/components/ui/LandingFooter";
+import CookieBanner from "@/components/ui/CookieBanner";
 
-/**
- * Página premium de registro de nuevos usuarios.
- * Diseñada con estética glassmorphism y gradientes inmersivos.
- */
 export default function RegisterPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -53,164 +53,111 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="login-page">
-      <div style={{ position: "absolute", top: "24px", right: "24px", zIndex: 50 }}>
-        <ThemeToggle />
-      </div>
-      <section className="login-card">
-        <header className="login-header">
-          <div className="login-header__brand" style={{ background: "transparent" }}>
-            <img src="/favicon.ico" alt="Yoku Logo" style={{ width: 64, height: 64, objectFit: 'contain' }} />
+    <div className={styles.landingWrapper}>
+      <LandingHeader />
+
+      <section className={styles.authSection}>
+        <div className={styles.authCard}>
+          <header className={styles.authHeader}>
+            <h1 className={styles.authTitle}>Crear Cuenta</h1>
+            <p className={styles.authSubtitle}>
+              Regístrate para acceder al espacio de administración de Yoku
+            </p>
+          </header>
+
+          {alert && (
+            <div className={`${styles.authAlert} ${alert.type === 'success' ? styles.authAlertSuccess : styles.authAlertError}`}>
+              {alert.message}
+            </div>
+          )}
+
+          <form onSubmit={handleRegister} className={styles.authForm}>
+            <div className={styles.authField}>
+              <label htmlFor="reg-username" className={styles.authLabel}>Nombre de Usuario</label>
+              <input
+                id="reg-username"
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="tu_usuario"
+                className={styles.authInput}
+                autoComplete="username"
+              />
+            </div>
+
+            <div className={styles.authField}>
+              <label htmlFor="reg-email" className={styles.authLabel}>Correo Electrónico</label>
+              <input
+                id="reg-email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="ejemplo@email.com"
+                className={styles.authInput}
+                autoComplete="email"
+              />
+            </div>
+
+            <div className={styles.authField}>
+              <label htmlFor="reg-fullname" className={styles.authLabel}>Nombre Completo</label>
+              <input
+                id="reg-fullname"
+                type="text"
+                required
+                value={nombreCompleto}
+                onChange={(e) => setNombreCompleto(e.target.value)}
+                placeholder="Juan Pérez"
+                className={styles.authInput}
+                autoComplete="name"
+              />
+            </div>
+
+            <div className={styles.authField}>
+              <label htmlFor="reg-dni" className={styles.authLabel}>DNI</label>
+              <input
+                id="reg-dni"
+                type="text"
+                required
+                value={dni}
+                onChange={(e) => setDni(e.target.value)}
+                placeholder="12345678Z"
+                className={styles.authInput}
+              />
+            </div>
+
+            <div className={styles.authField}>
+              <label htmlFor="reg-password" className={styles.authLabel}>Contraseña</label>
+              <input
+                id="reg-password"
+                type="password"
+                required
+                value={contrasena}
+                onChange={(e) => setContrasena(e.target.value)}
+                placeholder="••••••••••••"
+                className={styles.authInput}
+                autoComplete="new-password"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`${styles.btnPrimary} ${styles.authSubmit}`}
+            >
+              {loading ? "Registrando..." : "Registrarse ahora"}
+            </button>
+          </form>
+
+          <div className={styles.authFooter}>
+            ¿Ya tienes una cuenta? <Link href="/login" className={styles.authLink}>Inicia sesión</Link>
           </div>
-          <h1 className="login-header__title">Crear Cuenta</h1>
-          <p className="login-header__subtitle">
-            Regístrate para acceder al espacio de administración de Yoku
-          </p>
-        </header>
-
-        {alert && (
-          <div
-            id="register-alert"
-            className={`login-alert login-alert--${alert.type}`}
-            style={{ marginBottom: "20px" }}
-          >
-            {alert.message}
-          </div>
-        )}
-
-        <form id="register-form" onSubmit={handleRegister} className="login-form">
-          <div className="login-field">
-            <label htmlFor="reg-username" className="login-field__label">
-              Nombre de Usuario
-            </label>
-            <input
-              id="reg-username"
-              type="text"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="tu_usuario"
-              className="login-input"
-              autoComplete="username"
-            />
-          </div>
-
-          <div className="login-field">
-            <label htmlFor="reg-email" className="login-field__label">
-              Correo Electrónico
-            </label>
-            <input
-              id="reg-email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ejemplo@email.com"
-              className="login-input"
-              autoComplete="email"
-            />
-          </div>
-
-          <div className="login-field">
-            <label htmlFor="reg-fullname" className="login-field__label">
-              Nombre Completo
-            </label>
-            <input
-              id="reg-fullname"
-              type="text"
-              required
-              value={nombreCompleto}
-              onChange={(e) => setNombreCompleto(e.target.value)}
-              placeholder="Juan Pérez"
-              className="login-input"
-              autoComplete="name"
-            />
-          </div>
-
-          <div className="login-field">
-            <label htmlFor="reg-dni" className="login-field__label">
-              DNI
-            </label>
-            <input
-              id="reg-dni"
-              type="text"
-              required
-              value={dni}
-              onChange={(e) => setDni(e.target.value)}
-              placeholder="12345678Z"
-              className="login-input"
-            />
-          </div>
-
-          <div className="login-field">
-            <label htmlFor="reg-password" className="login-field__label">
-              Contraseña
-            </label>
-            <input
-              id="reg-password"
-              type="password"
-              required
-              value={contrasena}
-              onChange={(e) => setContrasena(e.target.value)}
-              placeholder="••••••••••••"
-              className="login-input"
-              autoComplete="new-password"
-            />
-          </div>
-
-          <button
-            id="register-submit-btn"
-            type="submit"
-            disabled={loading}
-            className="login-btn"
-            style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 10px 25px rgba(16, 185, 129, 0.4)" }}
-          >
-            {loading ? (
-              <>
-                <span className="spinner" style={{ fontSize: "18px" }}>⌛</span>
-                <span>Registrando...</span>
-              </>
-            ) : (
-              <>
-                <span>✓</span>
-                <span>Registrarse ahora</span>
-              </>
-            )}
-          </button>
-        </form>
-
-        <div style={{ marginTop: "28px", paddingTop: "20px", borderTop: "1px solid rgba(255, 255, 255, 0.1)", textAlign: "center" }}>
-          <p style={{ color: "#94a3b8", fontSize: "14px", margin: "0 0 12px" }}>
-            ¿Ya tienes una cuenta?
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push("/login")}
-            style={{
-              width: "100%",
-              padding: "14px",
-              borderRadius: "16px",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-              background: "rgba(255, 255, 255, 0.05)",
-              color: "white",
-              fontSize: "15px",
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.15)";
-              e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.3)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-              e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)";
-            }}
-          >
-            Iniciar sesión
-          </button>
         </div>
       </section>
-    </main>
+
+      <LandingFooter />
+      <CookieBanner />
+    </div>
   );
 }
