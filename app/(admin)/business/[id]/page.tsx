@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Loading from "@/components/ui/Loading";
-import { getBusiness, getBusinessDashboardSummary } from "@/lib/api";
+import { getBusiness, getBusinessDashboardSummary, getAllBookingsByBusiness } from "@/lib/api";
 import { Booking, Business } from "@/lib/types";
 import KpiCard from "@/components/ui/KpiCard";
 import Link from "next/link";
@@ -24,6 +24,7 @@ export default function BusinessDashboardPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [summary, setSummary] = useState<BusinessSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -65,10 +66,14 @@ export default function BusinessDashboardPage() {
     ? (summary.totalRevenue / summary.totalBookings).toFixed(2)
     : '0.00';
 
-  function handleExport() {
+  async function handleExport() {
     if (!summary || !business) return;
-    
-    const tableHtml = `
+    setExporting(true);
+
+    try {
+      const bookings = await getAllBookingsByBusiness(businessId);
+
+      const tableHtml = `
       <table border="1">
         <thead>
           <tr><th colspan="2" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Resumen de KPIs - ${business.nombre}</th></tr>
@@ -84,26 +89,32 @@ export default function BusinessDashboardPage() {
       <br/>
       <table border="1">
         <thead>
-          <tr><th colspan="3" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Últimas Reservas</th></tr>
+          <tr><th colspan="5" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Reservas Exportadas</th></tr>
           <tr>
+            <th style="background-color: #e5e7eb;">ID</th>
             <th style="background-color: #e5e7eb;">Fecha</th>
+            <th style="background-color: #e5e7eb;">Hora</th>
             <th style="background-color: #e5e7eb;">Servicio</th>
             <th style="background-color: #e5e7eb;">Estado</th>
           </tr>
         </thead>
         <tbody>
-          ${summary.latestBookings.map((b: any) => `
+          ${bookings.length > 0 ? bookings.map((b: any) => `
             <tr>
+              <td>${b.id}</td>
               <td>${b.date}</td>
+              <td>${b.time ?? ''}</td>
               <td>${b.serviceName}</td>
               <td>${b.status}</td>
             </tr>
-          `).join('')}
+          `).join('') : `
+            <tr><td colspan="5" style="text-align:center;">No hay reservas para exportar</td></tr>
+          `}
         </tbody>
       </table>
     `;
 
-    const htmlContent = `
+      const htmlContent = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
       <head>
         <meta charset="utf-8" />
@@ -128,15 +139,22 @@ export default function BusinessDashboardPage() {
       </html>
     `;
 
-    const blob = new Blob([htmlContent], { type: "application/vnd.ms-excel" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `reporte_${business.nombre.replace(/\s+/g, '_').toLowerCase()}.xls`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      const blob = new Blob([htmlContent], { type: "application/vnd.ms-excel" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `reporte_${business.nombre.replace(/\s+/g, '_').toLowerCase()}.xls`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exportando reporte del negocio:', error);
+      alert('No se pudo exportar el reporte del negocio. Revisa la consola para más detalles.');
+    } finally {
+      setExporting(false);
+    }
   }
 
   return (
@@ -151,8 +169,8 @@ export default function BusinessDashboardPage() {
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           {user?.role === 'business' ? (
-            <button className="primary-btn" type="button" onClick={handleExport}>
-              Exportar Reporte Global
+            <button className="primary-btn" type="button" onClick={handleExport} disabled={exporting}>
+              {exporting ? 'Exportando...' : 'Exportar Reporte Global'}
             </button>
           ) : (
             <>
