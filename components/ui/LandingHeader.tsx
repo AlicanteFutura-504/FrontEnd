@@ -5,6 +5,7 @@ import Link from 'next/link';
 import styles from '@/app/Landing.module.css';
 import { useAuth } from '@/components/AuthProvider';
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import ForceLightMode from '@/components/ui/ForceLightMode';
 
 export default function LandingHeader({ hideThemeToggle }: { hideThemeToggle?: boolean }) {
   const { user, logout } = useAuth();
@@ -13,6 +14,7 @@ export default function LandingHeader({ hideThemeToggle }: { hideThemeToggle?: b
 
   return (
     <header className={styles.header}>
+      {hideThemeToggle && <ForceLightMode />}
       <Link href="/" className={styles.brand}>
         <img src="/favicon.ico" alt="Yoku Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
         <span>Yoku</span>
