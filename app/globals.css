@@ -502,7 +502,7 @@ body::after {
 
 .sticky-search {
   position: sticky;
-  top: 268px;
+  top: 140px;
   /* Queda justo por debajo del page-hero */
   z-index: 30;
   background: color-mix(in srgb, var(--bg) 98%, transparent) !important;
