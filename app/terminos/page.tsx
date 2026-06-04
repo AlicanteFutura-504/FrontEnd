@@ -8,7 +8,7 @@ export default function TerminosPage() {
   return (
     <div className={styles.pageWrapper}>
       <LandingHeader />
-      
+
       <main className={styles.mainContent}>
         <div className={styles.container}>
           <h1 className={styles.title}>Términos y Condiciones de Servicio</h1>
@@ -60,7 +60,7 @@ export default function TerminosPage() {
           <section className={styles.section}>
             <h2>6. Privacidad y Protección de Datos</h2>
             <p>La protección de sus datos y los de sus clientes es fundamental para nosotros. Yoku actúa como Procesador de Datos para la información de sus clientes y como Controlador de Datos para la información de su cuenta comercial.</p>
-            <p>Al utilizar nuestros Servicios, usted acepta nuestra <a href="#">Política de Privacidad</a>, que detalla cómo recopilamos, utilizamos y protegemos sus datos. Usted garantiza que ha obtenido el consentimiento necesario de sus clientes para procesar su información a través de nuestra Plataforma.</p>
+            <p>Al utilizar nuestros Servicios, usted acepta nuestra <a href="/privacidad">Política de Privacidad</a>, que detalla cómo recopilamos, utilizamos y protegemos sus datos. Usted garantiza que ha obtenido el consentimiento necesario de sus clientes para procesar su información a través de nuestra Plataforma.</p>
           </section>
 
           <section className={styles.section}>
@@ -87,9 +87,9 @@ export default function TerminosPage() {
           <section className={styles.section}>
             <h2>10. Contacto</h2>
             <p>Si tiene alguna pregunta, inquietud o sugerencia sobre estos Términos y Condiciones, por favor contáctenos en:</p>
-            <p><strong>Yoku Inc.</strong><br/>
-               Email: legal@yoku.com<br/>
-               Dirección: Av. de la Innovación 42, Distrito Tecnológico, 03008 Alicante, España</p>
+            <p><strong>Yoku Inc.</strong><br />
+              Email: legal@yoku.com<br />
+              Dirección: Av. de la Innovación 42, Distrito Tecnológico, 03008 Alicante, España</p>
           </section>
         </div>
       </main>
