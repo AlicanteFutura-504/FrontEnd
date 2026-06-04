@@ -48,7 +48,7 @@ export default function Header() {
         <span style={{ color: 'var(--text)' }}>Yoku</span>
       </Link>
 
-      <nav style={{ display: 'flex', gap: '12px', alignItems: 'center', flex: 1, justifyContent: 'center' }}>
+      <nav style={{ display: 'flex', gap: '40px', alignItems: 'center', flex: 1, justifyContent: 'center' }}>
         {showGlobalMenu && (
           <>
             <Link href="/dashboard" className={`admin-nav-link ${pathname === "/dashboard" ? "active" : ""}`}>Dashboard</Link>
