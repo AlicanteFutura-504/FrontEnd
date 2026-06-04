@@ -49,7 +49,7 @@ export default function BusinessPaymentsPage() {
       
       const selectedBooking = bookings.find(b => b.id === parseInt(addFormData.bookingId, 10));
       if (selectedBooking) {
-        (newPayment as any).customer = { name: `Cliente #${selectedBooking.customerId}` };
+        (newPayment as any).customer = { nombreCompleto: `Cliente #${selectedBooking.usuarioId}` };
       }
 
       setPayments([newPayment, ...payments]);
@@ -197,7 +197,7 @@ export default function BusinessPaymentsPage() {
                   </>
                 ) : (
                   <>
-                    <td style={{ fontWeight: 600 }}>{(p as any).customer ? `${(p as any).customer.name} ${(p as any).customer.surname || ''}` : 'Sin cliente'}</td>
+                    <td style={{ fontWeight: 600 }}>{(p as any).customer ? ((p as any).customer.nombreCompleto || (p as any).customer.email || `Cliente #${(p as any).customer.id}`) : 'Sin cliente'}</td>
                     <td>{p.amount} €</td>
                     <td style={{ textTransform: 'capitalize' }}>{p.type}</td>
                     <td>{p.date || 'N/A'}</td>

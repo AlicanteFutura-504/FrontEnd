@@ -50,7 +50,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!token && !isPublicPath) {
         router.push("/login");
       } else if (token && isAuthPath) {
-        router.push("/dashboard");
+        if (user?.role === 'client') {
+          router.push("/explore");
+        } else {
+          router.push("/dashboard");
+        }
       }
     }
   }, [token, pathname, isLoading, router]);
@@ -60,7 +64,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(newUser);
     localStorage.setItem("access_token", newToken);
     localStorage.setItem("user", JSON.stringify(newUser));
-    router.push("/dashboard");
+    if (newUser.role === 'client') {
+      router.push("/explore");
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   const logout = () => {
