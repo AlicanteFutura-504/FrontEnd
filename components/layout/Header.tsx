@@ -53,19 +53,7 @@ export default function Header() {
           <>
             <Link href="/dashboard" className={`admin-nav-link ${pathname === "/dashboard" ? "active" : ""}`}>Dashboard</Link>
             <Link href="/calendar" className={`admin-nav-link ${pathname === "/calendar" ? "active" : ""}`}>Calendario</Link>
-            <div style={{ position: 'relative' }}>
-              <Link href="/business" className={`admin-nav-link ${pathname === "/business" ? "active" : ""}`}>Empresas</Link>
-              {user?.username !== 'root' && businesses.length > 0 && (
-                 <button onClick={() => setIsBusinessOpen(!isBusinessOpen)} style={{ marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text)' }}>▼</button>
-              )}
-              {isBusinessOpen && (
-                 <div className="section-card" style={{ position: 'absolute', top: '100%', left: 0, padding: '8px', zIndex: 20 }}>
-                    {businesses.map((b) => (
-                      <Link key={b.id} href={`/business/${b.id}`} style={{ display: 'block', padding: '8px', color: 'var(--text)', textDecoration: 'none' }}>{b.nombre}</Link>
-                    ))}
-                 </div>
-              )}
-            </div>
+            <Link href="/business" className={`admin-nav-link ${pathname === "/business" ? "active" : ""}`}>Empresas</Link>
           </>
         )}
         {showBusinessMenu && effectiveBusinessId && (
