@@ -1,75 +1,97 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
-import ThemeToggle from "@/components/ui/ThemeToggle";
 import { usePathname } from "next/navigation";
-import { getBusiness } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
+import { getBusinesses } from "@/lib/api";
+import { Business } from "@/lib/types";
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import styles from '@/app/Landing.module.css';
 
-/**
- * Componente Header.
- * Renderiza la barra superior con el perfil del usuario y un menú desplegable.
- */
 export default function Header() {
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
-  const [businessName, setBusinessName] = useState<string | null>(null);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [isBusinessOpen, setIsBusinessOpen] = useState(false);
+
+  const isInsideBusiness = pathname?.startsWith("/business/") && pathname !== "/business";
+  const urlBusinessId = isInsideBusiness ? pathname.split("/")[2] : null;
+
+  const isBusinessRole = user?.role === 'business';
+  const showGlobalMenu = !isBusinessRole && (!isInsideBusiness || user?.username === 'root');
+  const effectiveBusinessId = isBusinessRole && businesses.length > 0 ? String(businesses[0].id) : urlBusinessId;
+  const showBusinessMenu = isBusinessRole || (isInsideBusiness && effectiveBusinessId && effectiveBusinessId !== "new");
 
   useEffect(() => {
-    if (pathname?.startsWith("/business/")) {
-      const parts = pathname.split("/");
-      const id = parts[2];
-      if (id && id !== "new") {
-        getBusiness(Number(id))
-          .then(b => setBusinessName(b?.nombre || null))
-          .catch(() => setBusinessName(null));
+    if (user) {
+      if (user.username !== 'root') {
+        getBusinesses()
+          .then(res => {
+            if (Array.isArray(res)) setBusinesses(res);
+            else setBusinesses(res?.data || []);
+          })
+          .catch(console.error);
       } else {
-        setBusinessName(null);
+        setBusinesses([]);
       }
-    } else {
-      setBusinessName(null);
     }
-  }, [pathname]);
+  }, [user]);
+
   const initial = (user?.nombreCompleto || user?.username || 'U').charAt(0).toUpperCase();
 
-  const UserIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-      <circle cx="12" cy="7" r="4"></circle>
-    </svg>
-  );
-
-  const LogoutIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "4px" }}>
-      <path d="M10 22H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h5"></path>
-      <polyline points="17 16 21 12 17 8"></polyline>
-      <line x1="21" y1="12" x2="9" y2="12"></line>
-    </svg>
-  );
-
   return (
-    <header className="admin-header">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <img src="/favicon.ico" alt="Yoku Logo" style={{ width: 40, height: 40, objectFit: 'contain' }} />
-        <div>
-          <h1 className="admin-header__title">{businessName ? businessName : "Yoku Admin"}</h1>
-          <p className="admin-header__subtitle">{businessName ? "Gestión de Empresa" : "Panel de gestión consolidado"}</p>
-        </div>
-      </div>
+    <header className={styles.header} style={{ position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid var(--border)', background: 'var(--surface)', backdropFilter: 'blur(24px)' }}>
+      <Link href="/dashboard" className={styles.brand}>
+        <img src="/favicon.ico" alt="Yoku Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+        <span style={{ color: 'var(--text)' }}>Yoku</span>
+      </Link>
 
-      <div className="admin-header__actions" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <nav style={{ display: 'flex', gap: '12px', alignItems: 'center', flex: 1, justifyContent: 'center' }}>
+        {showGlobalMenu && (
+          <>
+            <Link href="/dashboard" className={`admin-nav-link ${pathname === "/dashboard" ? "active" : ""}`}>Dashboard</Link>
+            <Link href="/calendar" className={`admin-nav-link ${pathname === "/calendar" ? "active" : ""}`}>Calendario</Link>
+            <div style={{ position: 'relative' }}>
+              <Link href="/business" className={`admin-nav-link ${pathname === "/business" ? "active" : ""}`}>Empresas</Link>
+              {user?.username !== 'root' && businesses.length > 0 && (
+                 <button onClick={() => setIsBusinessOpen(!isBusinessOpen)} style={{ marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text)' }}>▼</button>
+              )}
+              {isBusinessOpen && (
+                 <div className="section-card" style={{ position: 'absolute', top: '100%', left: 0, padding: '8px', zIndex: 20 }}>
+                    {businesses.map((b) => (
+                      <Link key={b.id} href={`/business/${b.id}`} style={{ display: 'block', padding: '8px', color: 'var(--text)', textDecoration: 'none' }}>{b.nombre}</Link>
+                    ))}
+                 </div>
+              )}
+            </div>
+          </>
+        )}
+        {showBusinessMenu && effectiveBusinessId && (
+          <>
+            <span style={{ fontWeight: 700, color: 'var(--accent-1)', marginRight: '16px', background: 'var(--surface-hover)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              {businesses.find(b => String(b.id) === effectiveBusinessId)?.nombre || 'Gestión'}
+            </span>
+            <Link href={`/business/${effectiveBusinessId}`} className={`admin-nav-link ${pathname === `/business/${effectiveBusinessId}` ? "active" : ""}`}>Dashboard</Link>
+            <Link href={`/business/${effectiveBusinessId}/calendar`} className={`admin-nav-link ${pathname.includes("/calendar") ? "active" : ""}`}>Calendario</Link>
+            <Link href={`/business/${effectiveBusinessId}/bookings`} className={`admin-nav-link ${pathname.includes("/bookings") ? "active" : ""}`}>Reservas</Link>
+            <Link href={`/business/${effectiveBusinessId}/customers`} className={`admin-nav-link ${pathname.includes("/customers") ? "active" : ""}`}>Clientes</Link>
+            <Link href={`/business/${effectiveBusinessId}/payments`} className={`admin-nav-link ${pathname.includes("/payments") ? "active" : ""}`}>Pagos</Link>
+          </>
+        )}
+      </nav>
+
+      <div className={styles.navActions} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <ThemeToggle />
-
+        
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="secondary-btn"
-          style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', borderRadius: '18px' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 12px', borderRadius: '24px', background: 'var(--surface-hover)', border: '1px solid var(--border)', cursor: 'pointer' }}
         >
           <div style={{ textAlign: 'right', lineHeight: '1.2' }} className="hidden sm:block">
-            <p style={{ margin: 0, fontSize: '13px', fontWeight: 700 }}>{user?.nombreCompleto || user?.username}</p>
-            <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 800 }}>{user?.role}</p>
+            <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>{user?.nombreCompleto || user?.username}</p>
+            <p style={{ margin: 0, fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>{user?.role}</p>
           </div>
           <div className="admin-avatar" style={{ width: '32px', height: '32px', fontSize: '14px', overflow: 'hidden' }}>
             {user?.profilePicture ? (
@@ -86,40 +108,14 @@ export default function Header() {
 
         {isMenuOpen && (
           <>
-            <div
-              style={{ position: 'fixed', inset: 0, zIndex: 10 }}
-              onClick={() => setIsMenuOpen(false)}
-            />
-            <div className="section-card" style={{
-              position: 'absolute',
-              right: 0,
-              top: 'calc(100% + 10px)',
-              width: '220px',
-              zIndex: 20,
-              padding: '8px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '4px'
-            }}>
-              <Link
-                href="/settings/profile"
-                className="admin-sidebar__link"
-                style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <UserIcon /> Ver perfil
+            <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setIsMenuOpen(false)} />
+            <div className="section-card" style={{ position: 'absolute', right: '32px', top: '70px', width: '200px', zIndex: 20, padding: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Link href="/settings/profile" style={{ padding: '8px', color: 'var(--text)', textDecoration: 'none', fontSize: '14px' }} onClick={() => setIsMenuOpen(false)}>
+                Ver perfil
               </Link>
-
-              <div style={{ height: '1px', background: 'var(--border)', margin: '4px 0' }} />
-              <button
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  logout();
-                }}
-                className="admin-sidebar__link"
-                style={{ fontSize: '14px', color: '#ef4444', width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}
-              >
-                <LogoutIcon /> Cerrar sesión
+              <div style={{ height: '1px', background: 'var(--border)' }} />
+              <button onClick={() => { setIsMenuOpen(false); logout(); }} style={{ padding: '8px', color: '#ef4444', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
+                Cerrar sesión
               </button>
             </div>
           </>

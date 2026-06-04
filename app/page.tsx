@@ -6,11 +6,13 @@ import CookieBanner from '@/components/ui/CookieBanner';
 import LandingFooter from '@/components/ui/LandingFooter';
 import LandingHeader from '@/components/ui/LandingHeader';
 import TestimonialSlider from '@/components/ui/TestimonialSlider';
+import ForceLightMode from '@/components/ui/ForceLightMode';
 
 export default function LandingPage() {
   return (
     <div className={styles.landingWrapper}>
-      <LandingHeader />
+      <ForceLightMode />
+      <LandingHeader hideThemeToggle={true} />
 
       {/* Hero Section */}
       <section className={styles.hero}>

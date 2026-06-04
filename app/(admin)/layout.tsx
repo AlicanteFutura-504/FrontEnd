@@ -1,22 +1,21 @@
 /**
  * @fileoverview Layout del grupo de rutas del panel de administración `(admin)`.
- * Proporciona la estructura visual compartida (sidebar + header) para todas
- * las páginas del área protegida de la aplicación.
+ * Utiliza el estilo de página web pública (Navegación superior y pie de página).
  * @module app/(admin)/layout
  */
 
-import { AuthProvider } from "@/components/AuthProvider";
-import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import LandingFooter from "@/components/ui/LandingFooter";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import Chatbox from "@/components/Chatbox";
+import styles from '@/app/Landing.module.css';
 
 /**
  * Layout del panel de administración.
  * Renderiza el shell de la interfaz de administración compuesto por:
- * - `<Sidebar>` — navegación lateral con los enlaces del menú.
- * - `<Header>`  — barra superior con el título de la sección.
- * - `<main>`    — área de contenido donde se inyectan las páginas hijas.
+ * - `<Header>`  — navegación superior con enlaces de menú y perfil (igual que la landing).
+ * - `<main>`    — área de contenido centrada.
+ * - `<LandingFooter>` - pie de página para unificar el diseño.
  *
  * @param {object}          props          - Props del componente.
  * @param {React.ReactNode} props.children - Página hija a renderizar en el área de contenido.
@@ -28,15 +27,14 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="admin-shell">
-      <Sidebar />
+    <div className={styles.landingWrapper}>
+      <Header />
 
-      <div className="admin-main">
-        <Header />
-        <main className="admin-content">
-          {children}
-        </main>
-      </div>
+      <main className="admin-content" style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 16px', minHeight: 'calc(100vh - 200px)' }}>
+        {children}
+      </main>
+
+      <LandingFooter />
       <Chatbox />
       <ScrollToTop />
     </div>

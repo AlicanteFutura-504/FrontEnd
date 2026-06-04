@@ -6,10 +6,10 @@ import Link from 'next/link';
 export default function LandingFooter() {
   return (
     <footer style={{
-      backgroundColor: '#f8fafc',
-      borderTop: '1px solid #e5e7eb',
+      backgroundColor: 'var(--surface-hover, #f8fafc)',
+      borderTop: '1px solid var(--border, #e5e7eb)',
       padding: '4rem 2rem 2rem',
-      color: '#4b5563',
+      color: 'var(--text-muted, #4b5563)',
       fontFamily: "var(--font-outfit), 'Outfit', sans-serif"
     }}>
       <div style={{
@@ -36,38 +36,38 @@ export default function LandingFooter() {
 
         {/* Links Column 1 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <h4 style={{ color: '#111827', fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem' }}>Producto</h4>
-          <Link href="/precios" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Precios</Link>
+          <h4 style={{ color: 'var(--text, #111827)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem' }}>Producto</h4>
+          <Link href="/precios" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Precios</Link>
         </div>
 
         {/* Links Column 2: Sectores */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <h4 style={{ color: '#111827', fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem' }}>Sectores</h4>
-          <Link href="#" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Barbería</Link>
-          <Link href="#" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Fisioterapia</Link>
-          <Link href="#" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Peluquería</Link>
-          <Link href="#" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Salón de spa</Link>
-          <Link href="#" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Estudio de pilates</Link>
-          <Link href="#" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Estudio de yoga</Link>
-          <Link href="#" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Taller de reparación móvil</Link>
+          <h4 style={{ color: 'var(--text, #111827)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem' }}>Sectores</h4>
+          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Barbería</Link>
+          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Fisioterapia</Link>
+          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Peluquería</Link>
+          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Salón de spa</Link>
+          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Estudio de pilates</Link>
+          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Estudio de yoga</Link>
+          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Taller de reparación móvil</Link>
         </div>
 
         {/* Links Column 3 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <h4 style={{ color: '#111827', fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem' }}>Compañía</h4>
-          <Link href="/quienes-somos" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Quiénes somos</Link>
-          <Link href="#" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Centro de ayuda</Link>
+          <h4 style={{ color: 'var(--text, #111827)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem' }}>Compañía</h4>
+          <Link href="/quienes-somos" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Quiénes somos</Link>
+          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Centro de ayuda</Link>
         </div>
 
         {/* Links Column 3 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <h4 style={{ color: '#111827', fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem' }}>Legal</h4>
-          <Link href="/terminos" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Términos y condiciones</Link>
-          <Link href="/privacidad" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Política de privacidad</Link>
+          <h4 style={{ color: 'var(--text, #111827)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem' }}>Legal</h4>
+          <Link href="/terminos" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Términos y condiciones</Link>
+          <Link href="/privacidad" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Política de privacidad</Link>
           <button 
             onClick={() => window.dispatchEvent(new Event('open-cookie-settings'))}
             style={{ 
-              color: '#4b5563', 
+              color: 'var(--text-muted, #4b5563)', 
               textDecoration: 'none', 
               fontSize: '0.9rem', 
               transition: 'color 0.2s',
