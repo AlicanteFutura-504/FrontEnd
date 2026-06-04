@@ -19,6 +19,9 @@ export interface Booking {
   customerId: number;
   businessId: number;
   serviceName: string;
+  payment?: {
+    amount?: number;
+  };
 }
 
 export interface CreateBookingDto {
@@ -57,12 +60,13 @@ export interface Payment {
 export interface CreatePaymentDtoReq {
   status: PaymentStatus;
   type: PaymentTypeEnum;
-  clientName: string;
-  businessName: string;
+  clientName?: string;
+  businessName?: string;
   amount: number;
   date?: string;
   customerId?: number;
   businessId?: number;
+  bookingId?: number;
 }
 
 export interface UpdatePaymentDtoReq {

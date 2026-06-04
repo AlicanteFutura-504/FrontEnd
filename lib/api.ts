@@ -209,6 +209,28 @@ export async function getBusinessDashboardSummary(businessId: string | number) {
   return handleResponse(res);
 }
 
+export async function getBookings(page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: Booking[], total: number }> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
+  const res = await fetch(`${API_URL}/bookings?${params.toString()}`, { headers: getHeaders() });
+  return handleResponse(res) || { data: [], total: 0 };
+}
+
+export async function getAllBookings(search: string = ''): Promise<Booking[]> {
+  const PAGE_LIMIT = 1000;
+  let page = 1;
+  let allBookings: Booking[] = [];
+  let total = 0;
+
+  do {
+    const response = await getBookings(page, PAGE_LIMIT, search);
+    allBookings = [...allBookings, ...response.data];
+    total = response.total;
+    page += 1;
+  } while (allBookings.length < total && page <= 20);
+
+  return allBookings;
+}
+
 // --- APPOINTMENTS ---
 
 export async function getAppointments(page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: Booking[], total: number }> {
@@ -261,6 +283,22 @@ export async function getBookingsByBusiness(businessId: string, page: number = 1
   const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
   const res = await fetch(`${API_URL}/bookings/business/${businessId}?${params.toString()}`, { headers: getHeaders() });
   return handleResponse(res) || { data: [], total: 0 };
+}
+
+export async function getAllBookingsByBusiness(businessId: string, search: string = ''): Promise<Booking[]> {
+  const PAGE_LIMIT = 1000;
+  let page = 1;
+  let allBookings: Booking[] = [];
+  let total = 0;
+
+  do {
+    const response = await getBookingsByBusiness(businessId, page, PAGE_LIMIT, search);
+    allBookings = [...allBookings, ...response.data];
+    total = response.total;
+    page += 1;
+  } while (allBookings.length < total && page <= 20);
+
+  return allBookings;
 }
 
 export async function getBookingsByCustomer(customerId: number): Promise<Booking[]> {

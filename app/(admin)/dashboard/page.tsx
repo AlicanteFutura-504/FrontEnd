@@ -7,11 +7,12 @@ import Loading from "@/components/ui/Loading";
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getDashboardSummary } from "@/lib/api";
+import { getDashboardSummary, getAllBookings } from "@/lib/api";
 
 export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   const { user } = useAuth();
   const router = useRouter();
@@ -38,10 +39,14 @@ export default function DashboardPage() {
     fetchAllData();
   }, [user]);
 
-  function handleExport() {
+  async function handleExport() {
     if (!data) return;
-    
-    const tableHtml = `
+    setExporting(true);
+
+    try {
+      const bookings = await getAllBookings();
+
+      const tableHtml = `
       <table border="1">
         <thead>
           <tr><th colspan="2" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Resumen de KPIs</th></tr>
@@ -58,28 +63,34 @@ export default function DashboardPage() {
       <br/>
       <table border="1">
         <thead>
-          <tr><th colspan="4" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Últimas Reservas</th></tr>
+          <tr><th colspan="6" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Reservas Exportadas</th></tr>
           <tr>
+            <th style="background-color: #e5e7eb;">ID</th>
             <th style="background-color: #e5e7eb;">Fecha</th>
+            <th style="background-color: #e5e7eb;">Hora</th>
             <th style="background-color: #e5e7eb;">Servicio</th>
-            <th style="background-color: #e5e7eb;">Negocio</th>
+            <th style="background-color: #e5e7eb;">Negocio ID</th>
             <th style="background-color: #e5e7eb;">Estado</th>
           </tr>
         </thead>
         <tbody>
-          ${data.latestBookings.map((b: any) => `
+          ${bookings.length > 0 ? bookings.map((b: any) => `
             <tr>
+              <td>${b.id}</td>
               <td>${b.date}</td>
+              <td>${b.time ?? ''}</td>
               <td>${b.serviceName}</td>
-              <td>${b.businessName}</td>
+              <td>${b.businessId ?? ''}</td>
               <td>${b.status}</td>
             </tr>
-          `).join('')}
+          `).join('') : `
+            <tr><td colspan="6" style="text-align:center;">No hay reservas para exportar</td></tr>
+          `}
         </tbody>
       </table>
     `;
 
-    const htmlContent = `
+      const htmlContent = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
       <head>
         <meta charset="utf-8" />
@@ -104,15 +115,22 @@ export default function DashboardPage() {
       </html>
     `;
 
-    const blob = new Blob([htmlContent], { type: "application/vnd.ms-excel" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "reporte_global.xls";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      const blob = new Blob([htmlContent], { type: "application/vnd.ms-excel" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = 'none';
+      a.href = url;
+      a.download = "reporte_global.xls";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exportando reporte global:', error);
+      alert('No se pudo exportar el reporte global. Revisa la consola para más detalles.');
+    } finally {
+      setExporting(false);
+    }
   }
 
   if (loading || !data) return <Loading />;
@@ -124,8 +142,8 @@ export default function DashboardPage() {
           <h2 className="text-3xl font-bold">Visión Global del Negocio</h2>
           <p className="text-gray-500">Resumen consolidado de tus {data.totalBusinesses} establecimientos.</p>
         </div>
-        <button className="primary-btn" type="button" onClick={handleExport}>
-          Exportar Reporte Global
+        <button className="primary-btn" type="button" onClick={handleExport} disabled={exporting}>
+          {exporting ? 'Exportando...' : 'Exportar Reporte Global'}
         </button>
       </section>
 
