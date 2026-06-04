@@ -30,7 +30,7 @@ export default function AdminLayout({
     <div className={styles.landingWrapper}>
       <Header />
 
-      <main className="admin-content" style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 16px', minHeight: 'calc(100vh - 200px)' }}>
+      <main className="admin-content" style={{ maxWidth: '1440px', margin: '0 auto', padding: '32px 24px', minHeight: 'calc(100vh - 200px)', width: '100%' }}>
         {children}
       </main>
 
