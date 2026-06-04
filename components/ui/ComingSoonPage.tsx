@@ -5,7 +5,7 @@ import LandingHeader from '@/components/ui/LandingHeader';
 import LandingFooter from '@/components/ui/LandingFooter';
 import CookieBanner from '@/components/ui/CookieBanner';
 
-export default function ComingSoonPage({ title, description }: { title: string, description?: string }) {
+export default function ComingSoonPage({ title, description, icon }: { title: string, description?: string, icon?: string }) {
   return (
     <div className={styles.landingWrapper}>
       <LandingHeader hideThemeToggle={true} />
@@ -21,7 +21,10 @@ export default function ComingSoonPage({ title, description }: { title: string, 
         justifyContent: 'center'
       }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>🚀</div>
+          <div style={{ fontSize: '4rem', marginBottom: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <span>{icon}</span>
+            <span>🚀</span>
+          </div>
           <h1 style={{ fontSize: '3rem', fontWeight: 800, color: '#1e293b', marginBottom: '1rem' }}>
             {title}
           </h1>

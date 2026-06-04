@@ -43,13 +43,13 @@ export default function LandingFooter() {
         {/* Links Column 2: Sectores */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <h4 style={{ color: 'var(--text, #111827)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem' }}>Sectores</h4>
-          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Barbería</Link>
-          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Fisioterapia</Link>
-          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Peluquería</Link>
-          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Salón de spa</Link>
-          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Estudio de pilates</Link>
-          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Estudio de yoga</Link>
-          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Taller de reparación móvil</Link>
+          <Link href="/barberia" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Barbería</Link>
+          <Link href="/fisioterapia" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Fisioterapia</Link>
+          <Link href="/peluqueria" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Peluquería</Link>
+          <Link href="/salon-de-spa" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Salón de spa</Link>
+          <Link href="/estudio-de-pilates" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Estudio de pilates</Link>
+          <Link href="/estudio-de-yoga" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Estudio de yoga</Link>
+          <Link href="/taller-de-reparacion-movil" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Taller de reparación móvil</Link>
         </div>
 
         {/* Links Column 3 */}
