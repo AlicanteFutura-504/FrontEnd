@@ -56,7 +56,7 @@ export default function LandingFooter() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <h4 style={{ color: 'var(--text, #111827)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '1rem' }}>Compañía</h4>
           <Link href="/quienes-somos" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Quiénes somos</Link>
-          <Link href="#" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Centro de ayuda</Link>
+          <Link href="/centro-ayuda" style={{ color: 'var(--text-muted, #4b5563)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }}>Centro de ayuda</Link>
         </div>
 
         {/* Links Column 3 */}
