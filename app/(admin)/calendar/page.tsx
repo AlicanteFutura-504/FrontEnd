@@ -12,8 +12,8 @@ import { useParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import Badge from "@/components/ui/Badge";
 import Loading from "@/components/ui/Loading";
-import { getAppointmentsByRange, getBusinesses, getCustomers, getCustomersByBusiness } from "@/lib/api";
-import type { Booking, Business, Customer } from "@/lib/types";
+import { getAppointmentsByRange, getBusinesses, getClients, getClientsByBusiness } from "@/lib/api";
+import type { Booking, Business, User } from "@/lib/types";
 import Link from "next/link";
 
 // ---------------------------------------------------------------------------
@@ -92,7 +92,7 @@ export default function CalendarPage() {
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customers, setCustomers] = useState<User[]>([]);
   const [loadingAppointments, setLoadingAppointments] = useState(true);
   const [loadingMetadata, setLoadingMetadata] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -113,7 +113,7 @@ export default function CalendarPage() {
     try {
       const [bizs, custs] = await Promise.all([
         getBusinesses(1, 1000),
-        businessId ? getCustomersByBusiness(businessId, 1, 1000) : getCustomers(1, 1000),
+        businessId ? getClientsByBusiness(businessId, 1, 1000) : getClients(1, 1000),
       ]);
       setBusinesses(Array.isArray(bizs) ? bizs : (bizs?.data || []));
       setCustomers(custs?.data || []);
@@ -170,7 +170,7 @@ export default function CalendarPage() {
   }, [businesses]);
 
   const customerById = useMemo(() => {
-    const map = new Map<number, Customer>();
+    const map = new Map<number, User>();
     for (const customer of customers) {
       map.set(customer.id, customer);
     }
@@ -188,7 +188,7 @@ export default function CalendarPage() {
   const customerName = (id: number) => {
     const c = customerById.get(id);
     if (!c) return null;
-    return `${c.name}${c.surname ? " " + c.surname : ""}`;
+    return c.nombreCompleto || c.email;
   };
 
   function prevMonth() {

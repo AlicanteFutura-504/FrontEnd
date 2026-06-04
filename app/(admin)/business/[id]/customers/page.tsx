@@ -3,14 +3,14 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Loading from "@/components/ui/Loading";
-import { getCustomers, getCustomersByBusiness, getBookingsByCustomer, getBookingsByBusiness, getPayments, updateCustomer, createCustomer } from "@/lib/api";
-import { Customer, Booking } from "@/lib/types";
+import { getClientsByBusiness, getBookingsByCustomer, updateClient, createClient } from "@/lib/api";
+import { User, Booking } from "@/lib/types";
 import Link from "next/link";
 
 export default function BusinessCustomersPage() {
   const params = useParams();
   const businessId = params.id as string;
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customers, setCustomers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -19,20 +19,20 @@ export default function BusinessCustomersPage() {
 
   // Modal states para creacion
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [addFormData, setAddFormData] = useState({ name: "", surname: "", email: "", phone: "" });
+  const [addFormData, setAddFormData] = useState({ nombreCompleto: "", email: "", phone: "" });
 
   // Modal states
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<User | null>(null);
   const [customerBookings, setCustomerBookings] = useState<Booking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [editFormData, setEditFormData] = useState({ name: "", surname: "" });
+  const [editingCustomer, setEditingCustomer] = useState<User | null>(null);
+  const [editFormData, setEditFormData] = useState({ nombreCompleto: "" });
 
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
         setLoading(true);
-        const res = await getCustomersByBusiness(businessId, page, LIMIT, searchTerm);
+        const res = await getClientsByBusiness(businessId, page, LIMIT, searchTerm);
         setCustomers(res.data || []);
         setTotal(res.total || 0);
       } catch (err) {
@@ -50,7 +50,7 @@ export default function BusinessCustomersPage() {
 
   const filteredCustomers = customers; // Eliminado filtro local, ahora es Server-Side
 
-  const handleViewHistory = async (customer: Customer) => {
+  const handleViewHistory = async (customer: User) => {
     setSelectedCustomer(customer);
     setLoadingBookings(true);
     try {
@@ -111,11 +111,11 @@ export default function BusinessCustomersPage() {
             <div key={c.id} className="customer-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div className="admin-avatar" style={{ width: '48px', height: '48px' }}>
-                  {c.name.charAt(0)}
+                  {c.nombreCompleto?.charAt(0) || c.email?.charAt(0)}
                 </div>
                 <div className="customer-tag">ID #{c.id}</div>
               </div>
-              <h3 className="customer-name" style={{ marginTop: '16px' }}>{c.name} {c.surname}</h3>
+              <h3 className="customer-name" style={{ marginTop: '16px' }}>{c.nombreCompleto || 'Sin nombre'}</h3>
               <p className="customer-meta">{c.email}</p>
               <p className="customer-meta" style={{ fontSize: '13px' }}>📞 {c.phone || 'N/A'}</p>
               
@@ -125,7 +125,7 @@ export default function BusinessCustomersPage() {
                   style={{ width: '100%', textAlign: 'center' }}
                   onClick={() => {
                     setEditingCustomer(c);
-                    setEditFormData({ name: c.name || "", surname: c.surname || "" });
+                    setEditFormData({ nombreCompleto: c.nombreCompleto || "" });
                   }}
                 >
                   Editar Cliente
@@ -199,7 +199,7 @@ export default function BusinessCustomersPage() {
             </div>
             
             <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>
-              Cliente: <strong>{selectedCustomer.name} {selectedCustomer.surname}</strong>
+              Cliente: <strong>{selectedCustomer.nombreCompleto || selectedCustomer.email}</strong>
             </p>
 
             {loadingBookings ? (
@@ -254,23 +254,18 @@ export default function BusinessCustomersPage() {
             <form onSubmit={async (e) => {
               e.preventDefault();
               try {
-                const updated = await updateCustomer(editingCustomer.id, {
-                  name: editFormData.name,
-                  surname: editFormData.surname
+                const updated = await updateClient(editingCustomer.id, {
+                  nombreCompleto: editFormData.nombreCompleto
                 });
-                setCustomers(customers.map(c => c.id === editingCustomer.id ? { ...c, name: updated.name, surname: updated.surname } : c));
+                setCustomers(customers.map(c => c.id === editingCustomer.id ? { ...c, nombreCompleto: updated.nombreCompleto } : c));
                 setEditingCustomer(null);
               } catch (error) {
                 alert("Error al actualizar cliente");
               }
             }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Nombre</label>
-                <input required className="input" value={editFormData.name} onChange={e => setEditFormData({...editFormData, name: e.target.value})} placeholder="Nombre" />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Apellidos</label>
-                <input className="input" value={editFormData.surname} onChange={e => setEditFormData({...editFormData, surname: e.target.value})} placeholder="Apellidos" />
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Nombre Completo</label>
+                <input required className="input" value={editFormData.nombreCompleto} onChange={e => setEditFormData({...editFormData, nombreCompleto: e.target.value})} placeholder="Nombre completo" />
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
                 <button type="button" onClick={() => setEditingCustomer(null)} className="secondary-btn">Cancelar</button>
@@ -300,26 +295,21 @@ export default function BusinessCustomersPage() {
             <form onSubmit={async (e) => {
               e.preventDefault();
               try {
-                const newCustomer = await createCustomer({
+                const newCustomer = await createClient({
                   ...addFormData,
+                  // @ts-ignore
                   businessId: parseInt(businessId, 10)
                 });
                 setCustomers([...customers, newCustomer]);
                 setIsAddModalOpen(false);
-                setAddFormData({ name: "", surname: "", email: "", phone: "" });
+                setAddFormData({ nombreCompleto: "", email: "", phone: "" });
               } catch (error) {
                 alert("Error al añadir cliente. Revisa si el email ya existe.");
               }
             }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Nombre</label>
-                  <input required className="input" value={addFormData.name} onChange={e => setAddFormData({...addFormData, name: e.target.value})} placeholder="Nombre" />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Apellidos</label>
-                  <input className="input" value={addFormData.surname} onChange={e => setAddFormData({...addFormData, surname: e.target.value})} placeholder="Apellidos" />
-                </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Nombre Completo</label>
+                <input required className="input" value={addFormData.nombreCompleto} onChange={e => setAddFormData({...addFormData, nombreCompleto: e.target.value})} placeholder="Nombre Completo" />
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>Email</label>

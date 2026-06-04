@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Loading from "@/components/ui/Loading";
-import { getBookingsByBusiness, createBooking, createCustomer, getCustomerByEmail, updateBooking, deleteBooking } from "@/lib/api";
-import type { Customer } from "@/lib/api";
+import { getBookingsByBusiness, createBooking, createClient, getClientByEmail, updateBooking, deleteBooking } from "@/lib/api";
+import type { User } from "@/lib/types";
 import { Booking, CreateBookingDto, BookingStatus } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
@@ -26,11 +26,10 @@ export default function BusinessBookingsPage() {
     time: "",
     serviceName: "",
     customerEmail: "",
-    customerName: "",
-    customerSurname: "",
+    customerNombreCompleto: "",
     customerPhone: "",
   });
-  const [foundCustomer, setFoundCustomer] = useState<Customer | null | undefined>(undefined);
+  const [foundCustomer, setFoundCustomer] = useState<User | null | undefined>(undefined);
   const [searchingCustomer, setSearchingCustomer] = useState(false);
   
   // Edit and Delete state
@@ -75,11 +74,11 @@ export default function BusinessBookingsPage() {
       if (foundCustomer) {
         usuarioId = foundCustomer.id;
       } else {
-        const newCust = await createCustomer({
-          name: formData.customerName,
-          surname: formData.customerSurname || undefined,
+        const newCust = await createClient({
+          nombreCompleto: formData.customerNombreCompleto || undefined,
           email: formData.customerEmail,
           phone: formData.customerPhone || undefined,
+          // @ts-ignore
           businessId: Number(businessId),
         });
         usuarioId = newCust.id;
@@ -95,7 +94,7 @@ export default function BusinessBookingsPage() {
       });
       await fetchBookings(page, search);
       setIsModalOpen(false);
-      setFormData({ date: "", time: "", serviceName: "", customerEmail: "", customerName: "", customerSurname: "", customerPhone: "" });
+      setFormData({ date: "", time: "", serviceName: "", customerEmail: "", customerNombreCompleto: "", customerPhone: "" });
       setFoundCustomer(undefined);
     } catch (err) {
       console.error("Error creating booking", err);
@@ -172,9 +171,9 @@ export default function BusinessBookingsPage() {
                       if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) return;
                       setSearchingCustomer(true);
                       try {
-                        const c = await getCustomerByEmail(email);
+                        const c = await getClientByEmail(email);
                         setFoundCustomer(c);
-                        if (c) setFormData(f => ({ ...f, customerName: c.name, customerSurname: c.surname ?? '', customerPhone: c.phone ?? '' }));
+                        if (c) setFormData(f => ({ ...f, customerNombreCompleto: c.nombreCompleto ?? '', customerPhone: c.phone ?? '' }));
                       } catch { setFoundCustomer(null); }
                       finally { setSearchingCustomer(false); }
                     }, 600);
@@ -186,7 +185,7 @@ export default function BusinessBookingsPage() {
 
               {foundCustomer && (
                 <div style={{ fontSize: 12, color: '#065f46', background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: 6, padding: '6px 10px' }}>
-                  ✓ Cliente encontrado: <strong>{foundCustomer.name} {foundCustomer.surname ?? ''}</strong> (ID #{foundCustomer.id})
+                  ✓ Cliente encontrado: <strong>{foundCustomer.nombreCompleto || foundCustomer.email}</strong> (ID #{foundCustomer.id})
                 </div>
               )}
               {foundCustomer === null && formData.customerEmail && !searchingCustomer && (
@@ -199,19 +198,11 @@ export default function BusinessBookingsPage() {
                 <input
                   required
                   className="input"
-                  placeholder="Nombre *"
-                  value={formData.customerName}
+                  placeholder="Nombre Completo *"
+                  value={formData.customerNombreCompleto}
                   readOnly={!!foundCustomer}
                   style={foundCustomer ? { background: '#f0fdf4' } : {}}
-                  onChange={e => setFormData(f => ({ ...f, customerName: e.target.value }))}
-                />
-                <input
-                  className="input"
-                  placeholder="Apellido"
-                  value={formData.customerSurname}
-                  readOnly={!!foundCustomer}
-                  style={foundCustomer ? { background: '#f0fdf4' } : {}}
-                  onChange={e => setFormData(f => ({ ...f, customerSurname: e.target.value }))}
+                  onChange={e => setFormData(f => ({ ...f, customerNombreCompleto: e.target.value }))}
                 />
                 <input
                   className="input"
