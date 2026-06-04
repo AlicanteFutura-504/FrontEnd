@@ -38,7 +38,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Redirección si no está autenticado (excepto en login/register/public)
     if (!isLoading) {
-      const isPublicPath = pathname === "/login" || pathname === "/register" || pathname === "/" || pathname === "/precios" || pathname === "/quienes-somos" || pathname === "/terminos" || pathname === "/privacidad";
+      const publicPaths = [
+        "/", "/login", "/register", "/precios", "/quienes-somos", 
+        "/terminos", "/privacidad", "/centro-ayuda",
+        "/barberia", "/fisioterapia", "/peluqueria", "/salon-de-spa", 
+        "/estudio-de-pilates", "/estudio-de-yoga", "/taller-de-reparacion-movil"
+      ];
+      const isPublicPath = publicPaths.includes(pathname);
       const isAuthPath = pathname === "/login" || pathname === "/register";
 
       if (!token && !isPublicPath) {
