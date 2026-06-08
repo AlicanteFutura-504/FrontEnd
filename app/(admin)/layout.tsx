@@ -7,7 +7,6 @@
 import Header from "@/components/layout/Header";
 import LandingFooter from "@/components/ui/LandingFooter";
 import ScrollToTop from "@/components/ui/ScrollToTop";
-import Chatbox from "@/components/Chatbox";
 import styles from '@/app/Landing.module.css';
 
 /**
@@ -35,7 +34,6 @@ export default function AdminLayout({
       </main>
 
       <LandingFooter />
-      <Chatbox />
       <ScrollToTop />
     </div>
   );
