@@ -19,6 +19,21 @@ interface BusinessSummary {
   latestBookings: Booking[];
 }
 
+function formatDate(dateString: string) {
+  if (!dateString) return "N/A";
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString;
+    return new Intl.DateTimeFormat("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(d);
+  } catch {
+    return dateString;
+  }
+}
+
 export default function BusinessDashboardPage() {
   const params = useParams();
   const businessId = params.id as string;
@@ -111,7 +126,7 @@ export default function BusinessDashboardPage() {
           ${bookings.length > 0 ? bookings.map((b: any) => `
             <tr>
               <td>${b.id}</td>
-              <td>${b.date}</td>
+              <td>${formatDate(b.date)}</td>
               <td>${b.time ?? ''}</td>
               <td>${b.serviceName}</td>
               <td>${b.payment?.amount ?? ''}</td>
@@ -217,7 +232,7 @@ export default function BusinessDashboardPage() {
             <tbody>
               {(summary?.latestBookings ?? []).map(b => (
                 <tr key={b.id}>
-                  <td style={{ fontWeight: 600 }}>{b.date}</td>
+                  <td style={{ fontWeight: 600 }}>{formatDate(b.date)}</td>
                   <td>{b.serviceName}</td>
                   <td>
                     <Badge status={b.status as any} />
@@ -241,7 +256,7 @@ export default function BusinessDashboardPage() {
             {summary?.latestBookings?.[0] ? (
               <>
                 <p className="info-box__title">{summary.latestBookings[0].serviceName}</p>
-                <p className="info-box__text">{summary.latestBookings[0].date} a las {summary.latestBookings[0].time}</p>
+                <p className="info-box__text">{formatDate(summary.latestBookings[0].date)} a las {summary.latestBookings[0].time}</p>
               </>
             ) : (
               <p className="info-box__text">Sin citas próximas</p>

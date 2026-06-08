@@ -9,6 +9,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getDashboardSummary, getAllBookings, getAllBusinesses, getAllClients } from "@/lib/api";
 
+function formatDate(dateString: string) {
+  if (!dateString) return "N/A";
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString;
+    return new Intl.DateTimeFormat("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(d);
+  } catch {
+    return dateString;
+  }
+}
+
 export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -87,7 +102,7 @@ export default function DashboardPage() {
           ${bookings.length > 0 ? bookings.map((b: any) => `
             <tr>
               <td>${b.id}</td>
-              <td>${b.date}</td>
+              <td>${formatDate(b.date)}</td>
               <td>${b.time ?? ''}</td>
               <td>${b.serviceName}</td>
               <td>${b.payment?.amount ?? ''}</td>
@@ -184,7 +199,7 @@ export default function DashboardPage() {
             <tbody>
               {data.latestBookings.map((booking: any) => (
                 <tr key={booking.id}>
-                  <td style={{ fontWeight: 600 }}>{booking.date}</td>
+                  <td style={{ fontWeight: 600 }}>{formatDate(booking.date)}</td>
                   <td>{booking.serviceName}</td>
                   <td className="text-blue-600 font-medium">
                     {booking.businessName}

@@ -10,6 +10,21 @@ import Badge from "@/components/ui/Badge";
 import Link from "next/link";
 import { useSortableData, SortableHeader } from "@/lib/useSortableData";
 
+function formatDate(dateString: string) {
+  if (!dateString) return "N/A";
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString;
+    return new Intl.DateTimeFormat("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(d);
+  } catch {
+    return dateString;
+  }
+}
+
 export default function BusinessPaymentsPage() {
   const params = useParams();
   const businessId = params.id as string;
@@ -203,7 +218,7 @@ export default function BusinessPaymentsPage() {
                     <td style={{ fontWeight: 600 }}>{(p as any).customer ? ((p as any).customer.nombreCompleto || (p as any).customer.email || `Cliente #${(p as any).customer.id}`) : 'Sin cliente'}</td>
                     <td>{p.amount} €</td>
                     <td style={{ textTransform: 'capitalize' }}>{p.type}</td>
-                    <td>{p.date || 'N/A'}</td>
+                    <td>{formatDate(p.date)}</td>
                     <td style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                       <Badge status={p.status === 'pagado' ? 'paid' : 'pending'} label={p.status} />
                       <button onClick={() => handleEditClick(p)} className="panel-subtle-link" style={{ fontSize: '13px' }}>Modificar</button>

@@ -11,6 +11,21 @@ import Link from "next/link";
 import { useSortableData, SortableHeader } from "@/lib/useSortableData";
 
 // --- Calendar Helpers ---
+function formatDate(dateString: string) {
+  if (!dateString) return "N/A";
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString;
+    return new Intl.DateTimeFormat("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(d);
+  } catch {
+    return dateString;
+  }
+}
+
 function toYMD(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -448,7 +463,7 @@ export default function BusinessBookingsPage() {
           <tbody>
             {sortedBookings.map(b => (
               <tr key={b.id}>
-                <td style={{ fontWeight: 600 }}>{b.date}</td>
+                <td style={{ fontWeight: 600 }}>{formatDate(b.date)}</td>
                 <td>{b.time}</td>
                 <td>{b.serviceName}</td>
                 <td>
