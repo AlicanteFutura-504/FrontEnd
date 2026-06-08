@@ -9,6 +9,7 @@
 
 import { useMemo, useState } from "react";
 import Badge from "@/components/ui/Badge";
+import { useSortableData, SortableHeader } from "@/lib/useSortableData";
 import type {
   Booking,
   BookingStatus,
@@ -123,6 +124,8 @@ export default function BookingsClient({
     return bookings.filter((booking) => booking.status === statusFilter);
   }, [bookings, statusFilter]);
 
+  const { items: sortedFilteredBookings, requestSort, sortConfig } = useSortableData(filteredBookings);
+
   /** Número total de reservas en el estado local. */
   const totalCount = bookings.length;
   /** Número de reservas con estado `"pending"`. */
@@ -131,6 +134,8 @@ export default function BookingsClient({
   const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
   /** Número de reservas con estado `"paid"`. */
   const paidCount = bookings.filter((b) => b.status === "paid").length;
+  /** Número de reservas con estado `"cancelled"`. */
+  const cancelledCount = bookings.filter((b) => b.status === "cancelled").length;
 
   // ---------------------------------------------------------------------------
   // Helpers de formulario
@@ -413,6 +418,12 @@ export default function BookingsClient({
           <h3 className="kpi-card__value">{paidCount}</h3>
           <p className="kpi-card__meta">Reservas cerradas</p>
         </div>
+
+        <div className="kpi-card">
+          <p className="kpi-card__label">Canceladas</p>
+          <h3 className="kpi-card__value">{cancelledCount}</h3>
+          <p className="kpi-card__meta" style={{ color: 'var(--danger)' }}>Reservas anuladas</p>
+        </div>
       </section>
 
       {/* Panel de creación — visible solo cuando isCreateOpen === true */}
@@ -451,6 +462,7 @@ export default function BookingsClient({
                 <option value="pending">Pendiente</option>
                 <option value="confirmed">Confirmada</option>
                 <option value="paid">Pagada</option>
+                <option value="cancelled">Cancelada</option>
               </select>
               <input
                 className="input"
@@ -531,6 +543,7 @@ export default function BookingsClient({
                 <option value="pending">Pendiente</option>
                 <option value="confirmed">Confirmada</option>
                 <option value="paid">Pagada</option>
+                <option value="cancelled">Cancelada</option>
               </select>
               <input
                 className="input"
@@ -622,7 +635,7 @@ export default function BookingsClient({
         <div className="panel-title-row">
           <h3 className="panel-title">Reservas registradas</h3>
           <div className="filter-row">
-            {(["all", "pending", "confirmed", "paid"] as const).map((filter) => (
+            {(["all", "pending", "confirmed", "paid", "cancelled"] as const).map((filter) => (
               <button
                 key={filter}
                 type="button"
@@ -631,7 +644,8 @@ export default function BookingsClient({
               >
                 {filter === "all" ? "Todas" :
                  filter === "pending" ? "Pendientes" :
-                 filter === "confirmed" ? "Confirmadas" : "Pagadas"}
+                 filter === "confirmed" ? "Confirmadas" :
+                 filter === "cancelled" ? "Canceladas" : "Pagadas"}
               </button>
             ))}
           </div>
@@ -643,13 +657,13 @@ export default function BookingsClient({
         <table className="data-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Servicio</th>
-              <th>Customer</th>
-              <th>Business</th>
-              <th>Estado</th>
+              <SortableHeader label="ID" sortKey="id" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Fecha" sortKey="date" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Hora" sortKey="time" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Servicio" sortKey="serviceName" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Customer" sortKey="usuarioId" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Business" sortKey="businessId" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Estado" sortKey="status" currentSort={sortConfig} requestSort={requestSort} />
               <th>Acciones</th>
             </tr>
           </thead>
@@ -663,7 +677,7 @@ export default function BookingsClient({
                 </td>
               </tr>
             ) : (
-              filteredBookings.map((booking) => (
+              sortedFilteredBookings.map((booking) => (
                 <tr key={booking.id}>
                   <td style={{ fontWeight: 600 }}>{booking.id}</td>
                   <td>{formatDate(booking.date)}</td>

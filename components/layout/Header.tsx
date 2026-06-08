@@ -52,7 +52,7 @@ export default function Header() {
         {showGlobalMenu && (
           <>
             <Link href="/dashboard" className={`admin-nav-link ${pathname === "/dashboard" ? "active" : ""}`}>Dashboard</Link>
-            <Link href="/calendar" className={`admin-nav-link ${pathname === "/calendar" ? "active" : ""}`}>Calendario</Link>
+
             <Link href="/business" className={`admin-nav-link ${pathname === "/business" ? "active" : ""}`}>Empresas</Link>
           </>
         )}
@@ -62,7 +62,7 @@ export default function Header() {
               {businesses.find(b => String(b.id) === effectiveBusinessId)?.nombre || 'Gestión'}
             </span>
             <Link href={`/business/${effectiveBusinessId}`} className={`admin-nav-link ${pathname === `/business/${effectiveBusinessId}` ? "active" : ""}`}>Dashboard</Link>
-            <Link href={`/business/${effectiveBusinessId}/calendar`} className={`admin-nav-link ${pathname.includes("/calendar") ? "active" : ""}`}>Calendario</Link>
+
             <Link href={`/business/${effectiveBusinessId}/bookings`} className={`admin-nav-link ${pathname.includes("/bookings") ? "active" : ""}`}>Reservas</Link>
             <Link href={`/business/${effectiveBusinessId}/customers`} className={`admin-nav-link ${pathname.includes("/customers") ? "active" : ""}`}>Clientes</Link>
             <Link href={`/business/${effectiveBusinessId}/payments`} className={`admin-nav-link ${pathname.includes("/payments") ? "active" : ""}`}>Pagos</Link>

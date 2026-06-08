@@ -6,6 +6,7 @@ import { createPayment, updatePayment, deletePayment } from "@/lib/api";
 import KpiCard from "@/components/ui/KpiCard";
 import Badge from "@/components/ui/Badge";
 import type { BadgeStatus } from "@/components/ui/Badge";
+import { useSortableData, SortableHeader } from "@/lib/useSortableData";
 
 interface PaymentsClientProps {
   initialPayments: Payment[];
@@ -34,6 +35,7 @@ function formatDate(dateString?: string) {
 
 export default function PaymentsClient({ initialPayments }: PaymentsClientProps) {
   const [payments, setPayments] = useState<Payment[]>(initialPayments);
+  const { items: sortedPayments, requestSort, sortConfig } = useSortableData(payments);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -305,18 +307,18 @@ export default function PaymentsClient({ initialPayments }: PaymentsClientProps)
         <table className="data-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Cliente</th>
-              <th>Comercio</th>
-              <th>Importe</th>
-              <th>Método</th>
-              <th>Fecha</th>
-              <th>Estado</th>
+              <SortableHeader label="ID" sortKey="id" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Cliente" sortKey="clientName" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Comercio" sortKey="businessName" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Importe" sortKey="amount" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Método" sortKey="type" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Fecha" sortKey="date" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Estado" sortKey="status" currentSort={sortConfig} requestSort={requestSort} />
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {payments.map((payment) => (
+            {sortedPayments.map((payment) => (
               <tr key={payment.id}>
                 <td style={{ fontWeight: 600 }}>{payment.id}</td>
                 <td>{payment.clientName}</td>

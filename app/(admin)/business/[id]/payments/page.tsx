@@ -8,11 +8,13 @@ import { Payment, PaymentStatus, PaymentTypeEnum, Booking } from "@/lib/types";
 import KpiCard from "@/components/ui/KpiCard";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
+import { useSortableData, SortableHeader } from "@/lib/useSortableData";
 
 export default function BusinessPaymentsPage() {
   const params = useParams();
   const businessId = params.id as string;
   const [payments, setPayments] = useState<Payment[]>([]);
+  const { items: sortedPayments, requestSort, sortConfig } = useSortableData(payments);
   const [loading, setLoading] = useState(true);
 
   // States para edicion inline
@@ -120,6 +122,7 @@ export default function BusinessPaymentsPage() {
   const stats = {
     total: payments.reduce((acc, p) => acc + (p.status === 'pagado' ? p.amount : 0), 0),
     pending: payments.reduce((acc, p) => acc + (p.status === 'pendiente' ? p.amount : 0), 0),
+    pagadosCount: payments.filter(p => p.status === 'pagado').length,
   };
 
   return (
@@ -145,7 +148,7 @@ export default function BusinessPaymentsPage() {
         <KpiCard title="Cobrado" value={`${stats.total} €`} variant="positive" subtitle="Pagos liquidados" />
         <KpiCard title="Pendiente" value={`${stats.pending} €`} variant="warning" subtitle="Cuentas abiertas" />
         <KpiCard title="Operaciones" value={payments.length.toString()} subtitle="Total de registros" />
-        <KpiCard title="Ticket Medio" value={`${payments.length > 0 ? (stats.total / payments.length).toFixed(2) : 0} €`} subtitle="Basado en cobros" />
+        <KpiCard title="Ticket Medio" value={`${stats.pagadosCount > 0 ? (stats.total / stats.pagadosCount).toFixed(2) : 0} €`} subtitle="Basado en cobros cerrados" />
       </section>
 
       <section className="section-card">
@@ -155,15 +158,15 @@ export default function BusinessPaymentsPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Cliente</th>
-              <th>Importe</th>
-              <th>Método</th>
-              <th>Fecha</th>
-              <th>Estado</th>
+              <SortableHeader label="Cliente" sortKey="customer.nombreCompleto" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Importe" sortKey="amount" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Método" sortKey="type" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Fecha" sortKey="date" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Estado" sortKey="status" currentSort={sortConfig} requestSort={requestSort} />
             </tr>
           </thead>
           <tbody>
-            {payments.map(p => (
+            {sortedPayments.map(p => (
               <tr key={p.id}>
                 {editingId === p.id ? (
                   <>

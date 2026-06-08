@@ -1,11 +1,12 @@
 import React from "react";
 
-export type BadgeStatus = "pending" | "confirmed" | "paid";
+export type BadgeStatus = "pending" | "confirmed" | "paid" | "cancelled";
 
 const STATUS_LABELS: Record<BadgeStatus, string> = {
   pending: "Pendiente",
   confirmed: "Confirmada",
   paid: "Pagada",
+  cancelled: "Cancelada",
 };
 
 export interface BadgeProps {

@@ -6,7 +6,7 @@
 /**
  * Estados posibles de una cita en el sistema.  
  */
-export type BookingStatus = "pending" | "confirmed" | "paid";
+export type BookingStatus = "pending" | "confirmed" | "paid" | "cancelled";
 
 /**
  * Representa una cita/reserva tal como se almacena en la base de datos.

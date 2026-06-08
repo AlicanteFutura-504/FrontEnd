@@ -68,7 +68,7 @@ export default function Sidebar() {
 
   const menuItems = [
     { label: "Dashboard", href: "/dashboard", icon: <DashboardIcon /> },
-    { label: "Calendario", href: "/calendar", icon: <CalendarGlobalIcon /> },
+
   ];
 
   const BriefcaseIcon = () => (
@@ -186,14 +186,6 @@ export default function Sidebar() {
             >
               <span className="shrink-0"><DashboardIcon /></span>
               <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Dashboard</span>
-            </Link>
-            <Link 
-              href={`/business/${effectiveBusinessId}/calendar`} 
-              className={`admin-sidebar__link ${pathname.includes("/calendar") ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
-              title={collapsed ? "Calendario" : ""}
-            >
-              <span className="shrink-0"><CalendarGlobalIcon /></span>
-              <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Calendario</span>
             </Link>
             <Link 
               href={`/business/${effectiveBusinessId}/bookings`} 

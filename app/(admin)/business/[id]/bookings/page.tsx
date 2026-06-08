@@ -3,20 +3,80 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Loading from "@/components/ui/Loading";
-import { getBookingsByBusiness, createBooking, createClient, getClientByEmail, updateBooking, deleteBooking } from "@/lib/api";
+import { getBookingsByBusiness, createBooking, createClient, getClientByEmail, updateBooking, deleteBooking, getAppointmentsByRange } from "@/lib/api";
 import type { User } from "@/lib/types";
 import { Booking, CreateBookingDto, BookingStatus } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
+import { useSortableData, SortableHeader } from "@/lib/useSortableData";
+
+// --- Calendar Helpers ---
+function toYMD(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+const MONTH_NAMES = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
+
+const DAY_NAMES = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+function buildCalendarGrid(year: number, month: number) {
+  const todayYmd = toYMD(new Date());
+  const firstDay = new Date(year, month, 1);
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const cells: { ymd: string; currentMonth: boolean; today: boolean }[] = [];
+
+  for (let i = startOffset - 1; i >= 0; i--) {
+    const d = new Date(year, month, -i);
+    cells.push({ ymd: toYMD(d), currentMonth: false, today: false });
+  }
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ymd = toYMD(new Date(year, month, d));
+    cells.push({ ymd, currentMonth: true, today: ymd === todayYmd });
+  }
+
+  let nextDay = 1;
+  while (cells.length < 42) {
+    const d = new Date(year, month + 1, nextDay++);
+    cells.push({ ymd: toYMD(d), currentMonth: false, today: false });
+  }
+
+  return cells;
+}
+
+const STATUS_DOT: Record<string, string> = {
+  pending: "var(--warning)",
+  confirmed: "var(--info)",
+  paid: "var(--success)",
+};
+
 
 export default function BusinessBookingsPage() {
   const params = useParams();
   const businessId = params.id as string;
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const { items: sortedBookings, requestSort, sortConfig } = useSortableData(bookings);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+  
+  // View mode
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  
+  // Calendar state
+  const today = new Date();
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const [calendarBookings, setCalendarBookings] = useState<Booking[]>([]);
+  const [loadingCalendar, setLoadingCalendar] = useState(false);
   
   // Modal and form state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,11 +120,31 @@ export default function BusinessBookingsPage() {
 
   useEffect(() => {
     if (!businessId) return;
-    const timer = setTimeout(() => {
-      fetchBookings(page, search);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [businessId, page, search]);
+    if (viewMode === 'list') {
+      const timer = setTimeout(() => {
+        fetchBookings(page, search);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [businessId, page, search, viewMode]);
+
+  useEffect(() => {
+    if (!businessId || viewMode !== 'calendar') return;
+    const fetchCalendar = async () => {
+      setLoadingCalendar(true);
+      try {
+        const fromDate = toYMD(new Date(viewYear, viewMonth, 1));
+        const toDate = toYMD(new Date(viewYear, viewMonth + 1, 0));
+        const result = await getAppointmentsByRange(fromDate, toDate, businessId);
+        setCalendarBookings(result);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingCalendar(false);
+      }
+    };
+    fetchCalendar();
+  }, [businessId, viewYear, viewMonth, viewMode]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +172,14 @@ export default function BusinessBookingsPage() {
         usuarioId,
         businessId: Number(businessId),
       });
-      await fetchBookings(page, search);
+      if (viewMode === 'list') {
+        await fetchBookings(page, search);
+      } else {
+        const fromDate = toYMD(new Date(viewYear, viewMonth, 1));
+        const toDate = toYMD(new Date(viewYear, viewMonth + 1, 0));
+        const result = await getAppointmentsByRange(fromDate, toDate, businessId);
+        setCalendarBookings(result);
+      }
       setIsModalOpen(false);
       setFormData({ date: "", time: "", serviceName: "", customerEmail: "", customerNombreCompleto: "", customerPhone: "" });
       setFoundCustomer(undefined);
@@ -140,8 +227,24 @@ export default function BusinessBookingsPage() {
           <h2>Gestión de Reservas</h2>
           <p>Listado completo de citas para este establecimiento.</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="primary-btn" onClick={() => setIsModalOpen(true)}>+ Añadir Reserva</button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
+            <button 
+              className={`secondary-btn ${viewMode === 'list' ? 'active' : ''}`} 
+              style={{ border: 'none', borderRadius: 0, background: viewMode === 'list' ? 'var(--primary-bg)' : 'transparent', color: viewMode === 'list' ? 'var(--primary)' : 'var(--text)' }}
+              onClick={() => setViewMode('list')}
+            >
+              <span role="img" aria-label="list">📋</span> Lista
+            </button>
+            <button 
+              className={`secondary-btn ${viewMode === 'calendar' ? 'active' : ''}`} 
+              style={{ border: 'none', borderRadius: 0, background: viewMode === 'calendar' ? 'var(--primary-bg)' : 'transparent', color: viewMode === 'calendar' ? 'var(--primary)' : 'var(--text)' }}
+              onClick={() => setViewMode('calendar')}
+            >
+              <span role="img" aria-label="calendar">📅</span> Calendario
+            </button>
+          </div>
+          <button className="primary-btn" onClick={() => { setFormData(f => ({ ...f, date: toYMD(new Date()) })); setIsModalOpen(true); }}>+ Añadir Reserva</button>
           <Link href={`/business/${businessId}`} className="secondary-btn">Volver al Panel</Link>
         </div>
       </header>
@@ -243,6 +346,77 @@ export default function BusinessBookingsPage() {
         </div>
       )}
 
+      {viewMode === 'calendar' && (
+        <section className="section-card">
+          <div className="panel-title-row" style={{ marginBottom: '24px' }}>
+            <h3 className="panel-title">Calendario de Reservas</h3>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <button 
+                className="secondary-btn" 
+                onClick={() => {
+                  if (viewMonth === 0) { setViewMonth(11); setViewYear(viewYear - 1); } 
+                  else { setViewMonth(viewMonth - 1); }
+                }}
+              >
+                &larr; Anterior
+              </button>
+              <span style={{ fontWeight: 600, minWidth: 140, textAlign: 'center' }}>
+                {MONTH_NAMES[viewMonth]} {viewYear}
+              </span>
+              <button 
+                className="secondary-btn" 
+                onClick={() => {
+                  if (viewMonth === 11) { setViewMonth(0); setViewYear(viewYear + 1); } 
+                  else { setViewMonth(viewMonth + 1); }
+                }}
+              >
+                Siguiente &rarr;
+              </button>
+            </div>
+          </div>
+
+          {loadingCalendar ? (
+            <div style={{ padding: '60px', textAlign: 'center' }}><Loading /></div>
+          ) : (
+            <div className="calendar-grid">
+              {DAY_NAMES.map(d => (
+                <div key={d} className="calendar-header-cell">{d}</div>
+              ))}
+              {buildCalendarGrid(viewYear, viewMonth).map((cell, idx) => {
+                const dayBookings = calendarBookings.filter(b => b.date === cell.ymd);
+                return (
+                  <div 
+                    key={`${cell.ymd}-${idx}`} 
+                    className={`calendar-cell ${!cell.currentMonth ? 'calendar-cell--other-month' : ''} ${cell.today ? 'calendar-cell--today' : ''}`}
+                    onClick={() => {
+                      setFormData(f => ({ ...f, date: cell.ymd }));
+                      setIsModalOpen(true);
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="calendar-cell-date">{parseInt(cell.ymd.split('-')[2], 10)}</div>
+                    <div className="calendar-cell-events">
+                      {dayBookings.slice(0, 3).map(b => (
+                        <div key={b.id} className="calendar-event-dot" title={`${b.time} - ${b.serviceName}`} style={{ backgroundColor: STATUS_DOT[b.status] || STATUS_DOT.pending }} />
+                      ))}
+                      {dayBookings.length > 3 && (
+                        <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600 }}>+{dayBookings.length - 3}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: '16px', marginTop: '16px', fontSize: '12px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.pending }} /> Pendiente</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.confirmed }} /> Confirmada</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.paid }} /> Pagada</div>
+          </div>
+        </section>
+      )}
+
+      {viewMode === 'list' && (
       <section className="section-card">
         <div className="panel-title-row">
           <h3 className="panel-title">Historial de Citas</h3>
@@ -262,17 +436,17 @@ export default function BusinessBookingsPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Servicio</th>
-              <th>Importe</th>
-              <th>ID Cliente</th>
-              <th>Estado</th>
+              <SortableHeader label="Fecha" sortKey="date" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Hora" sortKey="time" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Servicio" sortKey="serviceName" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Importe" sortKey="payment.amount" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="ID Cliente" sortKey="usuarioId" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Estado" sortKey="status" currentSort={sortConfig} requestSort={requestSort} />
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {bookings.map(b => (
+            {sortedBookings.map(b => (
               <tr key={b.id}>
                 <td style={{ fontWeight: 600 }}>{b.date}</td>
                 <td>{b.time}</td>
@@ -383,6 +557,7 @@ export default function BusinessBookingsPage() {
           </div>
         )}
       </section>
+      )}
 
       {/* Edit Status Modal */}
       {isEditOpen && (

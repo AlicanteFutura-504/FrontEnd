@@ -815,6 +815,12 @@ body::after {
   border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
+.badge--cancelled {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
 /* Forms & Inputs */
 .form-grid {
   display: grid;
@@ -1353,4 +1359,91 @@ body::after {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+/* ==========================================================================
+   Calendar Styles (Migrated from old CalendarPage)
+   ========================================================================== */
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.calendar-header-cell {
+  padding: 12px 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-hover);
+}
+
+.calendar-cell {
+  padding: 8px;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.calendar-cell:nth-child(7n) {
+  border-right: none;
+}
+
+.calendar-cell:hover {
+  background: var(--surface-hover);
+  cursor: pointer;
+}
+
+.calendar-cell--other-month {
+  opacity: 0.4;
+  background: var(--surface-active);
+}
+
+.calendar-cell--today {
+  background: rgba(0, 102, 255, 0.05);
+}
+
+.calendar-cell--today .calendar-cell-date {
+  color: var(--accent);
+  font-weight: 700;
+  background: rgba(0, 102, 255, 0.1);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-cell-date {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.calendar-cell-events {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
+}
+
+.calendar-event-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
