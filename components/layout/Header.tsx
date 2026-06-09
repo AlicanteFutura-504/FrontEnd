@@ -43,12 +43,12 @@ export default function Header() {
 
   return (
     <header className={styles.header} style={{ position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid var(--border)', background: 'var(--surface)', backdropFilter: 'blur(24px)' }}>
-      <Link href="/dashboard" className={styles.brand}>
+      <Link href="/dashboard" className={styles.brand} style={{ flex: 1 }}>
         <img src="/favicon.ico" alt="Yoku Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
         <span style={{ color: 'var(--text)' }}>Yoku</span>
       </Link>
 
-      <nav style={{ display: 'flex', gap: '40px', alignItems: 'center', flex: 1, justifyContent: 'center' }}>
+      <nav style={{ display: 'flex', gap: '40px', alignItems: 'center', justifyContent: 'center' }}>
         {showGlobalMenu && (
           <>
             <Link href="/dashboard" className={`admin-nav-link ${pathname === "/dashboard" ? "active" : ""}`}>Dashboard</Link>
@@ -58,19 +58,90 @@ export default function Header() {
         )}
         {showBusinessMenu && effectiveBusinessId && (
           <>
-            <span style={{ fontWeight: 700, color: 'var(--accent-1)', marginRight: '16px', background: 'var(--surface-hover)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-              {businesses.find(b => String(b.id) === effectiveBusinessId)?.nombre || 'Gestión'}
-            </span>
-            <Link href={`/properties/${effectiveBusinessId}`} className={`admin-nav-link ${pathname === `/properties/${effectiveBusinessId}` ? "active" : ""}`}>Dashboard</Link>
+            {/* Separator */}
+            <span style={{ width: '1px', height: '20px', background: 'var(--border)', borderRadius: '2px', opacity: 0.7 }} />
 
-            <Link href={`/properties/${effectiveBusinessId}/bookings`} className={`admin-nav-link ${pathname.includes("/bookings") ? "active" : ""}`}>Reservas</Link>
-            <Link href={`/properties/${effectiveBusinessId}/customers`} className={`admin-nav-link ${pathname.includes("/customers") ? "active" : ""}`}>Clientes</Link>
-            <Link href={`/properties/${effectiveBusinessId}/payments`} className={`admin-nav-link ${pathname.includes("/payments") ? "active" : ""}`}>Pagos</Link>
+            {/* Business context pill container */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'var(--surface-2, rgba(99,102,241,0.06))',
+              border: '1px solid var(--accent-1, #6366f1)',
+              borderRadius: '12px',
+              padding: '4px 6px',
+            }}>
+              <span style={{
+                fontWeight: 700,
+                color: 'var(--accent-1)',
+                fontSize: '11px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                padding: '0 8px',
+                borderRight: '1px solid var(--border)',
+                marginRight: '2px',
+                whiteSpace: 'nowrap',
+              }}>
+                {businesses.find(b => String(b.id) === effectiveBusinessId)?.nombre || 'Gestión'}
+              </span>
+              <Link
+                href={`/properties/${effectiveBusinessId}`}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: pathname === `/properties/${effectiveBusinessId}` ? 'var(--accent-1)' : 'var(--text)',
+                  background: pathname === `/properties/${effectiveBusinessId}` ? 'var(--accent-1-bg, rgba(99,102,241,0.12))' : 'transparent',
+                  textDecoration: 'none',
+                  transition: 'background 0.15s',
+                }}
+              >Dashboard</Link>
+              <Link
+                href={`/properties/${effectiveBusinessId}/bookings`}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: pathname.includes('/bookings') ? 'var(--accent-1)' : 'var(--text)',
+                  background: pathname.includes('/bookings') ? 'var(--accent-1-bg, rgba(99,102,241,0.12))' : 'transparent',
+                  textDecoration: 'none',
+                  transition: 'background 0.15s',
+                }}
+              >Reservas</Link>
+              <Link
+                href={`/properties/${effectiveBusinessId}/customers`}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: pathname.includes('/customers') ? 'var(--accent-1)' : 'var(--text)',
+                  background: pathname.includes('/customers') ? 'var(--accent-1-bg, rgba(99,102,241,0.12))' : 'transparent',
+                  textDecoration: 'none',
+                  transition: 'background 0.15s',
+                }}
+              >Clientes</Link>
+              <Link
+                href={`/properties/${effectiveBusinessId}/payments`}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: pathname.includes('/payments') ? 'var(--accent-1)' : 'var(--text)',
+                  background: pathname.includes('/payments') ? 'var(--accent-1-bg, rgba(99,102,241,0.12))' : 'transparent',
+                  textDecoration: 'none',
+                  transition: 'background 0.15s',
+                }}
+              >Pagos</Link>
+            </div>
           </>
         )}
       </nav>
 
-      <div className={styles.navActions} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div className={styles.navActions} style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, justifyContent: 'flex-end' }}>
         <ThemeToggle />
         
         <button

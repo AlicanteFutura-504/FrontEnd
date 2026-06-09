@@ -22,39 +22,26 @@ export default function ThemeToggle() {
   return (
     <button
       type="button"
-      role="switch"
-      aria-checked={mounted ? isDarkMode : false}
       onClick={() => handleToggle(!isDarkMode)}
+      title={mounted && isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
       style={{
-        width: "46px",
-        height: "26px",
-        borderRadius: "999px",
-        background: mounted && isDarkMode ? "var(--accent-1, #6366f1)" : "var(--border-strong, #cbd5e1)",
-        border: "none",
-        padding: "3px",
+        width: "32px",
+        height: "32px",
+        borderRadius: "8px",
+        background: "transparent",
+        border: "1px solid var(--border)",
         cursor: "pointer",
-        transition: "background-color 0.3s ease",
         display: "flex",
         alignItems: "center",
+        justifyContent: "center",
+        fontSize: "16px",
+        transition: "background 0.2s",
+        color: "var(--text-muted)",
       }}
-      title={mounted && isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+      onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-hover)")}
+      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
     >
-      <div
-        style={{
-          width: "20px",
-          height: "20px",
-          borderRadius: "999px",
-          background: "#ffffff",
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-          transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          transform: mounted && isDarkMode ? "translateX(20px)" : "translateX(0)",
-          display: "grid",
-          placeItems: "center",
-          fontSize: "12px",
-        }}
-      >
-        {mounted && isDarkMode ? "🌙" : "☀️"}
-      </div>
+      {mounted && isDarkMode ? "🌙" : "☀️"}
     </button>
   );
 }
