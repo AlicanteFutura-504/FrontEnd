@@ -50,7 +50,7 @@ export default function AboutPage() {
       <section className={styles.aboutHeroWrapper}>
         <div className={styles.aboutHero}>
           <div className={`${styles.aboutHeroContent} ${styles.reveal}`}>
-            <h1 className={styles.aboutHeroTitle}>Nuestra misión es ayudar a que los negocios crezcan</h1>
+            <h1 className={styles.aboutHeroTitle}>Nuestra misión es ayudar a que los propiedads crezcan</h1>
             <p className={styles.aboutHeroSubtitle}>
               En Yoku, proporcionamos a las empresas de servicios las herramientas necesarias para automatizar su agenda, conectar con sus clientes de manera innovadora y alcanzar su máximo potencial.
             </p>
@@ -82,7 +82,7 @@ export default function AboutPage() {
           </div>
           <div className={`${styles.statItem} ${styles.reveal} ${styles.revealDelay2}`}>
             <span className={styles.statNumber}>3M+</span>
-            <span className={styles.statLabel}>Negocios activos</span>
+            <span className={styles.statLabel}>Propiedads activos</span>
           </div>
           <div className={`${styles.statItem} ${styles.reveal} ${styles.revealDelay3}`}>
             <span className={styles.statNumber}>24/7</span>
@@ -149,7 +149,7 @@ export default function AboutPage() {
                 Historia de Yoku
               </h2>
               <p className={styles.featureDesc} style={{ maxWidth: '600px' }}>
-                Descubre cómo hemos evolucionado desde una idea en un papel hasta convertirnos en la plataforma líder para negocios de servicios.
+                Descubre cómo hemos evolucionado desde una idea en un papel hasta convertirnos en la plataforma líder para propiedads de servicios.
               </p>
             </div>
             <div className={styles.timelineNav}>
@@ -177,7 +177,7 @@ export default function AboutPage() {
               <ul className={styles.timelineList}>
                 <li>Lanzamiento oficial de la plataforma pública.</li>
                 <li>Implementación de recordatorios automáticos por SMS.</li>
-                <li>Alcanzamos los 5.000 negocios activos.</li>
+                <li>Alcanzamos los 5.000 propiedads activos.</li>
               </ul>
             </div>
 

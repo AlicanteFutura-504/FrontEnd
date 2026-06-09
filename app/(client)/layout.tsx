@@ -18,7 +18,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     if (!user) {
       router.push("/login");
     } else if (user.role !== "client" && user.role !== "superadmin") {
-      // Si entra un negocio, echarlo a su panel.
+      // Si entra un propiedad, echarlo a su panel.
       router.push("/dashboard");
     }
   }, [user, router]);

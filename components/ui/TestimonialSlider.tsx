@@ -16,7 +16,7 @@ const testimonials = [
     name: "Carlos Ruiz",
     role: "Gerente",
     company: "Clínica Dental Sonrisas",
-    text: "Una herramienta imprescindible. El control de pagos integrado y la agenda 24/7 nos ha permitido escalar nuestro negocio de manera profesional y ordenada.",
+    text: "Una herramienta imprescindible. El control de pagos integrado y la agenda 24/7 nos ha permitido escalar nuestro propiedad de manera profesional y ordenada.",
     rating: 5,
   },
   {

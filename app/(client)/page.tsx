@@ -9,14 +9,14 @@ export default async function ClientHome() {
     <div style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 20px" }}>
       <header style={{ marginBottom: 40, textAlign: "center" }}>
         <h1 style={{ fontSize: "2.5rem", fontWeight: "bold", color: "var(--text)" }}>Alicante Futura - Reservas</h1>
-        <p style={{ color: "var(--text-muted)", fontSize: "1.2rem", marginTop: 10 }}>Encuentra el negocio ideal y haz tu reserva</p>
+        <p style={{ color: "var(--text-muted)", fontSize: "1.2rem", marginTop: 10 }}>Encuentra el propiedad ideal y haz tu reserva</p>
       </header>
       
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20 }}>
         {businesses.map((business) => (
           <Link 
             key={business.id} 
-            href={`/business/${business.id}/book`}
+            href={`/properties/${business.id}/book`}
             style={{ 
               display: "block",
               padding: 24, 

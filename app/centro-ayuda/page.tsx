@@ -33,7 +33,7 @@ const categories = [
   {
     icon: "⚙️",
     title: "Configuración de la cuenta",
-    description: "Información sobre los pasos básicos de configuración, como restablecer la contraseña o cambiar la dirección de tu negocio.",
+    description: "Información sobre los pasos básicos de configuración, como restablecer la contraseña o cambiar la dirección de tu propiedad.",
     articles: "15 artículos",
     href: "#",
   },
@@ -54,7 +54,7 @@ const categories = [
   {
     icon: "📈",
     title: "Marketing y Fidelización",
-    description: "Lee consejos acerca de cómo utilizar Yoku para promocionar tu negocio, crear vales y mejorar la experiencia de tus clientes.",
+    description: "Lee consejos acerca de cómo utilizar Yoku para promocionar tu propiedad, crear vales y mejorar la experiencia de tus clientes.",
     articles: "39 artículos",
     href: "#",
   },

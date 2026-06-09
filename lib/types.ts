@@ -13,36 +13,33 @@ export type BookingStatus = "pending" | "confirmed" | "paid" | "cancelled";
  */
 export interface Booking {
   id: number;
-  date: string;
-  time: string;
+  checkInDate: string;
+  checkOutDate: string;
   status: BookingStatus;
   usuarioId: number;
   customerId?: number;
-  businessId: number;
-  serviceName: string;
+  propertyId: number;
+  propertyName?: string;
   customerName?: string;
-  businessName?: string;
   payment?: {
     amount?: number;
   };
 }
 
 export interface CreateBookingDto {
-  date: string;
-  time: string;
+  checkInDate: string;
+  checkOutDate: string;
   status: BookingStatus;
   usuarioId: number;
-  businessId: number;
-  serviceName: string;
+  propertyId: number;
 }
 
 export interface UpdateBookingDto {
-  date?: string;
-  time?: string;
+  checkInDate?: string;
+  checkOutDate?: string;
   status?: BookingStatus;
   usuarioId?: number;
-  businessId?: number;
-  serviceName?: string;
+  propertyId?: number;
 }
 
 export type PaymentStatus = "pagado" | "pendiente";

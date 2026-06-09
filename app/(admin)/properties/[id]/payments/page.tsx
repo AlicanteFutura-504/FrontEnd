@@ -155,7 +155,7 @@ export default function BusinessPaymentsPage() {
           }} className="primary-btn">
             + Añadir pago
           </button>
-          <Link href={`/business/${businessId}`} className="secondary-btn">Volver al Panel</Link>
+          <Link href={`/properties/${businessId}`} className="secondary-btn">Volver al Panel</Link>
         </div>
       </header>
 

@@ -27,7 +27,7 @@ export default function LandingFooter() {
             <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0066FF' }}>Yoku</span>
           </Link>
           <p style={{ fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1rem' }}>
-            Gestión inteligente de reservas para empresas modernas. Simplifica tu día a día y haz crecer tu negocio.
+            Gestión inteligente de reservas para empresas modernas. Simplifica tu día a día y haz crecer tu propiedad.
           </p>
           <p style={{ fontSize: '0.875rem' }}>
             © {new Date().getFullYear()} Yoku Inc. Todos los derechos reservados.

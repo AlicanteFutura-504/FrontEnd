@@ -21,7 +21,7 @@ export default function TerminosPage() {
 
           <section className={styles.section}>
             <h2>2. Descripción de los Servicios</h2>
-            <p>Yoku es una plataforma integral de gestión empresarial diseñada para negocios de servicios. Nuestros Servicios incluyen, pero no se limitan a:</p>
+            <p>Yoku es una plataforma integral de gestión empresarial diseñada para propiedads de servicios. Nuestros Servicios incluyen, pero no se limitan a:</p>
             <ul>
               <li>Calendario de programación y reservas online.</li>
               <li>Sistemas de punto de venta (POS) y procesamiento de pagos.</li>

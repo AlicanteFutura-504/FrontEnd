@@ -16,7 +16,7 @@ export default function Header() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [isBusinessOpen, setIsBusinessOpen] = useState(false);
 
-  const isInsideBusiness = pathname?.startsWith("/business/") && pathname !== "/business";
+  const isInsideBusiness = pathname?.startsWith("/properties/") && pathname !== "/properties";
   const urlBusinessId = isInsideBusiness ? pathname.split("/")[2] : null;
 
   const isBusinessRole = user?.role === 'business';
@@ -53,7 +53,7 @@ export default function Header() {
           <>
             <Link href="/dashboard" className={`admin-nav-link ${pathname === "/dashboard" ? "active" : ""}`}>Dashboard</Link>
 
-            <Link href="/business" className={`admin-nav-link ${pathname === "/business" ? "active" : ""}`}>Empresas</Link>
+            <Link href="/properties" className={`admin-nav-link ${pathname === "/properties" ? "active" : ""}`}>Propiedades</Link>
           </>
         )}
         {showBusinessMenu && effectiveBusinessId && (
@@ -61,11 +61,11 @@ export default function Header() {
             <span style={{ fontWeight: 700, color: 'var(--accent-1)', marginRight: '16px', background: 'var(--surface-hover)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
               {businesses.find(b => String(b.id) === effectiveBusinessId)?.nombre || 'Gestión'}
             </span>
-            <Link href={`/business/${effectiveBusinessId}`} className={`admin-nav-link ${pathname === `/business/${effectiveBusinessId}` ? "active" : ""}`}>Dashboard</Link>
+            <Link href={`/properties/${effectiveBusinessId}`} className={`admin-nav-link ${pathname === `/properties/${effectiveBusinessId}` ? "active" : ""}`}>Dashboard</Link>
 
-            <Link href={`/business/${effectiveBusinessId}/bookings`} className={`admin-nav-link ${pathname.includes("/bookings") ? "active" : ""}`}>Reservas</Link>
-            <Link href={`/business/${effectiveBusinessId}/customers`} className={`admin-nav-link ${pathname.includes("/customers") ? "active" : ""}`}>Clientes</Link>
-            <Link href={`/business/${effectiveBusinessId}/payments`} className={`admin-nav-link ${pathname.includes("/payments") ? "active" : ""}`}>Pagos</Link>
+            <Link href={`/properties/${effectiveBusinessId}/bookings`} className={`admin-nav-link ${pathname.includes("/bookings") ? "active" : ""}`}>Reservas</Link>
+            <Link href={`/properties/${effectiveBusinessId}/customers`} className={`admin-nav-link ${pathname.includes("/customers") ? "active" : ""}`}>Clientes</Link>
+            <Link href={`/properties/${effectiveBusinessId}/payments`} className={`admin-nav-link ${pathname.includes("/payments") ? "active" : ""}`}>Pagos</Link>
           </>
         )}
       </nav>

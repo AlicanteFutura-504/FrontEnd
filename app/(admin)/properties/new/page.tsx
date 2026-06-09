@@ -1,77 +1,62 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Loading from "@/components/ui/Loading";
-import { getBusiness, updateBusiness } from "@/lib/api";
+import React, { useState } from "react";
+import { createBusiness } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
 
-export default function EditBusinessPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+export default function NewBusinessPage() {
+  const { user } = useAuth();
   const router = useRouter();
   const [formData, setFormData] = useState({
     nombre: "",
     direccion: "",
     telefono: "",
+    username: "",
+    email: "",
+    contrasena: "",
   });
   const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
-
-  useEffect(() => {
-    const fetchBusiness = async () => {
-      try {
-        const business = await getBusiness(Number(id));
-        setFormData({
-          nombre: business.nombre || "",
-          direccion: business.direccion || "",
-          telefono: business.telefono || "",
-        });
-      } catch (error: any) {
-        setAlert({
-          type: "error",
-          message: error.message || "No se pudo cargar la información del negocio.",
-        });
-      } finally {
-        setFetching(false);
-      }
-    };
-    fetchBusiness();
-  }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleUpdateBusiness = async (e: React.FormEvent) => {
+  const handleCreateBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
     setAlert(null);
+
+    if (!user) return;
+
     setLoading(true);
 
     try {
-      await updateBusiness(Number(id), formData);
+      await createBusiness({
+        ...formData,
+        usuarioId: user.id
+      });
       setAlert({
         type: "success",
-        message: `¡Negocio actualizado exitosamente!`,
+        message: `¡Propiedad '${formData.nombre}' añadido exitosamente!`,
       });
-      setTimeout(() => router.push("/business"), 1500);
+      setTimeout(() => router.push("/properties"), 1500);
     } catch (error: any) {
       setAlert({
         type: "error",
-        message: error.message || "No se pudo actualizar el negocio.",
+        message: error.message || "No se pudo añadir el propiedad.",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetching) return <Loading />;
-
   return (
     <div className="page-stack">
       <header className="page-hero">
         <div>
-          <h2>Editar Negocio</h2>
-          <p>Modifica la información de tu local.</p>
+          <h2>Añadir Nuevo Propiedad</h2>
+          <p>Configura el perfil de tu local y genera sus credenciales de acceso para el personal.</p>
         </div>
       </header>
 
@@ -82,7 +67,7 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
           </div>
         )}
 
-        <form onSubmit={handleUpdateBusiness} className="page-stack">
+        <form onSubmit={handleCreateBusiness} className="page-stack">
           <div>
             <h3 className="panel-title" style={{ marginBottom: '16px' }}>Información Comercial</h3>
             <div className="form-grid">
@@ -101,12 +86,27 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
             </div>
           </div>
 
-          <div className="message-row" style={{ marginTop: '12px', display: 'flex', gap: '12px' }}>
-            <button type="submit" disabled={loading} className="primary-btn" style={{ flex: 1, padding: '16px' }}>
-              {loading ? "Guardando..." : "Guardar Cambios"}
-            </button>
-            <button type="button" onClick={() => router.push("/business")} className="secondary-btn" style={{ flex: 1, padding: '16px' }}>
-              Cancelar
+          <div style={{ marginTop: '12px', paddingTop: '24px', borderTop: '1px solid var(--border)' }}>
+            <h3 className="panel-title" style={{ marginBottom: '16px' }}>Acceso del Local</h3>
+            <div className="form-grid">
+              <div className="input-group">
+                <label className="kpi-card__label">Usuario (para el personal)</label>
+                <input name="username" value={formData.username} onChange={handleChange} required className="input" placeholder="usuario_local" />
+              </div>
+              <div className="input-group">
+                <label className="kpi-card__label">Email corporativo</label>
+                <input name="email" type="email" value={formData.email} onChange={handleChange} required className="input" placeholder="local@propiedad.com" />
+              </div>
+              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                <label className="kpi-card__label">Contraseña de acceso</label>
+                <input name="contrasena" type="password" value={formData.contrasena} onChange={handleChange} required className="input" placeholder="••••••••" />
+              </div>
+            </div>
+          </div>
+
+          <div className="message-row" style={{ marginTop: '12px' }}>
+            <button type="submit" disabled={loading} className="primary-btn" style={{ width: '100%', padding: '16px' }}>
+              {loading ? "Procesando..." : "Finalizar y Añadir Propiedad"}
             </button>
           </div>
         </form>

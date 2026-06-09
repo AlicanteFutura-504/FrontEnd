@@ -69,7 +69,8 @@ function buildCalendarGrid(year: number, month: number) {
 const STATUS_DOT: Record<string, string> = {
   pending: "var(--warning)",
   confirmed: "var(--info)",
-  paid: "var(--success)",
+  modified: "var(--accent-2)",
+  cancelled: "var(--danger)",
 };
 
 
@@ -97,9 +98,8 @@ export default function BusinessBookingsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    date: "",
-    time: "",
-    serviceName: "",
+    checkInDate: "",
+    checkOutDate: "",
     customerEmail: "",
     customerNombreCompleto: "",
     customerPhone: "",
@@ -180,12 +180,11 @@ export default function BusinessBookingsPage() {
       }
 
       await createBooking({
-        date: formData.date,
-        time: formData.time,
-        serviceName: formData.serviceName,
+        checkInDate: formData.checkInDate,
+        checkOutDate: formData.checkOutDate,
         status: "pending",
         usuarioId,
-        businessId: Number(businessId),
+        propertyId: Number(businessId),
       });
       if (viewMode === 'list') {
         await fetchBookings(page, search);
@@ -196,7 +195,7 @@ export default function BusinessBookingsPage() {
         setCalendarBookings(result);
       }
       setIsModalOpen(false);
-      setFormData({ date: "", time: "", serviceName: "", customerEmail: "", customerNombreCompleto: "", customerPhone: "" });
+      setFormData({ checkInDate: "", checkOutDate: "", customerEmail: "", customerNombreCompleto: "", customerPhone: "" });
       setFoundCustomer(undefined);
     } catch (err) {
       console.error("Error creating booking", err);
@@ -259,8 +258,8 @@ export default function BusinessBookingsPage() {
               <span role="img" aria-label="calendar">📅</span> Calendario
             </button>
           </div>
-          <button className="primary-btn" onClick={() => { setFormData(f => ({ ...f, date: toYMD(new Date()) })); setIsModalOpen(true); }}>+ Añadir Reserva</button>
-          <Link href={`/business/${businessId}`} className="secondary-btn">Volver al Panel</Link>
+          <button className="primary-btn" onClick={() => { setFormData(f => ({ ...f, checkInDate: toYMD(new Date()) })); setIsModalOpen(true); }}>+ Añadir Reserva</button>
+          <Link href={`/properties/${businessId}`} className="secondary-btn">Volver al Panel</Link>
         </div>
       </header>
 
@@ -346,9 +345,8 @@ export default function BusinessBookingsPage() {
               {/* ── Datos de la reserva ── */}
               <p style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Datos de la reserva</p>
 
-              <input required type="date" className="input" value={formData.date} onChange={e => setFormData(f => ({ ...f, date: e.target.value }))} />
-              <input required type="time" className="input" value={formData.time} onChange={e => setFormData(f => ({ ...f, time: e.target.value }))} />
-              <input required className="input" placeholder="Servicio *" value={formData.serviceName} onChange={e => setFormData(f => ({ ...f, serviceName: e.target.value }))} />
+              <input required type="date" className="input" value={formData.checkInDate} onChange={e => setFormData(f => ({ ...f, checkInDate: e.target.value }))} />
+              <input required type="date" className="input" value={formData.checkOutDate} onChange={e => setFormData(f => ({ ...f, checkOutDate: e.target.value }))} />
 
               <div className="modal-actions" style={{ marginTop: 8 }}>
                 <button type="button" className="secondary-btn" onClick={() => { setIsModalOpen(false); setFoundCustomer(undefined); }}>Cancelar</button>
@@ -398,13 +396,13 @@ export default function BusinessBookingsPage() {
                 <div key={d} className="calendar-header-cell">{d}</div>
               ))}
               {buildCalendarGrid(viewYear, viewMonth).map((cell, idx) => {
-                const dayBookings = calendarBookings.filter(b => b.date === cell.ymd);
+                const dayBookings = calendarBookings.filter(b => b.checkInDate === cell.ymd);
                 return (
                   <div 
                     key={`${cell.ymd}-${idx}`} 
                     className={`calendar-cell ${!cell.currentMonth ? 'calendar-cell--other-month' : ''} ${cell.today ? 'calendar-cell--today' : ''}`}
                     onClick={() => {
-                      setFormData(f => ({ ...f, date: cell.ymd }));
+                      setFormData(f => ({ ...f, checkInDate: cell.ymd }));
                       setIsModalOpen(true);
                     }}
                     style={{ cursor: 'pointer' }}
@@ -412,7 +410,7 @@ export default function BusinessBookingsPage() {
                     <div className="calendar-cell-date">{parseInt(cell.ymd.split('-')[2], 10)}</div>
                     <div className="calendar-cell-events">
                       {dayBookings.slice(0, 3).map(b => (
-                        <div key={b.id} className="calendar-event-dot" title={`${b.time} - ${b.serviceName}`} style={{ backgroundColor: STATUS_DOT[b.status] || STATUS_DOT.pending }} />
+                        <div key={b.id} className="calendar-event-dot" title={`#${b.id}`} style={{ backgroundColor: STATUS_DOT[b.status] || STATUS_DOT.pending }} />
                       ))}
                       {dayBookings.length > 3 && (
                         <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600 }}>+{dayBookings.length - 3}</span>
@@ -426,7 +424,8 @@ export default function BusinessBookingsPage() {
           <div style={{ display: 'flex', gap: '16px', marginTop: '16px', fontSize: '12px', justifyContent: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.pending }} /> Pendiente</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.confirmed }} /> Confirmada</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.paid }} /> Pagada</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.modified }} /> Modificada</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.cancelled }} /> Cancelada</div>
           </div>
         </section>
       )}
@@ -451,11 +450,10 @@ export default function BusinessBookingsPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <SortableHeader label="Fecha" sortKey="date" currentSort={sortConfig} requestSort={requestSort} />
-              <SortableHeader label="Hora" sortKey="time" currentSort={sortConfig} requestSort={requestSort} />
-              <SortableHeader label="Servicio" sortKey="serviceName" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Entrada" sortKey="checkInDate" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Salida" sortKey="checkOutDate" currentSort={sortConfig} requestSort={requestSort} />
               <SortableHeader label="Importe" sortKey="payment.amount" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
-              <SortableHeader label="ID Cliente" sortKey="usuarioId" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Cliente" sortKey="usuario.nombreCompleto" currentSort={sortConfig} requestSort={requestSort} />
               <SortableHeader label="Estado" sortKey="status" currentSort={sortConfig} requestSort={requestSort} />
               <th>Acciones</th>
             </tr>
@@ -463,9 +461,8 @@ export default function BusinessBookingsPage() {
           <tbody>
             {sortedBookings.map(b => (
               <tr key={b.id}>
-                <td style={{ fontWeight: 600 }}>{formatDate(b.date)}</td>
-                <td>{b.time}</td>
-                <td>{b.serviceName}</td>
+                <td style={{ fontWeight: 600 }}>{formatDate(b.checkInDate)}</td>
+                <td>{formatDate(b.checkOutDate)}</td>
                 <td>
                   {b.payment?.amount ? (
                     <span style={{ fontWeight: 600, color: 'var(--text)' }}>
@@ -475,7 +472,7 @@ export default function BusinessBookingsPage() {
                     <span style={{ color: 'var(--muted)' }}>--</span>
                   )}
                 </td>
-                <td>#{b.usuarioId}</td>
+                <td>{b.usuario?.nombreCompleto || b.usuario?.username || `#${b.usuarioId}`}</td>
                 <td>
                   <Badge status={b.status as any} />
                 </td>
@@ -596,7 +593,8 @@ export default function BusinessBookingsPage() {
               >
                 <option value="pending">Pendiente (Sin confirmar)</option>
                 <option value="confirmed">Confirmada</option>
-                <option value="paid">Pagada</option>
+                <option value="modified">Modificada</option>
+                <option value="cancelled">Cancelada</option>
               </select>
               
               <div className="modal-actions" style={{ marginTop: 8 }}>

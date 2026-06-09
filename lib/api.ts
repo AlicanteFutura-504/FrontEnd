@@ -37,7 +37,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
  */
 function getHeaders(contentType: boolean = true) {
   const headers: Record<string, string> = {};
-  
+
   if (contentType) {
     headers["Content-Type"] = "application/json";
   }
@@ -147,7 +147,7 @@ export async function updateUser(id: number, data: UpdateUserDto): Promise<User>
 // Backwards-compatible client helpers that use `usuarios` endpoints
 export async function getClients(page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: User[], total: number }> {
   const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
-  const res = await fetch(`${API_URL}/usuarios/clients?${params.toString()}`, { headers: getHeaders() });
+  const res = await fetch(`${API_URL}/usuarios/guests?${params.toString()}`, { headers: getHeaders() });
   return handleResponse(res) || { data: [], total: 0 };
 }
 
@@ -177,12 +177,12 @@ export async function getClientByEmail(email: string): Promise<User | null> {
 
 export async function getClientsByBusiness(businessId: string, page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: User[], total: number }> {
   const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
-  const res = await fetch(`${API_URL}/usuarios/clients/business/${businessId}?${params.toString()}`, { headers: getHeaders() });
+  const res = await fetch(`${API_URL}/usuarios/guests/property/${businessId}?${params.toString()}`, { headers: getHeaders() });
   return handleResponse(res) || { data: [], total: 0 };
 }
 
 export async function createClient(data: Partial<User>): Promise<User> {
-  const res = await fetch(`${API_URL}/usuarios/clients`, {
+  const res = await fetch(`${API_URL}/usuarios/guests`, {
     method: "POST",
     headers: getHeaders(),
     body: JSON.stringify(data),
@@ -217,8 +217,8 @@ export async function getAllClientsByBusiness(businessId: string, search: string
 // --- BUSINESS ---
 
 export async function getBusinesses(
-  page: number = 1, 
-  limit: number = 20, 
+  page: number = 1,
+  limit: number = 20,
   search: string = '',
   sortBy: string = '',
   sortOrder: string = '',
@@ -231,7 +231,7 @@ export async function getBusinesses(
   if (filterField) params.append('filterField', filterField);
   if (filterValue) params.append('filterValue', filterValue);
 
-  const res = await fetch(`${API_URL}/business?${params.toString()}`, { headers: getHeaders() });
+  const res = await fetch(`${API_URL}/properties?${params.toString()}`, { headers: getHeaders() });
   return handleResponse(res) || { data: [], total: 0 };
 }
 
@@ -252,7 +252,7 @@ export async function getAllBusinesses(search: string = ''): Promise<Business[]>
 }
 
 export async function createBusiness(data: any): Promise<Business> {
-  const res = await fetch(`${API_URL}/business`, {
+  const res = await fetch(`${API_URL}/properties`, {
     method: "POST",
     headers: getHeaders(),
     body: JSON.stringify(data),
@@ -261,12 +261,12 @@ export async function createBusiness(data: any): Promise<Business> {
 }
 
 export async function getBusiness(id: number): Promise<Business> {
-  const res = await fetch(`${API_URL}/business/${id}`, { headers: getHeaders() });
+  const res = await fetch(`${API_URL}/properties/${id}`, { headers: getHeaders() });
   return handleResponse(res);
 }
 
 export async function updateBusiness(id: number, data: any): Promise<Business> {
-  const res = await fetch(`${API_URL}/business/${id}`, {
+  const res = await fetch(`${API_URL}/properties/${id}`, {
     method: "PATCH",
     headers: getHeaders(),
     body: JSON.stringify(data),
@@ -275,7 +275,7 @@ export async function updateBusiness(id: number, data: any): Promise<Business> {
 }
 
 export async function deleteBusiness(id: number): Promise<void> {
-  const res = await fetch(`${API_URL}/business/${id}`, {
+  const res = await fetch(`${API_URL}/properties/${id}`, {
     method: "DELETE",
     headers: getHeaders(),
   });
@@ -288,7 +288,7 @@ export async function getDashboardSummary() {
 }
 
 export async function getBusinessDashboardSummary(businessId: string | number) {
-  const res = await fetch(`${API_URL}/dashboard/business/${businessId}`, { headers: getHeaders() });
+  const res = await fetch(`${API_URL}/dashboard/property/${businessId}`, { headers: getHeaders() });
   return handleResponse(res);
 }
 
@@ -350,7 +350,7 @@ export async function deleteAppointment(id: number): Promise<void> {
 
 export async function getAppointmentsByRange(from: string, to: string, businessId?: string): Promise<Booking[]> {
   let url = `${API_URL}/bookings/calendar?from=${from}&to=${to}`;
-  if (businessId) url += `&businessId=${businessId}`;
+  if (businessId) url += `&propertyId=${businessId}`;
   try {
     const res = await fetch(url, { headers: getHeaders() });
     return handleResponse(res) || [];
@@ -364,7 +364,7 @@ export async function getAppointmentsByRange(from: string, to: string, businessI
 
 export async function getBookingsByBusiness(businessId: string, page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: Booking[], total: number }> {
   const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
-  const res = await fetch(`${API_URL}/bookings/business/${businessId}?${params.toString()}`, { headers: getHeaders() });
+  const res = await fetch(`${API_URL}/bookings/property/${businessId}?${params.toString()}`, { headers: getHeaders() });
   return handleResponse(res) || { data: [], total: 0 };
 }
 
@@ -419,7 +419,7 @@ export async function deleteBooking(id: number): Promise<void> {
 
 export async function getPayments(page: number = 1, limit: number = 20, search: string = '', businessId: string = ''): Promise<{ data: Payment[], total: number }> {
   const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
-  if (businessId) params.append('businessId', businessId);
+  if (businessId) params.append('propertyId', businessId);
   const res = await fetch(`${API_URL}/payments?${params.toString()}`, { headers: getHeaders() });
   return handleResponse(res) || { data: [], total: 0 };
 }

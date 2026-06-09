@@ -20,7 +20,7 @@ export default function LandingPage() {
           Software de gestión de reservas líder
         </div>
         <h1 className={styles.heroTitle}>
-          Impulsa tu negocio con reservas online inteligentes
+          Impulsa tu propiedad con reservas online inteligentes
         </h1>
         <p className={styles.heroSubtitle}>
           Simplifica la gestión de tus citas, atrae a más clientes y reduce las ausencias con Yoku. La plataforma integral para empresas de servicios que buscan crecer sin complicaciones.
@@ -63,7 +63,7 @@ export default function LandingPage() {
                 <span className={styles.featureEyebrow}>Reservas Inteligentes</span>
                 <h3 className={styles.featureTitle}>Agenda 24/7 sin interrupciones</h3>
                 <p className={styles.featureDesc}>
-                  Tus clientes pueden reservar sus citas en cualquier momento desde cualquier dispositivo. Deja que Yoku trabaje por ti incluso cuando tu negocio está cerrado.
+                  Tus clientes pueden reservar sus citas en cualquier momento desde cualquier dispositivo. Deja que Yoku trabaje por ti incluso cuando tu propiedad está cerrado.
                 </p>
                 <ul className={styles.featureListItems}>
                   <li className={styles.featureListItem}>

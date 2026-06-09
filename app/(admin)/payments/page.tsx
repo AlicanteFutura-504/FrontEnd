@@ -1,6 +1,6 @@
 /**
  * @fileoverview Ruta /payments deshabilitada.
- * Los pagos se gestionan por negocio desde /business/[id].
+ * Los pagos se gestionan por propiedad desde /properties/[id].
  * Cualquier acceso directo a esta ruta es redirigido al dashboard.
  */
 

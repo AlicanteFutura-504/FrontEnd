@@ -135,7 +135,7 @@ export default function ClientExplorePage() {
           ))
         ) : (
           <div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)" }}>
-            No se encontraron negocios.
+            No se encontraron propiedads.
           </div>
         )}
 

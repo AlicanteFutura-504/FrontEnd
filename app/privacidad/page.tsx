@@ -22,7 +22,7 @@ export default function PrivacidadPage() {
 
           <section className={styles.section}>
             <h2>A. Sistema de Reservas y Gestión Yoku</h2>
-            <p>Para proporcionar nuestros servicios de agenda y reservas, procesamos datos de los Comercios (como nombre, correo electrónico, datos de facturación, detalles del negocio) necesarios para la ejecución del contrato y la gestión de la cuenta.</p>
+            <p>Para proporcionar nuestros servicios de agenda y reservas, procesamos datos de los Comercios (como nombre, correo electrónico, datos de facturación, detalles del propiedad) necesarios para la ejecución del contrato y la gestión de la cuenta.</p>
             <p>Para los Clientes Finales que reservan a través de la plataforma de un Comercio, Yoku actúa como encargado del tratamiento. Procesamos nombre, correo electrónico, teléfono y detalles de la reserva exclusivamente según las instrucciones del Comercio para facilitar la prestación de su servicio.</p>
           </section>
 
@@ -56,7 +56,7 @@ export default function PrivacidadPage() {
 
           <section className={styles.section}>
             <h2>IV. Envío de Comunicaciones Comerciales</h2>
-            <p>Si nos has dado tu consentimiento (por ejemplo, al registrarte en nuestra plataforma o suscribirte a nuestra newsletter), podemos enviarte correos electrónicos con consejos de negocio, actualizaciones de producto u ofertas promocionales de Yoku. Puedes darte de baja en cualquier momento haciendo clic en el enlace "Darse de baja" al final de cualquiera de estos correos electrónicos.</p>
+            <p>Si nos has dado tu consentimiento (por ejemplo, al registrarte en nuestra plataforma o suscribirte a nuestra newsletter), podemos enviarte correos electrónicos con consejos de propiedad, actualizaciones de producto u ofertas promocionales de Yoku. Puedes darte de baja en cualquier momento haciendo clic en el enlace "Darse de baja" al final de cualquiera de estos correos electrónicos.</p>
           </section>
 
           <section className={styles.section}>

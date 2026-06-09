@@ -36,7 +36,7 @@ export default function DashboardPage() {
     if (!user) return; // Prevent Unauthorized errors before auth is fully initialized
 
     if (user.role === 'business' && user.businessId) {
-      router.replace(`/business/${user.businessId}`);
+      router.replace(`/properties/${user.businessId}`);
       return;
     }
 
@@ -89,12 +89,11 @@ export default function DashboardPage() {
           <tr><th colspan="7" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Reservas Exportadas</th></tr>
           <tr>
             <th style="background-color: #e5e7eb;">ID</th>
-            <th style="background-color: #e5e7eb;">Fecha</th>
-            <th style="background-color: #e5e7eb;">Hora</th>
-            <th style="background-color: #e5e7eb;">Servicio</th>
+            <th style="background-color: #e5e7eb;">Entrada</th>
+            <th style="background-color: #e5e7eb;">Salida</th>
             <th style="background-color: #e5e7eb;">Precio</th>
             <th style="background-color: #e5e7eb;">Cliente</th>
-            <th style="background-color: #e5e7eb;">Negocio</th>
+            <th style="background-color: #e5e7eb;">Propiedad</th>
             <th style="background-color: #e5e7eb;">Estado</th>
           </tr>
         </thead>
@@ -102,12 +101,11 @@ export default function DashboardPage() {
           ${bookings.length > 0 ? bookings.map((b: any) => `
             <tr>
               <td>${b.id}</td>
-              <td>${formatDate(b.date)}</td>
-              <td>${b.time ?? ''}</td>
-              <td>${b.serviceName}</td>
+              <td>${formatDate(b.checkInDate)}</td>
+              <td>${formatDate(b.checkOutDate)}</td>
               <td>${b.payment?.amount ?? ''}</td>
               <td>${b.customerName ?? customerNamesById.get(b.usuarioId) ?? ''}</td>
-              <td>${b.businessName ?? businessNamesById.get(b.businessId) ?? ''}</td>
+              <td>${b.propertyName ?? businessNamesById.get(b.propertyId) ?? ''}</td>
               <td>${b.status}</td>
             </tr>
           `).join('') : `
@@ -166,7 +164,7 @@ export default function DashboardPage() {
     <div className="page-stack">
       <section className="page-hero">
         <div>
-          <h2 className="text-3xl font-bold">Visión Global del Negocio</h2>
+          <h2 className="text-3xl font-bold">Visión Global del Propiedad</h2>
           <p className="text-gray-500">Resumen consolidado de tus {data.totalBusinesses} establecimientos.</p>
         </div>
         <button className="primary-btn" type="button" onClick={handleExport} disabled={exporting}>
@@ -185,24 +183,26 @@ export default function DashboardPage() {
         <div className="section-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Últimas Reservas (Consolidado)</h3>
-            <Link href="/business" className="text-blue-600 font-bold hover:underline">Ver Negocios</Link>
+            <Link href="/properties" className="text-blue-600 font-bold hover:underline">Ver Propiedads</Link>
           </div>
           <table className="data-table">
             <thead>
               <tr>
-                <th>Fecha</th>
-                <th>Servicio</th>
-                <th>Negocio</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Cliente</th>
+                <th>Propiedad</th>
                 <th>Estado</th>
               </tr>
             </thead>
             <tbody>
               {data.latestBookings.map((booking: any) => (
                 <tr key={booking.id}>
-                  <td style={{ fontWeight: 600 }}>{formatDate(booking.date)}</td>
-                  <td>{booking.serviceName}</td>
+                  <td style={{ fontWeight: 600 }}>{formatDate(booking.checkInDate)}</td>
+                  <td>{formatDate(booking.checkOutDate)}</td>
+                  <td>{booking.customerName}</td>
                   <td className="text-blue-600 font-medium">
-                    {booking.businessName}
+                    {booking.propertyName}
                   </td>
                   <td><Badge status={booking.status} /></td>
                 </tr>

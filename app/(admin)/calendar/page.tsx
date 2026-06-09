@@ -183,7 +183,7 @@ export default function CalendarPage() {
   const loading = loadingAppointments || loadingMetadata;
 
   const businessName = (id: number) =>
-    businessById.get(id)?.nombre ?? `Negocio #${id}`;
+    businessById.get(id)?.nombre ?? `Propiedad #${id}`;
 
   const customerName = (id: number) => {
     const c = customerById.get(id);
@@ -376,7 +376,7 @@ export default function CalendarPage() {
               }}>
                 {selectedBookings.slice(0, 50).map((b) => (
                 <Link 
-                  href={`/business/${b.businessId}/bookings`}
+                  href={`/properties/${b.businessId}/bookings`}
                   key={b.id} 
                   style={{ ...bookingCardStyle, textDecoration: "none", cursor: "pointer", display: "block" }}
                 >

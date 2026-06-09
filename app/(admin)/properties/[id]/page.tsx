@@ -65,7 +65,7 @@ export default function BusinessDashboardPage() {
         setSummary(summaryResp);
       } catch (err: any) {
         console.error('Error fetching business dashboard:', err);
-        setError(err?.message || 'Error al cargar los datos del negocio');
+        setError(err?.message || 'Error al cargar los datos del propiedad');
       } finally {
         setLoading(false);
       }
@@ -76,7 +76,7 @@ export default function BusinessDashboardPage() {
 
   if (loading) return <Loading />;
   if (error) return <div className="p-8" style={{ color: 'var(--danger)' }}>Error: {error}</div>;
-  if (!business) return <div className="p-8" style={{ color: 'var(--danger)' }}>Negocio no encontrado o sin acceso. ID: {businessId}</div>;
+  if (!business) return <div className="p-8" style={{ color: 'var(--danger)' }}>Propiedad no encontrado o sin acceso. ID: {businessId}</div>;
 
   const avgPerService = summary && summary.totalBookings > 0
     ? (summary.totalRevenue / summary.totalBookings).toFixed(2)
@@ -113,12 +113,11 @@ export default function BusinessDashboardPage() {
           <tr><th colspan="7" style="font-size: 20px; background-color: #f3f4f6; text-align: center;">Reservas Exportadas</th></tr>
           <tr>
             <th style="background-color: #e5e7eb;">ID</th>
-            <th style="background-color: #e5e7eb;">Fecha</th>
-            <th style="background-color: #e5e7eb;">Hora</th>
-            <th style="background-color: #e5e7eb;">Servicio</th>
+            <th style="background-color: #e5e7eb;">Entrada</th>
+            <th style="background-color: #e5e7eb;">Salida</th>
             <th style="background-color: #e5e7eb;">Precio</th>
             <th style="background-color: #e5e7eb;">Cliente</th>
-            <th style="background-color: #e5e7eb;">Negocio</th>
+            <th style="background-color: #e5e7eb;">Propiedad</th>
             <th style="background-color: #e5e7eb;">Estado</th>
           </tr>
         </thead>
@@ -126,12 +125,11 @@ export default function BusinessDashboardPage() {
           ${bookings.length > 0 ? bookings.map((b: any) => `
             <tr>
               <td>${b.id}</td>
-              <td>${formatDate(b.date)}</td>
-              <td>${b.time ?? ''}</td>
-              <td>${b.serviceName}</td>
+              <td>${formatDate(b.checkInDate)}</td>
+              <td>${formatDate(b.checkOutDate)}</td>
               <td>${b.payment?.amount ?? ''}</td>
               <td>${b.customerName ?? customerNamesById.get(b.usuarioId) ?? ''}</td>
-              <td>${b.businessName ?? business.nombre ?? ''}</td>
+              <td>${b.propertyName ?? business.nombre ?? ''}</td>
               <td>${b.status}</td>
             </tr>
           `).join('') : `
@@ -177,8 +175,8 @@ export default function BusinessDashboardPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error exportando reporte del negocio:', error);
-      alert('No se pudo exportar el reporte del negocio. Revisa la consola para más detalles.');
+      console.error('Error exportando reporte del propiedad:', error);
+      alert('No se pudo exportar el reporte del propiedad. Revisa la consola para más detalles.');
     } finally {
       setExporting(false);
     }
@@ -201,8 +199,8 @@ export default function BusinessDashboardPage() {
             </button>
           ) : (
             <>
-              <Link href={`/business/${businessId}/bookings`} className="primary-btn">Nueva Reserva</Link>
-              <Link href="/business" className="secondary-btn">Volver al listado</Link>
+              <Link href={`/properties/${businessId}/bookings`} className="primary-btn">Nueva Reserva</Link>
+              <Link href="/properties" className="secondary-btn">Volver al listado</Link>
             </>
           )}
         </div>
@@ -219,21 +217,23 @@ export default function BusinessDashboardPage() {
         <section className="section-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Actividad Reciente</h3>
-            <Link href={`/business/${businessId}/bookings`} className="panel-subtle-link">Ver todas</Link>
+            <Link href={`/properties/${businessId}/bookings`} className="panel-subtle-link">Ver todas</Link>
           </div>
           <table className="data-table">
             <thead>
               <tr>
-                <th>Fecha</th>
-                <th>Servicio</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Cliente</th>
                 <th>Estado</th>
               </tr>
             </thead>
             <tbody>
               {(summary?.latestBookings ?? []).map(b => (
                 <tr key={b.id}>
-                  <td style={{ fontWeight: 600 }}>{formatDate(b.date)}</td>
-                  <td>{b.serviceName}</td>
+                  <td style={{ fontWeight: 600 }}>{formatDate(b.checkInDate)}</td>
+                  <td>{formatDate(b.checkOutDate)}</td>
+                  <td>{b.customerName}</td>
                   <td>
                     <Badge status={b.status as any} />
                   </td>
@@ -255,8 +255,8 @@ export default function BusinessDashboardPage() {
             <p className="info-box__eyebrow">Próxima Cita</p>
             {summary?.latestBookings?.[0] ? (
               <>
-                <p className="info-box__title">{summary.latestBookings[0].serviceName}</p>
-                <p className="info-box__text">{formatDate(summary.latestBookings[0].date)} a las {summary.latestBookings[0].time}</p>
+                <p className="info-box__title">Reserva #{summary.latestBookings[0].id}</p>
+                <p className="info-box__text">Entrada: {formatDate(summary.latestBookings[0].checkInDate)}</p>
               </>
             ) : (
               <p className="info-box__text">Sin citas próximas</p>
@@ -272,7 +272,7 @@ export default function BusinessDashboardPage() {
           <div className="info-box" style={{ borderLeft: '4px solid var(--warning)' }}>
             <p className="info-box__eyebrow">Pendientes</p>
             <p className="info-box__title">{summary?.pendingBookings ?? 0} reservas sin confirmar</p>
-            <Link href={`/business/${businessId}/bookings`} className="panel-subtle-link" style={{ fontSize: '13px' }}>
+            <Link href={`/properties/${businessId}/bookings`} className="panel-subtle-link" style={{ fontSize: '13px' }}>
               Gestionar →
             </Link>
           </div>

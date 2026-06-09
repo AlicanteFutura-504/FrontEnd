@@ -14,7 +14,7 @@ export default function Sidebar() {
   const { user } = useAuth();
   const pathname = usePathname();
 
-  const isInsideBusiness = pathname.startsWith("/business/") && pathname !== "/business";
+  const isInsideBusiness = pathname.startsWith("/properties/") && pathname !== "/properties";
   const urlBusinessId = isInsideBusiness ? pathname.split("/")[2] : null;
 
   const isBusinessRole = user?.role === 'business';
@@ -140,13 +140,13 @@ export default function Sidebar() {
           <div className="admin-sidebar__dropdown-container">
             <div className="admin-sidebar__link-wrapper">
               <Link 
-                href="/business" 
-                className={`admin-sidebar__link ${pathname === "/business" || (isInsideBusiness && user?.username === 'root') ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
+                href="/properties" 
+                className={`admin-sidebar__link ${pathname === "/properties" || (isInsideBusiness && user?.username === 'root') ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
                 style={{ flex: 1, paddingRight: collapsed ? undefined : '4px' }}
-                title={collapsed ? "Business" : ""}
+                title={collapsed ? "Propiedades" : ""}
               >
                 <span className="shrink-0"><BriefcaseIcon /></span>
-                <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Business</span>
+                <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Propiedades</span>
               </Link>
               {!collapsed && user?.username !== 'root' && businesses.length > 0 && (
                 <button 
@@ -163,7 +163,7 @@ export default function Sidebar() {
                 {businesses.map((b) => (
                   <Link
                     key={b.id}
-                    href={`/business/${b.id}`}
+                    href={`/properties/${b.id}`}
                     className={`admin-sidebar__submenu-link ${effectiveBusinessId === String(b.id) ? "admin-sidebar__submenu-link--active" : ""}`}
                   >
                     {b.nombre}
@@ -180,15 +180,15 @@ export default function Sidebar() {
               {businesses.find(b => String(b.id) === effectiveBusinessId)?.nombre || 'Gestión'}
             </p>
             <Link 
-              href={`/business/${effectiveBusinessId}`} 
-              className={`admin-sidebar__link ${pathname === `/business/${effectiveBusinessId}` ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
+              href={`/properties/${effectiveBusinessId}`} 
+              className={`admin-sidebar__link ${pathname === `/properties/${effectiveBusinessId}` ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
               title={collapsed ? "Dashboard" : ""}
             >
               <span className="shrink-0"><DashboardIcon /></span>
               <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Dashboard</span>
             </Link>
             <Link 
-              href={`/business/${effectiveBusinessId}/bookings`} 
+              href={`/properties/${effectiveBusinessId}/bookings`} 
               className={`admin-sidebar__link ${pathname.includes("/bookings") ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
               title={collapsed ? "Reservas" : ""}
             >
@@ -196,7 +196,7 @@ export default function Sidebar() {
               <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Reservas</span>
             </Link>
             <Link 
-              href={`/business/${effectiveBusinessId}/customers`} 
+              href={`/properties/${effectiveBusinessId}/customers`} 
               className={`admin-sidebar__link ${pathname.includes("/customers") ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
               title={collapsed ? "Clientes" : ""}
             >
@@ -204,7 +204,7 @@ export default function Sidebar() {
               <span className={`nav-label ${collapsed ? 'nav-label--hidden' : ''}`}>Clientes</span>
             </Link>
             <Link 
-              href={`/business/${effectiveBusinessId}/payments`} 
+              href={`/properties/${effectiveBusinessId}/payments`} 
               className={`admin-sidebar__link ${pathname.includes("/payments") ? "admin-sidebar__link--active" : ""} ${collapsed ? 'justify-center' : ''}`}
               title={collapsed ? "Pagos" : ""}
             >

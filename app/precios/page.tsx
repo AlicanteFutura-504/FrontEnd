@@ -12,7 +12,7 @@ export default function PricingPage() {
 
       {/* Hero Section */}
       <section className={styles.hero} style={{ paddingBottom: '2rem' }}>
-        <h1 className={styles.heroTitle}>Planes sencillos para hacer crecer tu negocio</h1>
+        <h1 className={styles.heroTitle}>Planes sencillos para hacer crecer tu propiedad</h1>
         <p className={styles.heroSubtitle}>
           Elige el plan que mejor se adapte a tus necesidades. Sin contratos a largo plazo, cancela cuando quieras.
         </p>
@@ -96,7 +96,7 @@ export default function PricingPage() {
           {/* Plan Premium */}
           <div className={styles.pricingCard}>
             <h3 className={styles.pricingName}>Premium</h3>
-            <p className={styles.pricingDesc}>Para negocios en expansión y clínicas.</p>
+            <p className={styles.pricingDesc}>Para propiedads en expansión y clínicas.</p>
             <div className={styles.pricingPrice}>
               <span className={styles.pricingCurrency}>€</span>
               <span>49</span>

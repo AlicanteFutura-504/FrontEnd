@@ -1,6 +1,6 @@
 /**
  * @fileoverview Ruta /customers deshabilitada.
- * Los clientes se gestionan por negocio desde /business/[id].
+ * Los clientes se gestionan por propiedad desde /properties/[id].
  * Cualquier acceso directo a esta ruta es redirigido al dashboard.
  */
 

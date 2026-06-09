@@ -45,7 +45,7 @@ export default function ComingSoonPage({ title, description, icon, bgImage, bgPo
             Próximamente
           </div>
           <p style={{ fontSize: '1.25rem', color: bgImage ? '#e2e8f0' : '#64748b', lineHeight: '1.6', marginBottom: '3rem' }}>
-            {description || `Estamos trabajando duro para adaptar todas las funcionalidades de Yoku específicamente para tu ${title.toLowerCase()}. Muy pronto podrás descubrir cómo podemos ayudarte a automatizar y hacer crecer tu negocio.`}
+            {description || `Estamos trabajando duro para adaptar todas las funcionalidades de Yoku específicamente para tu ${title.toLowerCase()}. Muy pronto podrás descubrir cómo podemos ayudarte a automatizar y hacer crecer tu propiedad.`}
           </p>
           <Link href="/" className={styles.btnPrimary} style={{ padding: '1rem 2rem', fontSize: '1.125rem' }}>
             Volver al inicio

@@ -72,8 +72,8 @@ export default function ClientBookPage({ params }: { params: { id: string } }) {
     await processBooking("paid");
   };
 
-  if (loading) return <div style={{ padding: 40, textAlign: "center" }}>Cargando negocio...</div>;
-  if (!business) return <div style={{ padding: 40, textAlign: "center" }}>Negocio no encontrado.</div>;
+  if (loading) return <div style={{ padding: 40, textAlign: "center" }}>Cargando propiedad...</div>;
+  if (!business) return <div style={{ padding: 40, textAlign: "center" }}>Propiedad no encontrado.</div>;
 
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24, background: "var(--surface)", borderRadius: 12, border: "1px solid var(--border)" }}>

@@ -7,7 +7,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { getBusinesses, deleteBusiness } from "@/lib/api";
 import { Business } from "@/lib/types";
 
-export default function BusinessListPage() {
+export default function PropertiesListPage() {
   const { user } = useAuth();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +51,7 @@ export default function BusinessListPage() {
 
   const handleDelete = async (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
-    if (!confirm("¿Estás seguro de que quieres eliminar este negocio?")) return;
+    if (!confirm("¿Estás seguro de que quieres eliminar esta propiedad?")) return;
 
     try {
       await deleteBusiness(id);
@@ -67,15 +67,15 @@ export default function BusinessListPage() {
     <div className="page-stack">
       <header className="page-hero">
         <div>
-          <h2>Mis Negocios</h2>
-          <p>Gestiona y monitoriza todos tus locales desde una vista centralizada.</p>
+          <h2>Mis Propiedades</h2>
+          <p>Gestiona y monitoriza todos tus apartamentos desde una vista centralizada.</p>
         </div>
         {user?.role === 'admin' && (
           <Link 
-            href="/business/new" 
+            href="/properties/new" 
             className="primary-btn"
           >
-            + Añadir Negocio
+            + Añadir Propiedad
           </Link>
         )}
       </header>
@@ -165,13 +165,13 @@ export default function BusinessListPage() {
             key={b.id} 
             className="customer-card"
             style={{ cursor: 'pointer', position: 'relative' }}
-            onClick={() => window.location.href = `/business/${b.id}`}
+            onClick={() => window.location.href = `/properties/${b.id}`}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div style={{ fontSize: '24px', background: 'var(--primary-soft)', padding: '10px', borderRadius: '12px' }}>🏢</div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <Link 
-                  href={`/business/edit/${b.id}`}
+                  href={`/properties/edit/${b.id}`}
                   className="secondary-btn"
                   style={{ padding: '6px 10px', fontSize: '12px' }}
                   onClick={(e) => e.stopPropagation()}
@@ -203,16 +203,16 @@ export default function BusinessListPage() {
             </div>
 
             <div className="customer-next" style={{ color: 'var(--accent)', fontWeight: 600, marginTop: '16px' }}>
-              Gestionar local →
+              Gestionar propiedad →
             </div>
           </div>
         ))}
 
         {businesses.length === 0 && (
           <div className="section-card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px' }}>
-            <p style={{ color: 'var(--muted)' }}>Aún no hay ningún negocio para mostrar.</p>
+            <p style={{ color: 'var(--muted)' }}>Aún no hay ninguna propiedad para mostrar.</p>
             {user?.role === 'admin' && (
-              <Link href="/business/new" className="panel-subtle-link" style={{ marginTop: '12px', display: 'inline-block' }}>
+              <Link href="/properties/new" className="panel-subtle-link" style={{ marginTop: '12px', display: 'inline-block' }}>
                 Añadir el primero
               </Link>
             )}

@@ -85,7 +85,7 @@ export default function BusinessCustomersPage() {
           <button onClick={() => setIsAddModalOpen(true)} className="primary-btn">
             + Añadir Cliente
           </button>
-          <Link href={`/business/${businessId}`} className="secondary-btn">Volver al Panel</Link>
+          <Link href={`/properties/${businessId}`} className="secondary-btn">Volver al Panel</Link>
         </div>
       </header>
 

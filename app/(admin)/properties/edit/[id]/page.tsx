@@ -1,62 +1,77 @@
 "use client";
 
-import React, { useState } from "react";
-import { createBusiness } from "@/lib/api";
-import { useAuth } from "@/components/AuthProvider";
+import React, { useState, useEffect } from "react";
+import Loading from "@/components/ui/Loading";
+import { getBusiness, updateBusiness } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
-export default function NewBusinessPage() {
-  const { user } = useAuth();
+export default function EditBusinessPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
   const router = useRouter();
   const [formData, setFormData] = useState({
     nombre: "",
     direccion: "",
     telefono: "",
-    username: "",
-    email: "",
-    contrasena: "",
   });
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  useEffect(() => {
+    const fetchBusiness = async () => {
+      try {
+        const business = await getBusiness(Number(id));
+        setFormData({
+          nombre: business.nombre || "",
+          direccion: business.direccion || "",
+          telefono: business.telefono || "",
+        });
+      } catch (error: any) {
+        setAlert({
+          type: "error",
+          message: error.message || "No se pudo cargar la información del propiedad.",
+        });
+      } finally {
+        setFetching(false);
+      }
+    };
+    fetchBusiness();
+  }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleCreateBusiness = async (e: React.FormEvent) => {
+  const handleUpdateBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
     setAlert(null);
-
-    if (!user) return;
-
     setLoading(true);
 
     try {
-      await createBusiness({
-        ...formData,
-        usuarioId: user.id
-      });
+      await updateBusiness(Number(id), formData);
       setAlert({
         type: "success",
-        message: `¡Negocio '${formData.nombre}' añadido exitosamente!`,
+        message: `¡Propiedad actualizado exitosamente!`,
       });
-      setTimeout(() => router.push("/business"), 1500);
+      setTimeout(() => router.push("/properties"), 1500);
     } catch (error: any) {
       setAlert({
         type: "error",
-        message: error.message || "No se pudo añadir el negocio.",
+        message: error.message || "No se pudo actualizar el propiedad.",
       });
     } finally {
       setLoading(false);
     }
   };
 
+  if (fetching) return <Loading />;
+
   return (
     <div className="page-stack">
       <header className="page-hero">
         <div>
-          <h2>Añadir Nuevo Negocio</h2>
-          <p>Configura el perfil de tu local y genera sus credenciales de acceso para el personal.</p>
+          <h2>Editar Propiedad</h2>
+          <p>Modifica la información de tu local.</p>
         </div>
       </header>
 
@@ -67,7 +82,7 @@ export default function NewBusinessPage() {
           </div>
         )}
 
-        <form onSubmit={handleCreateBusiness} className="page-stack">
+        <form onSubmit={handleUpdateBusiness} className="page-stack">
           <div>
             <h3 className="panel-title" style={{ marginBottom: '16px' }}>Información Comercial</h3>
             <div className="form-grid">
@@ -86,27 +101,12 @@ export default function NewBusinessPage() {
             </div>
           </div>
 
-          <div style={{ marginTop: '12px', paddingTop: '24px', borderTop: '1px solid var(--border)' }}>
-            <h3 className="panel-title" style={{ marginBottom: '16px' }}>Acceso del Local</h3>
-            <div className="form-grid">
-              <div className="input-group">
-                <label className="kpi-card__label">Usuario (para el personal)</label>
-                <input name="username" value={formData.username} onChange={handleChange} required className="input" placeholder="usuario_local" />
-              </div>
-              <div className="input-group">
-                <label className="kpi-card__label">Email corporativo</label>
-                <input name="email" type="email" value={formData.email} onChange={handleChange} required className="input" placeholder="local@negocio.com" />
-              </div>
-              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-                <label className="kpi-card__label">Contraseña de acceso</label>
-                <input name="contrasena" type="password" value={formData.contrasena} onChange={handleChange} required className="input" placeholder="••••••••" />
-              </div>
-            </div>
-          </div>
-
-          <div className="message-row" style={{ marginTop: '12px' }}>
-            <button type="submit" disabled={loading} className="primary-btn" style={{ width: '100%', padding: '16px' }}>
-              {loading ? "Procesando..." : "Finalizar y Añadir Negocio"}
+          <div className="message-row" style={{ marginTop: '12px', display: 'flex', gap: '12px' }}>
+            <button type="submit" disabled={loading} className="primary-btn" style={{ flex: 1, padding: '16px' }}>
+              {loading ? "Guardando..." : "Guardar Cambios"}
+            </button>
+            <button type="button" onClick={() => router.push("/properties")} className="secondary-btn" style={{ flex: 1, padding: '16px' }}>
+              Cancelar
             </button>
           </div>
         </form>
