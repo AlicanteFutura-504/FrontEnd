@@ -809,6 +809,12 @@ body::after {
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
+.badge--paid {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
 .badge--modified {
   background: var(--info-bg);
   color: var(--info);
