@@ -178,7 +178,7 @@ export default function BusinessBookingsPage() {
     fetchCalendar();
   }, [businessId, viewYear, viewMonth, viewMode]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleSaveBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
@@ -196,13 +196,22 @@ export default function BusinessBookingsPage() {
         usuarioId = newCust.id;
       }
 
-      await createBooking({
-        checkInDate: formData.checkInDate,
-        checkOutDate: formData.checkOutDate,
-        status: "pending",
-        usuarioId,
-        propertyId: Number(businessId),
-      });
+      if (editBookingId && isModalOpen) {
+        await updateBooking(editBookingId, {
+          checkInDate: formData.checkInDate,
+          checkOutDate: formData.checkOutDate,
+          usuarioId,
+        });
+      } else {
+        await createBooking({
+          checkInDate: formData.checkInDate,
+          checkOutDate: formData.checkOutDate,
+          status: "pending",
+          usuarioId,
+          propertyId: Number(businessId),
+        });
+      }
+
       if (viewMode === 'list') {
         await fetchBookings(page, search);
       } else {
@@ -212,10 +221,12 @@ export default function BusinessBookingsPage() {
         setCalendarBookings(result);
       }
       setIsModalOpen(false);
+      setEditBookingId(null);
       setFormData({ checkInDate: "", checkOutDate: "", customerEmail: "", customerNombreCompleto: "", customerPhone: "" });
       setFoundCustomer(undefined);
     } catch (err) {
-      console.error("Error creating booking", err);
+      console.error("Error saving booking", err);
+      alert("Error al guardar la reserva. Puede que haya un solapamiento de fechas.");
     } finally {
       setIsSubmitting(false);
     }
@@ -284,7 +295,7 @@ export default function BusinessBookingsPage() {
         <div className="modal-backdrop">
           <div className="modal-card" style={{ maxWidth: 520, width: '100%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 className="modal-title" style={{ margin: 0 }}>Nueva Reserva</h3>
+              <h3 className="modal-title" style={{ margin: 0 }}>{editBookingId ? "Editar Reserva" : "Nueva Reserva"}</h3>
               <button 
                 onClick={() => { setIsModalOpen(false); setFoundCustomer(undefined); }}
                 style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--muted)' }}
@@ -292,7 +303,7 @@ export default function BusinessBookingsPage() {
                 &times;
               </button>
             </div>
-            <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <form onSubmit={handleSaveBooking} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
               {/* ── Datos del cliente ── */}
               <p style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Datos del cliente</p>
@@ -365,10 +376,15 @@ export default function BusinessBookingsPage() {
               <input required type="date" className="input" value={formData.checkInDate} onChange={e => setFormData(f => ({ ...f, checkInDate: e.target.value }))} />
               <input required type="date" className="input" value={formData.checkOutDate} onChange={e => setFormData(f => ({ ...f, checkOutDate: e.target.value }))} />
 
+              <div style={{ fontSize: 12, color: '#6b7280', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 6, padding: '8px 10px', marginTop: '4px' }}>
+                <span style={{ display: 'block', fontWeight: 600, marginBottom: '2px' }}>Aviso de Limpieza</span>
+                Recuerde que el Check-in se realiza a partir de las 15:00 y el Check-out antes de las 11:00. Esto garantiza 4 horas de margen para los servicios de limpieza el mismo día.
+              </div>
+
               <div className="modal-actions" style={{ marginTop: 8 }}>
                 <button type="button" className="secondary-btn" onClick={() => { setIsModalOpen(false); setFoundCustomer(undefined); }}>Cancelar</button>
                 <button type="submit" className="primary-btn" disabled={isSubmitting || foundCustomer === undefined}>
-                  {isSubmitting ? 'Guardando...' : foundCustomer ? 'Crear reserva (cliente existente)' : 'Crear reserva (cliente nuevo)'}
+                  {isSubmitting ? 'Guardando...' : editBookingId ? 'Actualizar reserva' : foundCustomer ? 'Crear reserva (cliente existente)' : 'Crear reserva (cliente nuevo)'}
                 </button>
               </div>
             </form>
@@ -413,13 +429,15 @@ export default function BusinessBookingsPage() {
                 <div key={d} className="calendar-header-cell">{d}</div>
               ))}
               {buildCalendarGrid(viewYear, viewMonth).map((cell, idx) => {
-                const dayBookings = calendarBookings.filter(b => b.checkInDate === cell.ymd);
+                const dayBookings = calendarBookings.filter(b => b.checkInDate && b.checkOutDate && cell.ymd >= b.checkInDate && cell.ymd < b.checkOutDate);
                 return (
                   <div 
                     key={`${cell.ymd}-${idx}`} 
                     className={`calendar-cell ${!cell.currentMonth ? 'calendar-cell--other-month' : ''} ${cell.today ? 'calendar-cell--today' : ''}`}
                     onClick={() => {
+                      setEditBookingId(null);
                       setFormData(f => ({ ...f, checkInDate: cell.ymd }));
+                      setFoundCustomer(undefined);
                       setIsModalOpen(true);
                     }}
                     style={{ cursor: 'pointer' }}
@@ -427,7 +445,27 @@ export default function BusinessBookingsPage() {
                     <div className="calendar-cell-date">{parseInt(cell.ymd.split('-')[2], 10)}</div>
                     <div className="calendar-cell-events">
                       {dayBookings.slice(0, 3).map(b => (
-                        <div key={b.id} className="calendar-event-dot" title={`#${b.id}`} style={{ backgroundColor: STATUS_DOT[b.status] || STATUS_DOT.pending }} />
+                        <div
+                          key={b.id}
+                          className="calendar-event-bar"
+                          title={`Reserva #${b.id}`}
+                          style={{ backgroundColor: STATUS_DOT[b.status] || STATUS_DOT.pending }}
+                          onClick={e => {
+                            e.stopPropagation();
+                            setEditBookingId(b.id);
+                            setFormData({
+                              checkInDate: b.checkInDate,
+                              checkOutDate: b.checkOutDate,
+                              customerEmail: b.usuario?.email || "",
+                              customerNombreCompleto: b.usuario?.nombreCompleto || "",
+                              customerPhone: b.usuario?.phone || "",
+                            });
+                            setFoundCustomer(b.usuario);
+                            setIsModalOpen(true);
+                          }}
+                        >
+                          {b.usuario?.nombreCompleto || b.usuario?.email || `Reserva #${b.id}`}
+                        </div>
                       ))}
                       {dayBookings.length > 3 && (
                         <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600 }}>+{dayBookings.length - 3}</span>
