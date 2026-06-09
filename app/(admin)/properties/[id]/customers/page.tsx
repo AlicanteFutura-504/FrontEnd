@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Loading from "@/components/ui/Loading";
-import { getClientsByBusiness, getBookingsByCustomer, updateClient, createClient } from "@/lib/api";
+import { getClientsByBusiness, getBookingsByCustomer, updateClient, createClient, getBusinessDashboardSummary } from "@/lib/api";
 import { User, Booking } from "@/lib/types";
 import Link from "next/link";
 
@@ -27,6 +27,21 @@ export default function BusinessCustomersPage() {
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<User | null>(null);
   const [editFormData, setEditFormData] = useState({ nombreCompleto: "" });
+
+  const [summary, setSummary] = useState<any>(null);
+
+  useEffect(() => {
+    if (!businessId) return;
+    const fetchSummary = async () => {
+      try {
+        const res = await getBusinessDashboardSummary(businessId);
+        setSummary(res);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchSummary();
+  }, [businessId]);
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -89,6 +104,18 @@ export default function BusinessCustomersPage() {
         </div>
       </header>
 
+      {summary && (
+        <div className="kpi-grid" style={{ marginBottom: '24px' }}>
+          <div className="kpi-card">
+            <div className="kpi-card__label">Total Clientes</div>
+            <div className="kpi-card__value">{summary.totalCustomers}</div>
+            <div className="kpi-card__meta kpi-card__meta--positive">
+              <span role="img" aria-label="users">👥</span> Registrados
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="section-card" style={{ padding: '16px' }}>
         <div className="search-row sticky-search" style={{ display: 'flex', alignItems: 'center', background: 'var(--surface-2)', padding: '12px 20px', borderRadius: '16px', border: '1px solid var(--border)' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)', marginRight: '12px' }}>
@@ -120,6 +147,13 @@ export default function BusinessCustomersPage() {
               <p className="customer-meta" style={{ fontSize: '13px' }}>📞 {c.phone || 'N/A'}</p>
               
               <div className="customer-next" style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <Link
+                  href={`/properties/${businessId}/customers/${c.id}`}
+                  className="primary-btn"
+                  style={{ width: '100%', textAlign: 'center' }}
+                >
+                  Ver Perfil de Cliente
+                </Link>
                 <button 
                   className="panel-subtle-link" 
                   style={{ width: '100%', textAlign: 'center' }}
@@ -129,13 +163,6 @@ export default function BusinessCustomersPage() {
                   }}
                 >
                   Editar Cliente
-                </button>
-                <button 
-                  className="panel-subtle-link" 
-                  style={{ width: '100%', textAlign: 'center' }}
-                  onClick={() => handleViewHistory(c)}
-                >
-                  Ver historial de citas
                 </button>
               </div>
             </div>

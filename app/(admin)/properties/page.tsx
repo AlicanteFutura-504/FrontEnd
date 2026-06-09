@@ -80,6 +80,16 @@ export default function PropertiesListPage() {
         )}
       </header>
 
+      <div className="kpi-grid" style={{ marginBottom: '24px' }}>
+        <div className="kpi-card">
+          <div className="kpi-card__label">Total Propiedades</div>
+          <div className="kpi-card__value">{total}</div>
+          <div className="kpi-card__meta kpi-card__meta--positive">
+            <span role="img" aria-label="buildings">🏢</span> Registradas en el sistema
+          </div>
+        </div>
+      </div>
+
       <div style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'flex', gap: '16px' }}>
           <input 

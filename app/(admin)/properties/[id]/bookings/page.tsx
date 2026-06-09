@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Loading from "@/components/ui/Loading";
-import { getBookingsByBusiness, createBooking, createClient, getClientByEmail, updateBooking, deleteBooking, getAppointmentsByRange } from "@/lib/api";
+import { getBookingsByBusiness, createBooking, createClient, getClientByEmail, updateBooking, deleteBooking, getAppointmentsByRange, getBusinessDashboardSummary } from "@/lib/api";
 import type { User } from "@/lib/types";
 import { Booking, CreateBookingDto, BookingStatus } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
@@ -112,6 +112,23 @@ export default function BusinessBookingsPage() {
   const [editBookingId, setEditBookingId] = useState<number | null>(null);
   const [editStatus, setEditStatus] = useState<BookingStatus>("pending");
   const [rowActionsId, setRowActionsId] = useState<number | null>(null);
+
+  // Summary state
+  const [summaryRange, setSummaryRange] = useState<"all" | "month" | "week">("all");
+  const [summary, setSummary] = useState<any>(null);
+
+  useEffect(() => {
+    if (!businessId) return;
+    const fetchSummary = async () => {
+      try {
+        const res = await getBusinessDashboardSummary(businessId, summaryRange);
+        setSummary(res);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchSummary();
+  }, [businessId, summaryRange]);
 
   const fetchBookings = async (p: number, s: string) => {
     setLoading(true);
@@ -432,10 +449,42 @@ export default function BusinessBookingsPage() {
 
       {viewMode === 'list' && (
       <section className="section-card">
-        <div className="panel-title-row">
+        <div className="panel-title-row" style={{ marginBottom: '16px' }}>
           <h3 className="panel-title">Historial de Citas</h3>
           <span style={{ color: "var(--muted)", fontSize: '14px' }}>{total} registros en total</span>
         </div>
+
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+          <button className={`secondary-btn ${summaryRange === 'all' ? 'active' : ''}`} style={summaryRange === 'all' ? { background: 'var(--accent-1)', color: 'white', borderColor: 'var(--accent-1)' } : {}} onClick={() => setSummaryRange('all')}>Histórico</button>
+          <button className={`secondary-btn ${summaryRange === 'month' ? 'active' : ''}`} style={summaryRange === 'month' ? { background: 'var(--accent-1)', color: 'white', borderColor: 'var(--accent-1)' } : {}} onClick={() => setSummaryRange('month')}>Mes Actual</button>
+          <button className={`secondary-btn ${summaryRange === 'week' ? 'active' : ''}`} style={summaryRange === 'week' ? { background: 'var(--accent-1)', color: 'white', borderColor: 'var(--accent-1)' } : {}} onClick={() => setSummaryRange('week')}>Semana Actual</button>
+        </div>
+
+        {summary && (
+          <div className="kpi-grid" style={{ marginBottom: '32px' }}>
+            <div className="kpi-card">
+              <div className="kpi-card__label">Ingresos Totales</div>
+              <div className="kpi-card__value">{summary.totalRevenue?.toFixed(2)} €</div>
+              <div className="kpi-card__meta kpi-card__meta--warning">
+                <span role="img" aria-label="pending">⏳</span> {summary.pendingRevenue?.toFixed(2)} € pendientes
+              </div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-card__label">Total Reservas</div>
+              <div className="kpi-card__value">{summary.totalBookings}</div>
+              <div className="kpi-card__meta kpi-card__meta--positive">
+                <span role="img" aria-label="chart">📈</span> Registradas
+              </div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-card__label">Reservas Pendientes</div>
+              <div className="kpi-card__value">{summary.pendingBookings}</div>
+              <div className="kpi-card__meta">
+                <span role="img" aria-label="users">👤</span> Faltan por confirmar
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="sticky-search" style={{ marginBottom: '24px', display: 'flex', gap: '16px', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
           <input 

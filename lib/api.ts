@@ -153,18 +153,9 @@ export async function getClients(page: number = 1, limit: number = 20, search: s
 
 export async function getAllClients(search: string = ''): Promise<User[]> {
   const PAGE_LIMIT = 1000;
-  let page = 1;
-  let allClients: User[] = [];
-  let total = 0;
-
-  do {
-    const response = await getClients(page, PAGE_LIMIT, search);
-    allClients = [...allClients, ...response.data];
-    total = response.total;
-    page += 1;
-  } while (allClients.length < total && page <= 20);
-
-  return allClients;
+  // Limitado a 1000 para evitar crasheos con base de datos masivas
+  const response = await getClients(1, PAGE_LIMIT, search);
+  return response.data;
 }
 
 export async function getClientByEmail(email: string): Promise<User | null> {
@@ -201,18 +192,9 @@ export async function updateClient(id: number, data: Partial<User>): Promise<Use
 
 export async function getAllClientsByBusiness(businessId: string, search: string = ''): Promise<User[]> {
   const PAGE_LIMIT = 1000;
-  let page = 1;
-  let allClients: User[] = [];
-  let total = 0;
-
-  do {
-    const response = await getClientsByBusiness(businessId, page, PAGE_LIMIT, search);
-    allClients = [...allClients, ...response.data];
-    total = response.total;
-    page += 1;
-  } while (allClients.length < total && page <= 20);
-
-  return allClients;
+  // Limitado a 1000 para evitar crasheos
+  const response = await getClientsByBusiness(businessId, 1, PAGE_LIMIT, search);
+  return response.data;
 }
 // --- BUSINESS ---
 
@@ -237,18 +219,9 @@ export async function getBusinesses(
 
 export async function getAllBusinesses(search: string = ''): Promise<Business[]> {
   const PAGE_LIMIT = 1000;
-  let page = 1;
-  let allBusinesses: Business[] = [];
-  let total = 0;
-
-  do {
-    const response = await getBusinesses(page, PAGE_LIMIT, search);
-    allBusinesses = [...allBusinesses, ...response.data];
-    total = response.total;
-    page += 1;
-  } while (allBusinesses.length < total && page <= 20);
-
-  return allBusinesses;
+  // Limitado a 1000
+  const response = await getBusinesses(1, PAGE_LIMIT, search);
+  return response.data;
 }
 
 export async function createBusiness(data: any): Promise<Business> {
@@ -282,13 +255,15 @@ export async function deleteBusiness(id: number): Promise<void> {
   return handleResponse(res);
 }
 
-export async function getDashboardSummary() {
-  const res = await fetch(`${API_URL}/dashboard/summary`, { headers: getHeaders() });
+export async function getDashboardSummary(range?: string) {
+  const url = range ? `${API_URL}/dashboard/summary?range=${range}` : `${API_URL}/dashboard/summary`;
+  const res = await fetch(url, { headers: getHeaders() });
   return handleResponse(res);
 }
 
-export async function getBusinessDashboardSummary(businessId: string | number) {
-  const res = await fetch(`${API_URL}/dashboard/property/${businessId}`, { headers: getHeaders() });
+export async function getBusinessDashboardSummary(businessId: string | number, range?: string) {
+  const url = range ? `${API_URL}/dashboard/property/${businessId}?range=${range}` : `${API_URL}/dashboard/property/${businessId}`;
+  const res = await fetch(url, { headers: getHeaders() });
   return handleResponse(res);
 }
 
@@ -300,18 +275,8 @@ export async function getBookings(page: number = 1, limit: number = 20, search: 
 
 export async function getAllBookings(search: string = ''): Promise<Booking[]> {
   const PAGE_LIMIT = 1000;
-  let page = 1;
-  let allBookings: Booking[] = [];
-  let total = 0;
-
-  do {
-    const response = await getBookings(page, PAGE_LIMIT, search);
-    allBookings = [...allBookings, ...response.data];
-    total = response.total;
-    page += 1;
-  } while (allBookings.length < total && page <= 20);
-
-  return allBookings;
+  const response = await getBookings(1, PAGE_LIMIT, search);
+  return response.data;
 }
 
 // --- APPOINTMENTS ---
@@ -370,18 +335,8 @@ export async function getBookingsByBusiness(businessId: string, page: number = 1
 
 export async function getAllBookingsByBusiness(businessId: string, search: string = ''): Promise<Booking[]> {
   const PAGE_LIMIT = 1000;
-  let page = 1;
-  let allBookings: Booking[] = [];
-  let total = 0;
-
-  do {
-    const response = await getBookingsByBusiness(businessId, page, PAGE_LIMIT, search);
-    allBookings = [...allBookings, ...response.data];
-    total = response.total;
-    page += 1;
-  } while (allBookings.length < total && page <= 20);
-
-  return allBookings;
+  const response = await getBookingsByBusiness(businessId, 1, PAGE_LIMIT, search);
+  return response.data;
 }
 
 export async function getBookingsByCustomer(customerId: number): Promise<Booking[]> {
