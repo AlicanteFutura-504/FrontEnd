@@ -104,7 +104,7 @@ export default function BusinessDashboardPage() {
           <tr><td>Reservas Totales</td><td>${summary.totalBookings}</td></tr>
           <tr><td>Ingresos Totales (€)</td><td>${summary.totalRevenue}</td></tr>
           <tr><td>Reservas Pendientes</td><td>${summary.pendingBookings}</td></tr>
-          <tr><td>Clientes Registrados</td><td>${summary.totalCustomers}</td></tr>
+          <tr><td>Huéspedes Registrados</td><td>${summary.totalCustomers}</td></tr>
         </tbody>
       </table>
       <br/>
@@ -116,7 +116,7 @@ export default function BusinessDashboardPage() {
             <th style="background-color: #e5e7eb;">Entrada</th>
             <th style="background-color: #e5e7eb;">Salida</th>
             <th style="background-color: #e5e7eb;">Precio</th>
-            <th style="background-color: #e5e7eb;">Cliente</th>
+            <th style="background-color: #e5e7eb;">Huésped</th>
             <th style="background-color: #e5e7eb;">Propiedad</th>
             <th style="background-color: #e5e7eb;">Estado</th>
           </tr>
@@ -210,7 +210,7 @@ export default function BusinessDashboardPage() {
         <KpiCard title="Ingresos Totales" value={`${summary?.totalRevenue ?? 0} €`} subtitle="Cobros confirmados" variant="positive" />
         <KpiCard title="Pendiente de Cobro" value={`${summary?.pendingRevenue ?? 0} €`} subtitle="Acción requerida" variant="warning" />
         <KpiCard title="Total Reservas" value={(summary?.totalBookings ?? 0).toString()} subtitle="Histórico acumulado" />
-        <KpiCard title="Clientes" value={(summary?.totalCustomers ?? 0).toString()} subtitle="Registrados en este local" />
+        <KpiCard title="Huéspedes" value={(summary?.totalCustomers ?? 0).toString()} subtitle="Registrados en este local" />
       </section>
 
       <div className="dashboard-grid">
@@ -224,7 +224,7 @@ export default function BusinessDashboardPage() {
               <tr>
                 <th>Entrada</th>
                 <th>Salida</th>
-                <th>Cliente</th>
+                <th>Huésped</th>
                 <th>Estado</th>
               </tr>
             </thead>
@@ -252,14 +252,14 @@ export default function BusinessDashboardPage() {
 
         <section className="info-stack">
           <div className="info-box" style={{ borderLeft: '4px solid var(--accent)' }}>
-            <p className="info-box__eyebrow">Próxima Cita</p>
+            <p className="info-box__eyebrow">Próxima Estancia</p>
             {summary?.latestBookings?.[0] ? (
               <>
                 <p className="info-box__title">Reserva #{summary.latestBookings[0].id}</p>
                 <p className="info-box__text">Entrada: {formatDate(summary.latestBookings[0].checkInDate)}</p>
               </>
             ) : (
-              <p className="info-box__text">Sin citas próximas</p>
+              <p className="info-box__text">Sin estancias próximas</p>
             )}
           </div>
 

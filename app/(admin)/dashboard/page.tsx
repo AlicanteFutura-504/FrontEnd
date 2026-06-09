@@ -80,7 +80,7 @@ export default function DashboardPage() {
           <tr><td>Reservas Totales</td><td>${data.totalBookings}</td></tr>
           <tr><td>Ingresos Totales (€)</td><td>${data.totalEarnings}</td></tr>
           <tr><td>Reservas Pendientes</td><td>${data.pendingBookings}</td></tr>
-          <tr><td>Clientes Base</td><td>${data.totalCustomers}</td></tr>
+          <tr><td>Huéspedes Base</td><td>${data.totalCustomers}</td></tr>
         </tbody>
       </table>
       <br/>
@@ -92,7 +92,7 @@ export default function DashboardPage() {
             <th style="background-color: #e5e7eb;">Entrada</th>
             <th style="background-color: #e5e7eb;">Salida</th>
             <th style="background-color: #e5e7eb;">Precio</th>
-            <th style="background-color: #e5e7eb;">Cliente</th>
+            <th style="background-color: #e5e7eb;">Huésped</th>
             <th style="background-color: #e5e7eb;">Propiedad</th>
             <th style="background-color: #e5e7eb;">Estado</th>
           </tr>
@@ -176,7 +176,7 @@ export default function DashboardPage() {
         <KpiCard title="Reservas Totales" value={data.totalBookings.toString()} subtitle="En todos los locales" variant="positive" />
         <KpiCard title="Ingresos Totales" value={`${data.totalEarnings} €`} subtitle="Pagos confirmados" />
         <KpiCard title="Pendientes" value={data.pendingBookings.toString()} subtitle="Acción requerida" variant="warning" />
-        <KpiCard title="Clientes Base" value={data.totalCustomers.toString()} subtitle="Fidelizados" />
+        <KpiCard title="Huéspedes Base" value={data.totalCustomers.toString()} subtitle="Fidelizados" />
       </section>
 
       <section className="dashboard-grid">
@@ -190,7 +190,7 @@ export default function DashboardPage() {
               <tr>
                 <th>Entrada</th>
                 <th>Salida</th>
-                <th>Cliente</th>
+                <th>Huésped</th>
                 <th>Propiedad</th>
                 <th>Estado</th>
               </tr>

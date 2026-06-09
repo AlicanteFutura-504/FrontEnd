@@ -57,7 +57,7 @@ export default function BusinessCustomersPage() {
       const bookings = await getBookingsByCustomer(customer.id);
       // Filter bookings that belong to this business if needed, though they are fetched by customer.
       // If we only want bookings for THIS business:
-      const businessBookings = bookings.filter(b => b.businessId === parseInt(businessId, 10));
+      const businessBookings = bookings.filter(b => b.propertyId === parseInt(businessId, 10));
       setCustomerBookings(businessBookings);
     } catch (err) {
       console.error(err);
@@ -78,12 +78,12 @@ export default function BusinessCustomersPage() {
     <div className="page-stack">
       <header className="page-hero">
         <div>
-          <h2>Clientes Vinculados</h2>
+          <h2>Huéspedes Vinculados</h2>
           <p>Base de datos de clientes registrados en el sistema. {total > 0 && <strong>({total} en total)</strong>}</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <button onClick={() => setIsAddModalOpen(true)} className="primary-btn">
-            + Añadir Cliente
+            + Añadir Huésped
           </button>
           <Link href={`/properties/${businessId}`} className="secondary-btn">Volver al Panel</Link>
         </div>
@@ -128,14 +128,14 @@ export default function BusinessCustomersPage() {
                     setEditFormData({ nombreCompleto: c.nombreCompleto || "" });
                   }}
                 >
-                  Editar Cliente
+                  Editar Huésped
                 </button>
                 <button 
                   className="panel-subtle-link" 
                   style={{ width: '100%', textAlign: 'center' }}
                   onClick={() => handleViewHistory(c)}
                 >
-                  Ver historial de citas
+                  Ver historial de estancias
                 </button>
               </div>
             </div>
@@ -203,7 +203,7 @@ export default function BusinessCustomersPage() {
             </p>
 
             {loadingBookings ? (
-              <p>Cargando citas...</p>
+              <p>Cargando estancias...</p>
             ) : customerBookings.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {customerBookings.map(b => (
@@ -214,21 +214,21 @@ export default function BusinessCustomersPage() {
                     background: 'var(--surface-2)' 
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontWeight: 600 }}>{b.serviceName || 'Servicio General'}</span>
+                      <span style={{ fontWeight: 600 }}>Estancia en Propiedad #{b.propertyId}</span>
                       <span className="status-badge status-confirmed" style={{ fontSize: '12px', padding: '2px 8px' }}>
                         {b.status}
                       </span>
                     </div>
                     <div style={{ fontSize: '14px', color: 'var(--muted)', display: 'flex', gap: '12px' }}>
-                      <span>📅 {b.date}</span>
-                      <span>⏰ {b.time}</span>
+                      <span>📅 Entrada: {b.checkInDate}</span>
+                      <span>📅 Salida: {b.checkOutDate}</span>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               <p style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)', background: 'var(--surface-2)', borderRadius: '8px' }}>
-                Este cliente no tiene citas registradas en tu local.
+                Este huésped no tiene estancias registradas en tu local.
               </p>
             )}
           </div>
@@ -241,7 +241,7 @@ export default function BusinessCustomersPage() {
           <div className="modal-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
-                Editar Cliente
+                Editar Huésped
               </h3>
               <button 
                 onClick={() => setEditingCustomer(null)}
@@ -260,7 +260,7 @@ export default function BusinessCustomersPage() {
                 setCustomers(customers.map(c => c.id === editingCustomer.id ? { ...c, nombreCompleto: updated.nombreCompleto } : c));
                 setEditingCustomer(null);
               } catch (error) {
-                alert("Error al actualizar cliente");
+                alert("Error al actualizar huésped");
               }
             }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
@@ -304,7 +304,7 @@ export default function BusinessCustomersPage() {
                 setIsAddModalOpen(false);
                 setAddFormData({ nombreCompleto: "", email: "", phone: "" });
               } catch (error) {
-                alert("Error al añadir cliente. Revisa si el email ya existe.");
+                alert("Error al añadir huésped. Revisa si el email ya existe.");
               }
             }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
@@ -321,7 +321,7 @@ export default function BusinessCustomersPage() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
                 <button type="button" onClick={() => setIsAddModalOpen(false)} className="secondary-btn">Cancelar</button>
-                <button type="submit" className="primary-btn">Añadir Cliente</button>
+                <button type="submit" className="primary-btn">Añadir Huésped</button>
               </div>
             </form>
           </div>

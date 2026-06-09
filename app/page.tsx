@@ -23,7 +23,7 @@ export default function LandingPage() {
           Impulsa tu propiedad con reservas online inteligentes
         </h1>
         <p className={styles.heroSubtitle}>
-          Simplifica la gestión de tus citas, atrae a más clientes y reduce las ausencias con Yoku. La plataforma integral para empresas de servicios que buscan crecer sin complicaciones.
+          Simplifica la gestión de tus reservas, atrae a más huéspedes y reduce las cancelaciones con Yoku. La plataforma integral para propiedades de alquiler vacacional que buscan crecer sin complicaciones.
         </p>
         <div className={styles.heroActions}>
           <Link href="/register" className={`${styles.btnPrimary} ${styles.btnLarge}`}>
@@ -52,7 +52,7 @@ export default function LandingPage() {
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Todo lo que necesitas para tu empresa</h2>
             <p className={styles.sectionSubtitle}>
-              Yoku te proporciona las herramientas necesarias para digitalizar y automatizar la gestión de tus clientes y reservas.
+              Yoku te proporciona las herramientas necesarias para digitalizar y automatizar la gestión de tus propiedades, huéspedes y reservas.
             </p>
           </div>
 
@@ -63,7 +63,7 @@ export default function LandingPage() {
                 <span className={styles.featureEyebrow}>Reservas Inteligentes</span>
                 <h3 className={styles.featureTitle}>Agenda 24/7 sin interrupciones</h3>
                 <p className={styles.featureDesc}>
-                  Tus clientes pueden reservar sus citas en cualquier momento desde cualquier dispositivo. Deja que Yoku trabaje por ti incluso cuando tu propiedad está cerrado.
+                  Tus huéspedes pueden reservar sus estancias en cualquier momento desde cualquier dispositivo. Deja que Yoku trabaje por ti de forma automatizada.
                 </p>
                 <ul className={styles.featureListItems}>
                   <li className={styles.featureListItem}>
@@ -89,9 +89,9 @@ export default function LandingPage() {
             <div className={styles.featureRowReverse}>
               <div className={styles.featureContent}>
                 <span className={styles.featureEyebrow}>Comunicación Automática</span>
-                <h3 className={styles.featureTitle}>Recordatorios que reducen ausencias</h3>
+                <h3 className={styles.featureTitle}>Mensajes y avisos automatizados</h3>
                 <p className={styles.featureDesc}>
-                  Reduce las inasistencias en más de un 50% mediante notificaciones automáticas. Tus clientes recibirán avisos amigables que aseguran su asistencia.
+                  Mejora la experiencia de tus huéspedes mediante notificaciones automáticas. Recibirán correos amigables con las instrucciones de llegada y normativas de la propiedad.
                 </p>
                 <ul className={styles.featureListItems}>
                   <li className={styles.featureListItem}>
@@ -116,10 +116,10 @@ export default function LandingPage() {
             {/* Feature 3 */}
             <div className={styles.featureRow}>
               <div className={styles.featureContent}>
-                <span className={styles.featureEyebrow}>Gestión de Clientes</span>
-                <h3 className={styles.featureTitle}>Conoce a tus clientes (CRM)</h3>
+                <span className={styles.featureEyebrow}>Gestión de Huéspedes</span>
+                <h3 className={styles.featureTitle}>Conoce a tus huéspedes (CRM)</h3>
                 <p className={styles.featureDesc}>
-                  Mantén una base de datos organizada con el historial completo de tus clientes, sus reservas pasadas y preferencias para ofrecerles un servicio personalizado de primer nivel.
+                  Mantén una base de datos organizada con el historial completo de tus huéspedes, sus estancias pasadas y preferencias para ofrecerles un servicio personalizado de primer nivel.
                 </p>
                 <ul className={styles.featureListItems}>
                   <li className={styles.featureListItem}>

@@ -189,7 +189,7 @@ export default function PaymentsClient({ initialPayments }: PaymentsClientProps)
             <h3 className="modal-title" style={{ marginBottom: 16 }}>Registrar nuevo cobro</h3>
             {error && <div className="message-error" style={{ marginBottom: 12 }}>{error}</div>}
             <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input required className="input" placeholder="Cliente" value={newPayment.clientName} onChange={e => setNewPayment({...newPayment, clientName: e.target.value})} />
+              <input required className="input" placeholder="Huésped" value={newPayment.clientName} onChange={e => setNewPayment({...newPayment, clientName: e.target.value})} />
               <input required className="input" placeholder="Comercio" value={newPayment.businessName} onChange={e => setNewPayment({...newPayment, businessName: e.target.value})} />
               <input required type="number" min="0" step="0.01" className="input" placeholder="Importe (€)" value={newPayment.amount || ""} onChange={e => setNewPayment({...newPayment, amount: Number(e.target.value)})} />
               <select className="select" value={newPayment.type} onChange={e => setNewPayment({...newPayment, type: e.target.value as PaymentTypeEnum})}>
@@ -225,7 +225,7 @@ export default function PaymentsClient({ initialPayments }: PaymentsClientProps)
 
           <form onSubmit={handleEdit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
-              <input required className="input" placeholder="Cliente" value={editForm.clientName || ""} onChange={e => setEditForm({...editForm, clientName: e.target.value})} />
+              <input required className="input" placeholder="Huésped" value={editForm.clientName || ""} onChange={e => setEditForm({...editForm, clientName: e.target.value})} />
               <input required className="input" placeholder="Comercio" value={editForm.businessName || ""} onChange={e => setEditForm({...editForm, businessName: e.target.value})} />
               <input required type="number" min="0" step="0.01" className="input" placeholder="Importe (€)" value={editForm.amount || ""} onChange={e => setEditForm({...editForm, amount: Number(e.target.value)})} />
               <select className="select" value={editForm.type || ""} onChange={e => setEditForm({...editForm, type: e.target.value as PaymentTypeEnum})}>
@@ -308,7 +308,7 @@ export default function PaymentsClient({ initialPayments }: PaymentsClientProps)
           <thead>
             <tr>
               <SortableHeader label="ID" sortKey="id" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
-              <SortableHeader label="Cliente" sortKey="clientName" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Huésped" sortKey="clientName" currentSort={sortConfig} requestSort={requestSort} />
               <SortableHeader label="Comercio" sortKey="businessName" currentSort={sortConfig} requestSort={requestSort} />
               <SortableHeader label="Importe" sortKey="amount" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
               <SortableHeader label="Método" sortKey="type" currentSort={sortConfig} requestSort={requestSort} />

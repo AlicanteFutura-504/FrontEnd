@@ -10,9 +10,8 @@ export default function ClientBookPage({ params }: { params: { id: string } }) {
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    date: "",
-    time: "",
-    serviceName: "",
+    checkInDate: "",
+    checkOutDate: "",
     paymentOption: "pending" // "pending" o "pay_now"
   });
 
@@ -49,11 +48,10 @@ export default function ClientBookPage({ params }: { params: { id: string } }) {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
       
       await createBooking({
-        date: form.date,
-        time: form.time,
-        serviceName: form.serviceName,
-        status: status === "paid" ? "paid" : "pending",
-        businessId: Number(params.id),
+        checkInDate: form.checkInDate,
+        checkOutDate: form.checkOutDate,
+        status: status === "paid" ? "confirmed" : "pending",
+        propertyId: Number(params.id),
         usuarioId: user.id || 1, // Placeholder
       });
       alert("¡Reserva completada con éxito!");
@@ -81,36 +79,24 @@ export default function ClientBookPage({ params }: { params: { id: string } }) {
       <p style={{ color: "var(--text-muted)", marginBottom: 30 }}>Completa los datos para agendar tu cita.</p>
 
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        <div>
-          <label className="label">Servicio</label>
-          <input 
-            type="text" 
-            className="input" 
-            placeholder="Ej. Corte de pelo, Consulta..." 
-            value={form.serviceName}
-            onChange={(e) => setForm({ ...form, serviceName: e.target.value })}
-            required 
-          />
-        </div>
-
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
           <div>
-            <label className="label">Fecha</label>
+            <label className="label">Fecha de Entrada</label>
             <input 
               type="date" 
               className="input" 
-              value={form.date}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
+              value={form.checkInDate}
+              onChange={(e) => setForm({ ...form, checkInDate: e.target.value })}
               required 
             />
           </div>
           <div>
-            <label className="label">Hora</label>
+            <label className="label">Fecha de Salida</label>
             <input 
-              type="time" 
+              type="date" 
               className="input" 
-              value={form.time}
-              onChange={(e) => setForm({ ...form, time: e.target.value })}
+              value={form.checkOutDate}
+              onChange={(e) => setForm({ ...form, checkOutDate: e.target.value })}
               required 
             />
           </div>

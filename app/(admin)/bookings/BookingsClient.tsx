@@ -83,12 +83,11 @@ export default function BookingsClient({
 
   /** Valores en blanco usados para resetear los formularios. */
   const emptyForm: CreateBookingDto = {
-    date: "",
-    time: "",
+    checkInDate: "",
+    checkOutDate: "",
     status: "pending",
     usuarioId: 1,
-    businessId: 1,
-    serviceName: "",
+    propertyId: 1,
   };
 
   /** Estado del formulario de creación de nueva reserva. */
@@ -132,8 +131,8 @@ export default function BookingsClient({
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
   /** Número de reservas con estado `"confirmed"`. */
   const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
-  /** Número de reservas con estado `"paid"`. */
-  const paidCount = bookings.filter((b) => b.status === "paid").length;
+  /** Número de reservas con estado `"modified"`. */
+  const modifiedCount = bookings.filter((b) => b.status === "modified").length;
   /** Número de reservas con estado `"cancelled"`. */
   const cancelledCount = bookings.filter((b) => b.status === "cancelled").length;
 
@@ -224,12 +223,11 @@ export default function BookingsClient({
     setDeleteTargetId(null);
     setEditingBookingId(booking.id);
     setEditForm({
-      date: booking.date,
-      time: booking.time,
+      checkInDate: booking.checkInDate,
+      checkOutDate: booking.checkOutDate,
       status: booking.status,
       usuarioId: booking.usuarioId,
-      businessId: booking.businessId,
-      serviceName: booking.serviceName,
+      propertyId: booking.propertyId,
     });
   }
 
@@ -313,12 +311,11 @@ export default function BookingsClient({
 
     try {
       const payload: UpdateBookingDto = {
-        date: editForm.date,
-        time: editForm.time,
+        checkInDate: editForm.checkInDate,
+        checkOutDate: editForm.checkOutDate,
         status: editForm.status,
         usuarioId: editForm.usuarioId,
-        businessId: editForm.businessId,
-        serviceName: editForm.serviceName,
+        propertyId: editForm.propertyId,
       };
 
       const updated = await updateAppointment(editingBookingId, payload);
@@ -414,9 +411,9 @@ export default function BookingsClient({
         </div>
 
         <div className="kpi-card">
-          <p className="kpi-card__label">Pagadas</p>
-          <h3 className="kpi-card__value">{paidCount}</h3>
-          <p className="kpi-card__meta">Reservas cerradas</p>
+          <p className="kpi-card__label">Modificadas</p>
+          <h3 className="kpi-card__value">{modifiedCount}</h3>
+          <p className="kpi-card__meta">Con cambios recientes</p>
         </div>
 
         <div className="kpi-card">
@@ -441,15 +438,15 @@ export default function BookingsClient({
               <input
                 className="input"
                 type="date"
-                value={createForm.date}
-                onChange={(e) => updateCreateForm("date", e.target.value)}
+                value={createForm.checkInDate}
+                onChange={(e) => updateCreateForm("checkInDate", e.target.value)}
                 required
               />
               <input
                 className="input"
-                type="time"
-                value={createForm.time}
-                onChange={(e) => updateCreateForm("time", e.target.value)}
+                type="date"
+                value={createForm.checkOutDate}
+                onChange={(e) => updateCreateForm("checkOutDate", e.target.value)}
                 required
               />
               <select
@@ -472,26 +469,18 @@ export default function BookingsClient({
                 onChange={(e) =>
                   updateCreateForm("usuarioId", Number(e.target.value))
                 }
-                placeholder="Customer ID"
+                placeholder="Huésped ID"
                 required
               />
               <input
                 className="input"
                 type="number"
                 min={1}
-                value={createForm.businessId}
+                value={createForm.propertyId}
                 onChange={(e) =>
-                  updateCreateForm("businessId", Number(e.target.value))
+                  updateCreateForm("propertyId", Number(e.target.value))
                 }
-                placeholder="Business ID"
-                required
-              />
-              <input
-                className="input input--full"
-                type="text"
-                value={createForm.serviceName}
-                onChange={(e) => updateCreateForm("serviceName", e.target.value)}
-                placeholder="Servicio"
+                placeholder="Propiedad ID"
                 required
               />
             </div>
@@ -522,15 +511,15 @@ export default function BookingsClient({
               <input
                 className="input"
                 type="date"
-                value={editForm.date}
-                onChange={(e) => updateEditForm("date", e.target.value)}
+                value={editForm.checkInDate}
+                onChange={(e) => updateEditForm("checkInDate", e.target.value)}
                 required
               />
               <input
                 className="input"
-                type="time"
-                value={editForm.time}
-                onChange={(e) => updateEditForm("time", e.target.value)}
+                type="date"
+                value={editForm.checkOutDate}
+                onChange={(e) => updateEditForm("checkOutDate", e.target.value)}
                 required
               />
               <select
@@ -553,26 +542,18 @@ export default function BookingsClient({
                 onChange={(e) =>
                   updateEditForm("usuarioId", Number(e.target.value))
                 }
-                placeholder="Customer ID"
+                placeholder="Huésped ID"
                 required
               />
               <input
                 className="input"
                 type="number"
                 min={1}
-                value={editForm.businessId}
+                value={editForm.propertyId}
                 onChange={(e) =>
-                  updateEditForm("businessId", Number(e.target.value))
+                  updateEditForm("propertyId", Number(e.target.value))
                 }
-                placeholder="Business ID"
-                required
-              />
-              <input
-                className="input input--full"
-                type="text"
-                value={editForm.serviceName}
-                onChange={(e) => updateEditForm("serviceName", e.target.value)}
-                placeholder="Servicio"
+                placeholder="Propiedad ID"
                 required
               />
             </div>
@@ -635,7 +616,7 @@ export default function BookingsClient({
         <div className="panel-title-row">
           <h3 className="panel-title">Reservas registradas</h3>
           <div className="filter-row">
-            {(["all", "pending", "confirmed", "paid", "cancelled"] as const).map((filter) => (
+            {(["all", "pending", "confirmed", "modified", "cancelled"] as const).map((filter) => (
               <button
                 key={filter}
                 type="button"
@@ -645,7 +626,7 @@ export default function BookingsClient({
                 {filter === "all" ? "Todas" :
                  filter === "pending" ? "Pendientes" :
                  filter === "confirmed" ? "Confirmadas" :
-                 filter === "cancelled" ? "Canceladas" : "Pagadas"}
+                 filter === "cancelled" ? "Canceladas" : "Modificadas"}
               </button>
             ))}
           </div>
@@ -658,11 +639,10 @@ export default function BookingsClient({
           <thead>
             <tr>
               <SortableHeader label="ID" sortKey="id" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
-              <SortableHeader label="Fecha" sortKey="date" currentSort={sortConfig} requestSort={requestSort} />
-              <SortableHeader label="Hora" sortKey="time" currentSort={sortConfig} requestSort={requestSort} />
-              <SortableHeader label="Servicio" sortKey="serviceName" currentSort={sortConfig} requestSort={requestSort} />
-              <SortableHeader label="Customer" sortKey="usuarioId" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
-              <SortableHeader label="Business" sortKey="businessId" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Check-In" sortKey="checkInDate" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Check-Out" sortKey="checkOutDate" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Huésped" sortKey="usuarioId" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Propiedad" sortKey="propertyId" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
               <SortableHeader label="Estado" sortKey="status" currentSort={sortConfig} requestSort={requestSort} />
               <th>Acciones</th>
             </tr>
@@ -680,11 +660,10 @@ export default function BookingsClient({
               sortedFilteredBookings.map((booking) => (
                 <tr key={booking.id}>
                   <td style={{ fontWeight: 600 }}>{booking.id}</td>
-                  <td>{formatDate(booking.date)}</td>
-                  <td>{booking.time}</td>
-                  <td>{booking.serviceName}</td>
+                  <td>{formatDate(booking.checkInDate)}</td>
+                  <td>{formatDate(booking.checkOutDate)}</td>
                   <td>{booking.usuarioId}</td>
-                  <td>{booking.businessId}</td>
+                  <td>{booking.propertyId}</td>
                   <td><Badge status={booking.status} /></td>
                   <td>
                     <div style={{ display: "flex", gap: 8 }}>

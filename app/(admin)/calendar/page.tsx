@@ -76,7 +76,7 @@ function buildCalendarGrid(year: number, month: number): { ymd: string; currentM
 const STATUS_DOT: Record<string, string> = {
   pending: "var(--warning)",
   confirmed: "var(--info)",
-  paid: "var(--success)",
+  modified: "var(--success)",
 };
 
 // ---------------------------------------------------------------------------
@@ -136,7 +136,7 @@ export default function CalendarPage() {
       setBookings(appts);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error("Error cargando citas del calendario:", message);
+      console.error("Error cargando reservas del calendario:", message);
       setError(message);
     } finally {
       setLoadingAppointments(false);
@@ -155,8 +155,15 @@ export default function CalendarPage() {
   const byDate = useMemo(() => {
     const map: Record<string, Booking[]> = {};
     for (const b of bookings) {
-      if (!map[b.date]) map[b.date] = [];
-      map[b.date].push(b);
+      if (!b.checkInDate || !b.checkOutDate) continue;
+      const curr = new Date(b.checkInDate);
+      const end = new Date(b.checkOutDate);
+      while (curr <= end) {
+        const dateStr = toYMD(curr);
+        if (!map[dateStr]) map[dateStr] = [];
+        map[dateStr].push(b);
+        curr.setDate(curr.getDate() + 1);
+      }
     }
     return map;
   }, [bookings]);
@@ -330,7 +337,7 @@ export default function CalendarPage() {
                             maxWidth: "100%",
                           }}
                         >
-                          {b.time} {b.serviceName}
+                          Prop #{b.propertyId}
                         </div>
                       ))}
                       {dayBookings.length > 3 && (
@@ -376,21 +383,21 @@ export default function CalendarPage() {
               }}>
                 {selectedBookings.slice(0, 50).map((b) => (
                 <Link 
-                  href={`/properties/${b.businessId}/bookings`}
+                  href={`/properties/${b.propertyId}/bookings`}
                   key={b.id} 
                   style={{ ...bookingCardStyle, textDecoration: "none", cursor: "pointer", display: "block" }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>
-                      {b.time}
+                      {formatDisplayDate(b.checkInDate)} a {formatDisplayDate(b.checkOutDate)}
                     </span>
                     <Badge status={b.status} />
                   </div>
                   <p style={{ fontSize: 13, marginTop: 4, color: "var(--text)" }}>
-                    {b.serviceName}
+                    {businessName(b.propertyId)}
                   </p>
                   <p style={{ fontSize: 11, marginTop: 6, color: "var(--text-muted)", background: "var(--surface)", padding: "4px 8px", borderRadius: "4px", display: "inline-block" }}>
-                    {businessName(b.businessId)} · Cliente #{b.usuarioId}{customerName(b.usuarioId) ? ` - ${customerName(b.usuarioId)}` : ""}
+                    Huésped #{b.usuarioId}{customerName(b.usuarioId) ? ` - ${customerName(b.usuarioId)}` : ""}
                   </p>
                 </Link>
               ))}
@@ -410,7 +417,7 @@ export default function CalendarPage() {
         {[
           { label: "Pendiente", color: "var(--warning)" },
           { label: "Confirmada", color: "var(--info)" },
-          { label: "Pagada", color: "var(--success)" },
+          { label: "Modificada", color: "var(--success)" },
         ].map(({ label, color }) => (
           <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ width: 10, height: 10, borderRadius: "50%", background: color, display: "inline-block" }} />

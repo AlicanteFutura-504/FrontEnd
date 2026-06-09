@@ -10,7 +10,7 @@ import Badge from "@/components/ui/Badge";
 import Link from "next/link";
 import { useSortableData, SortableHeader } from "@/lib/useSortableData";
 
-function formatDate(dateString: string) {
+function formatDate(dateString?: string) {
   if (!dateString) return "N/A";
   try {
     const d = new Date(dateString);
@@ -173,7 +173,7 @@ export default function BusinessPaymentsPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <SortableHeader label="Cliente" sortKey="customer.nombreCompleto" currentSort={sortConfig} requestSort={requestSort} />
+              <SortableHeader label="Huésped" sortKey="customer.nombreCompleto" currentSort={sortConfig} requestSort={requestSort} />
               <SortableHeader label="Importe" sortKey="amount" isNumeric={true} currentSort={sortConfig} requestSort={requestSort} />
               <SortableHeader label="Método" sortKey="type" currentSort={sortConfig} requestSort={requestSort} />
               <SortableHeader label="Fecha" sortKey="date" currentSort={sortConfig} requestSort={requestSort} />
@@ -215,7 +215,7 @@ export default function BusinessPaymentsPage() {
                   </>
                 ) : (
                   <>
-                    <td style={{ fontWeight: 600 }}>{(p as any).customer ? ((p as any).customer.nombreCompleto || (p as any).customer.email || `Cliente #${(p as any).customer.id}`) : 'Sin cliente'}</td>
+                    <td style={{ fontWeight: 600 }}>{(p as any).customer ? ((p as any).customer.nombreCompleto || (p as any).customer.email || `Cliente #${(p as any).customer.id}`) : 'Sin huésped'}</td>
                     <td>{p.amount} €</td>
                     <td style={{ textTransform: 'capitalize' }}>{p.type}</td>
                     <td>{formatDate(p.date)}</td>
@@ -253,7 +253,7 @@ export default function BusinessPaymentsPage() {
                   <option value="" disabled>Selecciona una reserva...</option>
                   {bookings.map(b => (
                     <option key={b.id} value={b.id}>
-                      {b.date} {b.time} - {b.serviceName}
+                      Entrada: {b.checkInDate} - Salida: {b.checkOutDate}
                     </option>
                   ))}
                 </select>
