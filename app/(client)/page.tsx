@@ -30,7 +30,7 @@ export default async function ClientHome() {
             className="business-card"
           >
             <h2 style={{ fontSize: "1.4rem", marginBottom: 10 }}>{business.nombre}</h2>
-            <p style={{ color: "var(--text-muted)", marginBottom: 8 }}>{business.direccion || "Sin dirección"}</p>
+            <p style={{ color: "var(--text-muted)", marginBottom: 8 }}>{business.city ? `${business.city}, ${business.address || ''}` : "Sin ciudad"}</p>
             {business.telefono && <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>📞 {business.telefono}</p>}
             <div style={{ marginTop: 20, textAlign: "right" }}>
               <span className="primary-btn" style={{ padding: "8px 16px", fontSize: "0.9rem" }}>Reservar</span>

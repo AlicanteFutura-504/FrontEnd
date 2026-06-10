@@ -71,6 +71,7 @@ const STATUS_DOT: Record<string, string> = {
   confirmed: "var(--info)",
   modified: "var(--accent-2)",
   cancelled: "var(--danger)",
+  completed: "var(--success)",
 };
 
 
@@ -110,8 +111,11 @@ export default function BusinessBookingsPage() {
   // Edit and Delete state
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editBookingId, setEditBookingId] = useState<number | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [editStatus, setEditStatus] = useState<BookingStatus>("pending");
   const [rowActionsId, setRowActionsId] = useState<number | null>(null);
+
+  const isReadOnly = selectedBooking?.status === 'completed' && selectedBooking?.payment?.status === 'pagado';
 
   // Summary state
   const [summaryRange, setSummaryRange] = useState<"all" | "month" | "week">("all");
@@ -222,6 +226,7 @@ export default function BusinessBookingsPage() {
       }
       setIsModalOpen(false);
       setEditBookingId(null);
+      setSelectedBooking(null);
       setFormData({ checkInDate: "", checkOutDate: "", customerEmail: "", customerNombreCompleto: "", customerPhone: "" });
       setFoundCustomer(undefined);
     } catch (err) {
@@ -241,6 +246,7 @@ export default function BusinessBookingsPage() {
       await fetchBookings(page, search);
       setIsEditOpen(false);
       setEditBookingId(null);
+      setSelectedBooking(null);
       setRowActionsId(null);
     } catch (err) {
       console.error("Error updating booking", err);
@@ -297,7 +303,7 @@ export default function BusinessBookingsPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 className="modal-title" style={{ margin: 0 }}>{editBookingId ? "Editar Reserva" : "Nueva Reserva"}</h3>
               <button 
-                onClick={() => { setIsModalOpen(false); setFoundCustomer(undefined); }}
+                onClick={() => { setIsModalOpen(false); setFoundCustomer(undefined); setSelectedBooking(null); }}
                 style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--muted)' }}
               >
                 &times;
@@ -315,6 +321,7 @@ export default function BusinessBookingsPage() {
                   className="input"
                   placeholder="Email del cliente *"
                   value={formData.customerEmail}
+                  disabled={isReadOnly}
                   style={{ width: '100%' }}
                   onChange={e => {
                     const email = e.target.value;
@@ -353,7 +360,8 @@ export default function BusinessBookingsPage() {
                   className="input"
                   placeholder="Nombre Completo *"
                   value={formData.customerNombreCompleto}
-                  readOnly={!!foundCustomer}
+                  readOnly={!!foundCustomer || isReadOnly}
+                  disabled={isReadOnly}
                   style={foundCustomer ? { background: '#f0fdf4' } : {}}
                   onChange={e => setFormData(f => ({ ...f, customerNombreCompleto: e.target.value }))}
                 />
@@ -362,7 +370,8 @@ export default function BusinessBookingsPage() {
                   placeholder="Teléfono"
                   type="tel"
                   value={formData.customerPhone}
-                  readOnly={!!foundCustomer}
+                  readOnly={!!foundCustomer || isReadOnly}
+                  disabled={isReadOnly}
                   style={foundCustomer ? { background: '#f0fdf4' } : {}}
                   onChange={e => setFormData(f => ({ ...f, customerPhone: e.target.value }))}
                 />
@@ -373,8 +382,8 @@ export default function BusinessBookingsPage() {
               {/* ── Datos de la reserva ── */}
               <p style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Datos de la reserva</p>
 
-              <input required type="date" className="input" value={formData.checkInDate} onChange={e => setFormData(f => ({ ...f, checkInDate: e.target.value }))} />
-              <input required type="date" className="input" value={formData.checkOutDate} onChange={e => setFormData(f => ({ ...f, checkOutDate: e.target.value }))} />
+              <input required type="date" className="input" disabled={isReadOnly} value={formData.checkInDate} onChange={e => setFormData(f => ({ ...f, checkInDate: e.target.value }))} />
+              <input required type="date" className="input" disabled={isReadOnly} value={formData.checkOutDate} onChange={e => setFormData(f => ({ ...f, checkOutDate: e.target.value }))} />
 
               <div style={{ fontSize: 12, color: '#6b7280', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 6, padding: '8px 10px', marginTop: '4px' }}>
                 <span style={{ display: 'block', fontWeight: 600, marginBottom: '2px' }}>Aviso de Limpieza</span>
@@ -382,10 +391,12 @@ export default function BusinessBookingsPage() {
               </div>
 
               <div className="modal-actions" style={{ marginTop: 8 }}>
-                <button type="button" className="secondary-btn" onClick={() => { setIsModalOpen(false); setFoundCustomer(undefined); }}>Cancelar</button>
-                <button type="submit" className="primary-btn" disabled={isSubmitting || foundCustomer === undefined}>
-                  {isSubmitting ? 'Guardando...' : editBookingId ? 'Actualizar reserva' : foundCustomer ? 'Crear reserva (cliente existente)' : 'Crear reserva (cliente nuevo)'}
-                </button>
+                <button type="button" className="secondary-btn" onClick={() => { setIsModalOpen(false); setFoundCustomer(undefined); setSelectedBooking(null); }}>Cerrar</button>
+                {!isReadOnly && (
+                  <button type="submit" className="primary-btn" disabled={isSubmitting || foundCustomer === undefined}>
+                    {isSubmitting ? 'Guardando...' : editBookingId ? 'Actualizar reserva' : foundCustomer ? 'Crear reserva (cliente existente)' : 'Crear reserva (cliente nuevo)'}
+                  </button>
+                )}
               </div>
             </form>
           </div>
@@ -436,6 +447,7 @@ export default function BusinessBookingsPage() {
                     className={`calendar-cell ${!cell.currentMonth ? 'calendar-cell--other-month' : ''} ${cell.today ? 'calendar-cell--today' : ''}`}
                     onClick={() => {
                       setEditBookingId(null);
+                      setSelectedBooking(null);
                       setFormData(f => ({ ...f, checkInDate: cell.ymd }));
                       setFoundCustomer(undefined);
                       setIsModalOpen(true);
@@ -453,6 +465,7 @@ export default function BusinessBookingsPage() {
                           onClick={e => {
                             e.stopPropagation();
                             setEditBookingId(b.id);
+                            setSelectedBooking(b);
                             setFormData({
                               checkInDate: b.checkInDate,
                               checkOutDate: b.checkOutDate,
@@ -481,6 +494,7 @@ export default function BusinessBookingsPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.confirmed }} /> Confirmada</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.modified }} /> Modificada</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.cancelled }} /> Cancelada</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.completed }} /> Completada</div>
           </div>
         </section>
       )}
@@ -566,26 +580,31 @@ export default function BusinessBookingsPage() {
                 <td>
                   {rowActionsId === b.id ? (
                     <div style={{ display: "flex", gap: 8 }}>
-                      <button 
-                        type="button" 
-                        className="secondary-btn" 
-                        style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px' }}
-                        onClick={() => {
-                          setEditBookingId(b.id);
-                          setEditStatus(b.status as BookingStatus);
-                          setIsEditOpen(true);
-                        }}
-                      >
-                        Editar Estado
-                      </button>
-                      <button 
-                        type="button" 
-                        className="danger-btn" 
-                        style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px' }}
-                        onClick={() => handleDelete(b.id)}
-                      >
-                        Eliminar
-                      </button>
+                      {!((b.status === 'completed' && b.payment?.status === 'pagado')) && (
+                        <>
+                          <button 
+                            type="button" 
+                            className="secondary-btn" 
+                            style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px' }}
+                            onClick={() => {
+                              setEditBookingId(b.id);
+                              setSelectedBooking(b);
+                              setEditStatus(b.status as BookingStatus);
+                              setIsEditOpen(true);
+                            }}
+                          >
+                            Editar Estado
+                          </button>
+                          <button 
+                            type="button" 
+                            className="danger-btn" 
+                            style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px' }}
+                            onClick={() => handleDelete(b.id)}
+                          >
+                            Eliminar
+                          </button>
+                        </>
+                      )}
                       <button 
                         type="button" 
                         className="secondary-btn" 
@@ -682,6 +701,7 @@ export default function BusinessBookingsPage() {
                 <option value="confirmed">Confirmada</option>
                 <option value="modified">Modificada</option>
                 <option value="cancelled">Cancelada</option>
+                <option value="completed">Completada</option>
               </select>
               
               <div className="modal-actions" style={{ marginTop: 8 }}>

@@ -120,7 +120,7 @@ export default function PropertiesListPage() {
               >
                 <option value="id">Fecha de creación (ID)</option>
                 <option value="nombre">Nombre de la empresa</option>
-                <option value="direccion">Dirección</option>
+                <option value="city">Ciudad</option>
               </select>
             </div>
             
@@ -199,7 +199,7 @@ export default function PropertiesListPage() {
             </div>
             
             <h3 className="customer-name" style={{ marginTop: '16px' }}>{b.nombre}</h3>
-            <p className="customer-meta">{b.direccion || "Sin dirección registrada"}</p>
+            <p className="customer-meta">{b.city ? `${b.city}, ${b.address || ''}` : "Sin ubicación registrada"}</p>
             
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <div className="customer-tag">

@@ -10,7 +10,8 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
   const router = useRouter();
   const [formData, setFormData] = useState({
     nombre: "",
-    direccion: "",
+    city: "",
+    address: "",
     telefono: "",
   });
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,8 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
         const business = await getBusiness(Number(id));
         setFormData({
           nombre: business.nombre || "",
-          direccion: business.direccion || "",
+          city: business.city || "",
+          address: business.address || "",
           telefono: business.telefono || "",
         });
       } catch (error: any) {
@@ -90,10 +92,22 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
                 <label className="kpi-card__label">Nombre del Local</label>
                 <input name="nombre" value={formData.nombre} onChange={handleChange} required className="input" placeholder="Ej. Restaurante El Puerto" />
               </div>
-              <div className="input-group">
-                <label className="kpi-card__label">Ubicación / Dirección</label>
-                <input name="direccion" value={formData.direccion} onChange={handleChange} className="input" placeholder="Av. Mediterráneo, 12" />
+              <div className="form-group">
+                <label>Ciudad</label>
+                <div className="input-with-icon">
+                  <span className="input-icon">📍</span>
+                  <input name="city" value={formData.city} onChange={handleChange} className="input" placeholder="Alicante" />
+                </div>
               </div>
+
+              <div className="form-group">
+                <label>Dirección completa</label>
+                <div className="input-with-icon">
+                  <span className="input-icon">🏠</span>
+                  <input name="address" value={formData.address} onChange={handleChange} className="input" placeholder="Av. Mediterráneo, 12" />
+                </div>
+              </div>
+              
               <div className="input-group">
                 <label className="kpi-card__label">Teléfono de Contacto</label>
                 <input name="telefono" value={formData.telefono} onChange={handleChange} className="input" placeholder="965 00 00 00" />

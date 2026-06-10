@@ -108,7 +108,7 @@ export default function ClientExplorePage() {
               <div className="client-business-info">
                 <h2 className="client-business-title">{b.nombre}</h2>
                 <div className="client-business-meta">
-                  <span>{b.direccion || "Alicante Centro"}</span>
+                  <span>{b.city ? `${b.city}, ${b.address || ''}` : "Alicante Centro"}</span>
                   <span style={{ color: "var(--border-strong)" }}>|</span>
                   <span className="client-rating">4.8 ⭐ <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(215 reseñas)</span></span>
                 </div>

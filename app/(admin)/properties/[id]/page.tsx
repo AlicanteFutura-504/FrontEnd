@@ -189,7 +189,7 @@ export default function BusinessDashboardPage() {
           <div style={{ fontSize: '40px', background: 'var(--primary-soft)', padding: '15px', borderRadius: '20px' }}>🏢</div>
           <div>
             <h2>Dashboard: {business.nombre}</h2>
-            <p>{business.direccion || 'Sin dirección'} · {business.telefono || 'Sin teléfono'}</p>
+            <p>{business.city || 'Sin ciudad'}, {business.address || ''} · {business.telefono || 'Sin teléfono'}</p>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>

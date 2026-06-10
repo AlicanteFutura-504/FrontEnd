@@ -103,7 +103,8 @@ export interface UpdateUserDto {
 export interface Business {
   id: number;
   nombre: string;
-  direccion?: string;
+  city?: string;
+  address?: string;
   telefono?: string;
   usuarioId: number;
   businessUserId?: number;
