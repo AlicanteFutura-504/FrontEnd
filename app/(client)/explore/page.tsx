@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getBusinesses } from "@/lib/api";
+import Link from "next/link";
 import { Business } from "@/lib/types";
 
 interface ExtendedBusiness extends Business {
@@ -183,72 +184,77 @@ export default function ClientExplorePage() {
           </>
         ) : filteredBusinesses.length > 0 ? (
           filteredBusinesses.map(b => (
-            <div key={b.id} className="client-business-card">
-              <img 
-                src={b.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} 
-                alt={b.nombre}
-                className="client-business-image"
-              />
-              
-              <div className="client-business-info">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <h2 className="client-business-title">{b.nombre}</h2>
-                  {b.isPromoted && (
-                    <span style={{ background: "rgba(255,56,92,0.1)", color: "#FF385C", padding: "4px 8px", borderRadius: "6px", fontSize: "0.8rem", fontWeight: 700 }}>
-                      Recomendado
-                    </span>
-                  )}
-                </div>
-                <div className="client-business-meta">
-                  <span>📍 {b.city ? `${b.city}${b.address ? `, ${b.address}` : ""}` : "Alicante, España"}</span>
-                  <span style={{ color: "var(--border-strong)" }}>|</span>
-                  <span className="client-rating">
-                    ★ {b.score && b.score > 0 ? b.score.toFixed(1) : "Nueva"} 
-                  </span>
-                </div>
+            <Link href={`/rooms/${b.id}`} key={b.id} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+              <div className="client-business-card" style={{ transition: "transform 0.2s ease, box-shadow 0.2s ease", cursor: "pointer" }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 24px rgba(0,0,0,0.1)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "var(--shadow)"; }}
+              >
+                <img 
+                  src={b.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} 
+                  alt={b.nombre}
+                  className="client-business-image"
+                />
                 
-                <p className="client-business-desc">
-                  {b.description || "Un alojamiento excepcional con todos los servicios y comodidades para disfrutar de una estancia perfecta."}
-                </p>
-
-                <div className="client-business-footer">
-                  <div className="client-business-features" style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-                    {(b.amenities || []).slice(0, 5).map((amenity, idx) => {
-                      let icon = '';
-                      const lower = amenity.toLowerCase().trim();
-                      if (lower.includes('wifi')) icon = '📶';
-                      else if (lower.includes('caf')) icon = '☕';
-                      else if (lower.includes('piscina')) icon = '🏊';
-                      else if (lower.includes('cocina')) icon = '🍳';
-                      else if (lower.includes('aire')) icon = '❄️';
-                      else if (lower.includes('tv')) icon = '📺';
-                      
-                      // 🔴 MEJORA: Si es un amenity no tipado, se muestra el texto completo para que no sea un icono genérico
-                      if (icon === '') {
-                        return (
-                          <span key={idx} style={{ fontSize: "12px", background: "var(--surface-hover)", padding: "4px 8px", borderRadius: "4px" }}>
-                            ✨ {amenity}
-                          </span>
-                        );
-                      }
-                      
-                      return <span key={idx} title={amenity} style={{ fontSize: "18px" }}>{icon}</span>;
-                    })}
+                <div className="client-business-info">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <h2 className="client-business-title">{b.nombre}</h2>
+                    {b.isPromoted && (
+                      <span style={{ background: "rgba(255,56,92,0.1)", color: "#FF385C", padding: "4px 8px", borderRadius: "6px", fontSize: "0.8rem", fontWeight: 700 }}>
+                        Recomendado
+                      </span>
+                    )}
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-                    <div className="client-business-price">
-                      {b.pricePerNight || 0} € <span style={{ fontSize: 14, color: "var(--text-muted)", fontWeight: 400 }}>/ noche</span>
+                  <div className="client-business-meta">
+                    <span>📍 {b.city ? `${b.city}${b.address ? `, ${b.address}` : ""}` : "Alicante, España"}</span>
+                    <span style={{ color: "var(--border-strong)" }}>|</span>
+                    <span className="client-rating" style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 700 }}>
+                      <span style={{ color: "#f59e0b" }}>★</span> {b.score && b.score > 0 ? b.score.toFixed(2) : "Nueva"} 
+                    </span>
+                  </div>
+                  
+                  <p className="client-business-desc">
+                    {b.description || "Un alojamiento excepcional con todos los servicios y comodidades para disfrutar de una estancia perfecta."}
+                  </p>
+
+                  <div className="client-business-footer">
+                    <div className="client-business-features" style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                      {(b.amenities || []).slice(0, 5).map((amenity, idx) => {
+                        let icon = '';
+                        const lower = amenity.toLowerCase().trim();
+                        if (lower.includes('wifi')) icon = '📶';
+                        else if (lower.includes('caf')) icon = '☕';
+                        else if (lower.includes('piscina')) icon = '🏊';
+                        else if (lower.includes('cocina')) icon = '🍳';
+                        else if (lower.includes('aire')) icon = '❄️';
+                        else if (lower.includes('tv')) icon = '📺';
+                        
+                        if (icon === '') {
+                          return (
+                            <span key={idx} style={{ fontSize: "12px", background: "var(--surface-hover)", padding: "4px 8px", borderRadius: "4px" }}>
+                              ✨ {amenity}
+                            </span>
+                          );
+                        }
+                        
+                        return <span key={idx} title={amenity} style={{ fontSize: "18px" }}>{icon}</span>;
+                      })}
                     </div>
-                    <button 
-                      className="client-book-btn"
-                      onClick={() => window.location.href = `/rooms/${b.id}`}
-                    >
-                      Reservar Ahora
-                    </button>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+                      <div className="client-business-price" style={{ fontWeight: 800, fontSize: "1.2rem" }}>
+                        {b.pricePerNight || 0} € <span style={{ fontSize: 14, color: "var(--text-muted)", fontWeight: 400 }}>/ noche</span>
+                      </div>
+                      <button 
+                        className="client-book-btn"
+                        onClick={(e) => { e.preventDefault(); window.location.href = `/rooms/${b.id}`; }}
+                        style={{ marginTop: "8px" }}
+                      >
+                        Ver Propiedad
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))
         ) : (
           <div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)", background: "var(--surface)", borderRadius: "12px", border: "1px solid var(--border)" }}>

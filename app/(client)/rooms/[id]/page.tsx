@@ -207,7 +207,17 @@ export default function PropertyDetailPage() {
 
       <div style={{ display: "flex", gap: "60px", flexWrap: "wrap" }}>
         <div style={{ flex: 2, minWidth: "300px" }}>
-          <h2 style={{ fontSize: "1.5rem", fontWeight: 600, borderBottom: "1px solid var(--border)", paddingBottom: "20px", marginBottom: "20px" }}>
+          <h2 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: "8px" }}>
+            Alojamiento entero
+          </h2>
+          <div style={{ display: "flex", gap: "12px", color: "var(--text-muted)", fontSize: "1rem", marginBottom: "20px" }}>
+            <span>{property.maxGuests || 2} huéspedes</span> · 
+            <span>{Math.ceil((property.maxGuests || 2) / 2)} habitaciones</span> · 
+            <span>{Math.ceil((property.maxGuests || 2) / 2)} camas</span> · 
+            <span>{Math.ceil((property.maxGuests || 2) / 3) || 1} baños</span>
+          </div>
+
+          <h2 style={{ fontSize: "1.3rem", fontWeight: 600, borderBottom: "1px solid var(--border)", paddingBottom: "20px", marginBottom: "20px" }}>
             Anfitrión: {property.usuario?.nombreCompleto || property.usuario?.username || 'Desconocido'}
           </h2>
           
@@ -217,11 +227,23 @@ export default function PropertyDetailPage() {
 
           <h3 style={{ fontSize: "1.3rem", fontWeight: 600, marginBottom: "20px" }}>Lo que ofrece este lugar</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", color: "var(--text)" }}>
-            {(property.amenities && property.amenities.length > 0 ? property.amenities : ["Wifi", "Piscina", "Cocina", "TV", "Aire acondicionado"]).map((amenity, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <span style={{ fontSize: "1.2rem" }}>✨</span> {amenity}
-              </div>
-            ))}
+            {(property.amenities && property.amenities.length > 0 ? property.amenities : ["Wifi", "Piscina", "Cocina", "TV", "Aire acondicionado", "Cafetera"]).map((amenity, i) => {
+              let icon = "✨";
+              const lower = amenity.toLowerCase();
+              if (lower.includes("wifi")) icon = "📶";
+              else if (lower.includes("caf")) icon = "☕";
+              else if (lower.includes("piscina")) icon = "🏊";
+              else if (lower.includes("cocina")) icon = "🍳";
+              else if (lower.includes("aire")) icon = "❄️";
+              else if (lower.includes("tv") || lower.includes("televisión")) icon = "📺";
+              
+              return (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <span style={{ fontSize: "1.3rem", width: "24px", textAlign: "center" }}>{icon}</span> 
+                  <span style={{ fontSize: "1.05rem" }}>{amenity}</span>
+                </div>
+              );
+            })}
           </div>
 
           <div style={{ marginTop: "40px", padding: "20px", background: "var(--surface-hover)", borderRadius: "12px" }}>
