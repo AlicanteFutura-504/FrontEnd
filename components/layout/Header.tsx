@@ -19,10 +19,9 @@ export default function Header() {
   const isInsideBusiness = pathname?.startsWith("/properties/") && pathname !== "/properties";
   const urlBusinessId = isInsideBusiness ? pathname.split("/")[2] : null;
 
-  const isBusinessRole = user?.role === 'host';
-  const showGlobalMenu = !isBusinessRole && (!isInsideBusiness || user?.username === 'root');
-  const effectiveBusinessId = isBusinessRole && businesses.length > 0 ? String(businesses[0].id) : urlBusinessId;
-  const showBusinessMenu = isBusinessRole || (isInsideBusiness && effectiveBusinessId && effectiveBusinessId !== "new");
+  const showGlobalMenu = true;
+  const effectiveBusinessId = isInsideBusiness && urlBusinessId ? urlBusinessId : null;
+  const showBusinessMenu = isInsideBusiness && effectiveBusinessId && effectiveBusinessId !== "new";
 
   useEffect(() => {
     if (user) {

@@ -28,8 +28,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedUser = localStorage.getItem("user");
 
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      Promise.resolve().then(() => {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      });
     }
 
     setIsLoading(false);

@@ -7,10 +7,12 @@ export default function ThemeToggle() {
   const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
-    setMounted(true);
-    const stored = localStorage.getItem("darkMode") === "true";
-    setIsDarkMode(stored);
-    document.documentElement.setAttribute("data-theme", stored ? "dark" : "light");
+    Promise.resolve().then(() => {
+      setMounted(true);
+      const stored = localStorage.getItem("darkMode") === "true";
+      setIsDarkMode(stored);
+      document.documentElement.setAttribute("data-theme", stored ? "dark" : "light");
+    });
   }, []);
 
   const handleToggle = (dark: boolean) => {
