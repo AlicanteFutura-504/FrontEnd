@@ -14,12 +14,12 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   const [businesses, setBusinesses] = useState<Business[]>([]);
-  const [isBusinessOpen, setIsBusinessOpen] = useState(false);
+
 
   const isInsideBusiness = pathname?.startsWith("/properties/") && pathname !== "/properties";
   const urlBusinessId = isInsideBusiness ? pathname.split("/")[2] : null;
 
-  const isBusinessRole = user?.role === 'business';
+  const isBusinessRole = user?.role === 'host';
   const showGlobalMenu = !isBusinessRole && (!isInsideBusiness || user?.username === 'root');
   const effectiveBusinessId = isBusinessRole && businesses.length > 0 ? String(businesses[0].id) : urlBusinessId;
   const showBusinessMenu = isBusinessRole || (isInsideBusiness && effectiveBusinessId && effectiveBusinessId !== "new");
@@ -34,7 +34,7 @@ export default function Header() {
           })
           .catch(console.error);
       } else {
-        setBusinesses([]);
+        Promise.resolve().then(() => setBusinesses([]));
       }
     }
   }, [user]);

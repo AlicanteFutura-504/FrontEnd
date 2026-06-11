@@ -6,7 +6,7 @@
 /**
  * Estados posibles de una cita en el sistema.  
  */
-export type BookingStatus = "pending" | "confirmed" | "paid" | "cancelled";
+export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled" | "modified";
 
 /**
  * Representa una cita/reserva tal como se almacena en la base de datos.
@@ -17,13 +17,12 @@ export interface Booking {
   checkOutDate: string;
   status: BookingStatus;
   usuarioId: number;
+  usuario?: User;
   customerId?: number;
   propertyId: number;
   propertyName?: string;
   customerName?: string;
-  payment?: {
-    amount?: number;
-  };
+  payment?: Payment;
 }
 
 export interface CreateBookingDto {
@@ -82,7 +81,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  role: 'superadmin' | 'admin' | 'business' | 'client';
+  role: 'superadmin' | 'admin' | 'host' | 'guest';
   nombreCompleto?: string;
   dni?: string;
   phone?: string;

@@ -17,7 +17,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     // For now, if no user, send to login.
     if (!user) {
       router.push("/login");
-    } else if (user.role !== "client" && user.role !== "superadmin") {
+    } else if (user.role !== "guest" && user.role !== "superadmin") {
       // Si entra un propiedad, echarlo a su panel.
       router.push("/dashboard");
     }

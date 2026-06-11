@@ -193,7 +193,7 @@ export default function BusinessDashboardPage() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          {user?.role === 'business' ? (
+          {user?.role === 'host' ? (
             <button className="primary-btn" type="button" onClick={handleExport} disabled={exporting}>
               {exporting ? 'Exportando...' : 'Exportar Reporte Global'}
             </button>

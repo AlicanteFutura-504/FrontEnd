@@ -35,7 +35,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!user) return; // Prevent Unauthorized errors before auth is fully initialized
 
-    if (user.role === 'business' && user.businessId) {
+    if (user.role === 'host' && user.businessId) {
       router.replace(`/properties/${user.businessId}`);
       return;
     }
