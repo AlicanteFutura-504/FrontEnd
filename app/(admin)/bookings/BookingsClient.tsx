@@ -21,6 +21,7 @@ import {
   deleteAppointment,
   updateAppointment,
 } from "@/lib/api";
+import BookingDetailsModal from "@/components/BookingDetailsModal";
 
 // ---------------------------------------------------------------------------
 // Subcomponentes internos
@@ -113,6 +114,8 @@ export default function BookingsClient({
   const [editingBookingId, setEditingBookingId] = useState<number | null>(null);
   /** ID de la reserva sobre la que se ha pedido confirmación de borrado. */
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  /** Reserva actualmente siendo vista en detalle (para el modal). */
+  const [viewingBooking, setViewingBooking] = useState<Booking | null>(null);
 
   /**
    * Lista de reservas filtradas por `statusFilter`.
@@ -667,6 +670,9 @@ export default function BookingsClient({
                   <td><Badge status={booking.status} /></td>
                   <td>
                     <div style={{ display: "flex", gap: 8 }}>
+                      <button type="button" className="secondary-btn" onClick={() => setViewingBooking(booking)}>
+                        Detalles
+                      </button>
                       <button type="button" className="secondary-btn" onClick={() => openEditForm(booking)}>
                         Editar
                       </button>
@@ -681,6 +687,15 @@ export default function BookingsClient({
           </tbody>
         </table>
       </section>
+
+      {viewingBooking && (
+        <BookingDetailsModal
+          booking={viewingBooking}
+          businessName={viewingBooking.propertyName || `Propiedad #${viewingBooking.propertyId}`}
+          customerName={viewingBooking.usuario?.nombreCompleto || viewingBooking.usuario?.email || `Huésped #${viewingBooking.usuarioId}`}
+          onClose={() => setViewingBooking(null)}
+        />
+      )}
     </div>
   );
 }

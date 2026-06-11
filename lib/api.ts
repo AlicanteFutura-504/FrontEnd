@@ -10,7 +10,8 @@ import type {
   UpdateUserDto,
   BookingStatus,
   PaymentStatus,
-  PaymentTypeEnum
+  PaymentTypeEnum,
+  Review
 } from "./types";
 
 export type {
@@ -25,7 +26,8 @@ export type {
   UpdateUserDto,
   BookingStatus,
   PaymentStatus,
-  PaymentTypeEnum
+  PaymentTypeEnum,
+  Review
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -253,6 +255,11 @@ export async function deleteBusiness(id: number): Promise<void> {
     headers: getHeaders(),
   });
   return handleResponse(res);
+}
+
+export async function getReviewsByProperty(propertyId: number): Promise<Review[]> {
+  const res = await fetch(`${API_URL}/properties/${propertyId}/reviews`, { headers: getHeaders() });
+  return handleResponse(res) || [];
 }
 
 export async function getDashboardSummary(range?: string) {
