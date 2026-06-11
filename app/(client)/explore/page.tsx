@@ -1,23 +1,42 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { getBusinesses } from "@/lib/api";
 import { Business } from "@/lib/types";
 
+interface ExtendedBusiness extends Business {
+  score?: number;
+  isPromoted?: boolean;
+  pricePerNight?: number;
+  images?: string[];
+  description?: string;
+  amenities?: string[];
+}
+
 export default function ClientExplorePage() {
-  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const searchParams = useSearchParams();
+  const cityParam = searchParams.get("city") || "";
+
+  const [businesses, setBusinesses] = useState<ExtendedBusiness[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [maxPrice, setMaxPrice] = useState(300);
+  const [selectedStars, setSelectedStars] = useState<number[]>([]);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (cityParam) {
+      setSearchQuery(cityParam);
+    }
+  }, [cityParam]);
 
   useEffect(() => {
     const fetchBiz = async () => {
       try {
         setLoading(true);
-        const res = await getBusinesses(1, 20);
+        const res = await getBusinesses(1, 100, "", "score", "DESC");
         setBusinesses(res.data || []);
-        setTotal(res.total || 0);
       } catch (e) {
         console.error(e);
       } finally {
@@ -27,19 +46,44 @@ export default function ClientExplorePage() {
     fetchBiz();
   }, []);
 
-  const handleLoadMore = async () => {
-    try {
-      setLoadingMore(true);
-      const nextPage = page + 1;
-      const res = await getBusinesses(nextPage, 20);
-      setBusinesses(prev => [...prev, ...(res.data || [])]);
-      setPage(nextPage);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingMore(false);
+  const filteredBusinesses = businesses.filter((b) => {
+    // 1. Search Query filter (matches name, city, address, description)
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const nameMatch = b.nombre?.toLowerCase().includes(q);
+      const cityMatch = b.city?.toLowerCase().includes(q);
+      const addressMatch = b.address?.toLowerCase().includes(q);
+      const descMatch = b.description?.toLowerCase().includes(q);
+      if (!nameMatch && !cityMatch && !addressMatch && !descMatch) return false;
     }
-  };
+
+    // 2. Price filter
+    if (b.pricePerNight && Number(b.pricePerNight) > maxPrice) {
+      return false;
+    }
+
+    // 3. Stars filter (average score rounded to closest integer)
+    if (selectedStars.length > 0) {
+      const rating = b.score || 0;
+      const roundedRating = Math.round(rating);
+      if (!selectedStars.includes(roundedRating)) {
+        return false;
+      }
+    }
+
+    // 4. Amenities filter
+    if (selectedAmenities.length > 0) {
+      const bAmenities = b.amenities || [];
+      const hasAll = selectedAmenities.every((amenity) =>
+        bAmenities.some((bAmenity: string) =>
+          bAmenity.toLowerCase().includes(amenity.toLowerCase())
+        )
+      );
+      if (!hasAll) return false;
+    }
+
+    return true;
+  });
 
   return (
     <>
@@ -47,11 +91,18 @@ export default function ClientExplorePage() {
         <h3 className="client-filter-title">Filtros Avanzados</h3>
         
         <div className="client-filter-section">
-          <h4 style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 8 }}>Precio</h4>
-          <input type="range" min="10" max="200" style={{ width: "100%", accentColor: "var(--accent-1)" }} />
+          <h4 style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 8 }}>Precio Máximo</h4>
+          <input 
+            type="range" 
+            min="10" 
+            max="300" 
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(Number(e.target.value))}
+            style={{ width: "100%", accentColor: "var(--accent-1)" }} 
+          />
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
-            <span>10€</span>
-            <span>200€+</span>
+            <span>10 €</span>
+            <span>{maxPrice} €</span>
           </div>
         </div>
 
@@ -59,27 +110,37 @@ export default function ClientExplorePage() {
           <h4 style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 12 }}>Valoración</h4>
           {[5, 4, 3, 2].map(star => (
             <label key={star} className="client-filter-item">
-              <input type="checkbox" />
-              <span>{star} ⭐</span>
+              <input 
+                type="checkbox" 
+                checked={selectedStars.includes(star)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedStars(prev => [...prev, star]);
+                  } else {
+                    setSelectedStars(prev => prev.filter(s => s !== star));
+                  }
+                }}
+              />
+              <span>{star} ⭐ ({star === 5 ? "Excelente" : star === 4 ? "Muy bueno" : star === 3 ? "Bueno" : "Aceptable"})</span>
             </label>
           ))}
         </div>
 
         <div className="client-filter-section">
-          <h4 style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 12 }}>Tipo de Servicio</h4>
-          {["Corte", "Color", "Peinado", "Maquillaje"].map(type => (
-            <label key={type} className="client-filter-item">
-              <input type="checkbox" />
-              <span>{type}</span>
-            </label>
-          ))}
-        </div>
-
-        <div className="client-filter-section">
-          <h4 style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 12 }}>Amenidades</h4>
-          {["WiFi", "Café", "Estacionamiento"].map(amenity => (
+          <h4 style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 12 }}>Comodidades</h4>
+          {["Wifi", "Cocina", "TV", "Aire acondicionado", "Piscina"].map(amenity => (
             <label key={amenity} className="client-filter-item">
-              <input type="checkbox" />
+              <input 
+                type="checkbox" 
+                checked={selectedAmenities.includes(amenity)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedAmenities(prev => [...prev, amenity]);
+                  } else {
+                    setSelectedAmenities(prev => prev.filter(a => a !== amenity));
+                  }
+                }}
+              />
               <span>{amenity}</span>
             </label>
           ))}
@@ -88,8 +149,27 @@ export default function ClientExplorePage() {
 
       <section className="client-content">
         <div>
-          <h1 className="client-page-title">Salones y Servicios</h1>
-          <p className="client-page-subtitle">Alicante | {total} resultados</p>
+          <h1 className="client-page-title">Explorar Propiedades</h1>
+          <p className="client-page-subtitle">Alicante | {filteredBusinesses.length} resultados</p>
+        </div>
+
+        <div style={{ marginBottom: "20px" }}>
+          <input 
+            type="text" 
+            placeholder="Buscar por nombre de propiedad, ciudad o descripción..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "14px 20px",
+              borderRadius: "12px",
+              border: "1px solid var(--border-strong)",
+              background: "var(--surface)",
+              color: "var(--text)",
+              outline: "none",
+              fontSize: "1rem"
+            }}
+          />
         </div>
 
         {loading ? (
@@ -98,56 +178,68 @@ export default function ClientExplorePage() {
             <div className="client-business-card skeleton" style={{ height: 212 }}></div>
             <div className="client-business-card skeleton" style={{ height: 212 }}></div>
           </>
-        ) : businesses.length > 0 ? (
-          businesses.map(b => (
+        ) : filteredBusinesses.length > 0 ? (
+          filteredBusinesses.map(b => (
             <div key={b.id} className="client-business-card">
-              <div className="client-business-image-placeholder">
-                💈
-              </div>
+              <img 
+                src={b.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} 
+                alt={b.nombre}
+                className="client-business-image"
+              />
               
               <div className="client-business-info">
-                <h2 className="client-business-title">{b.nombre}</h2>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <h2 className="client-business-title">{b.nombre}</h2>
+                  {b.isPromoted && (
+                    <span style={{ background: "rgba(255,56,92,0.1)", color: "#FF385C", padding: "4px 8px", borderRadius: "6px", fontSize: "0.8rem", fontWeight: 700 }}>
+                      Recomendado
+                    </span>
+                  )}
+                </div>
                 <div className="client-business-meta">
-                  <span>{b.city ? `${b.city}, ${b.address || ''}` : "Alicante Centro"}</span>
+                  <span>📍 {b.city ? `${b.city}${b.address ? `, ${b.address}` : ""}` : "Alicante, España"}</span>
                   <span style={{ color: "var(--border-strong)" }}>|</span>
-                  <span className="client-rating">4.8 ⭐ <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(215 reseñas)</span></span>
+                  <span className="client-rating">
+                    ★ {b.score && b.score > 0 ? b.score.toFixed(1) : "Nueva"} 
+                  </span>
                 </div>
                 
                 <p className="client-business-desc">
-                  Salón premium con expertos estilistas. {b.nombre} ofrece un servicio personalizado y de alta calidad para que encuentres tu mejor estilo.
+                  {b.description || "Un alojamiento excepcional con todos los servicios y comodidades para disfrutar de una estancia perfecta."}
                 </p>
 
                 <div className="client-business-footer">
                   <div className="client-business-features">
-                    <span title="WiFi">📶</span>
-                    <span title="Café">☕</span>
-                    <span title="Estacionamiento">🚘</span>
+                    {(b.amenities || []).slice(0, 5).map((amenity, idx) => {
+                      let icon = '✨';
+                      const lower = amenity.toLowerCase();
+                      if (lower.includes('wifi')) icon = '📶';
+                      else if (lower.includes('caf')) icon = '☕';
+                      else if (lower.includes('piscina')) icon = '🏊';
+                      else if (lower.includes('cocina')) icon = '🍳';
+                      else if (lower.includes('aire')) icon = '❄️';
+                      else if (lower.includes('tv')) icon = '📺';
+                      return <span key={idx} title={amenity}>{icon}</span>;
+                    })}
                   </div>
-                  <div>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
                     <div className="client-business-price">
-                      35€ <span style={{ fontSize: 14, color: "var(--text-muted)", fontWeight: 400 }}>/ sesión</span>
+                      {b.pricePerNight || 0} € <span style={{ fontSize: 14, color: "var(--text-muted)", fontWeight: 400 }}>/ noche</span>
                     </div>
-                    <button className="client-book-btn">Reservar Ahora</button>
+                    <button 
+                      className="client-book-btn"
+                      onClick={() => window.location.href = `/rooms/${b.id}`}
+                    >
+                      Reservar Ahora
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)" }}>
-            No se encontraron propiedads.
-          </div>
-        )}
-
-        {businesses.length > 0 && businesses.length < total && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
-            <button 
-              className="secondary-btn" 
-              onClick={handleLoadMore} 
-              disabled={loadingMore}
-            >
-              {loadingMore ? 'Cargando...' : 'Cargar más resultados'}
-            </button>
+          <div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)", background: "var(--surface)", borderRadius: "12px", border: "1px solid var(--border)" }}>
+            No se encontraron propiedades que coincidan con los filtros seleccionados.
           </div>
         )}
       </section>

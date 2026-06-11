@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import "../client.css";
@@ -11,6 +11,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [city, setCity] = useState("");
 
   useEffect(() => {
     // Only strictly redirect if there's an explicit "client" check we want to enforce.
@@ -34,9 +35,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <span>Yoku</span>
           </div>
           <nav className="client-nav">
-            <Link href="/dashboard" className={pathname === "/dashboard" ? "active" : ""}>Salones</Link>
-            <Link href="/dashboard" className={pathname === "/dashboard/services" ? "active" : ""}>Servicios</Link>
-            <Link href="/dashboard" className={pathname === "/dashboard/offers" ? "active" : ""}>Ofertas</Link>
+            <Link href="/explore" className={pathname === "/explore" ? "active" : ""}>Explorar</Link>
+            <Link href="/mis-reservas" className={pathname === "/mis-reservas" ? "active" : ""}>Mis Reservas</Link>
+            <Link href="/profile" className={pathname === "/profile" ? "active" : ""}>Mi Perfil</Link>
           </nav>
           <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
             <ThemeToggle />
@@ -59,13 +60,24 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         </div>
         
         {/* Booking Style Search Bar */}
-        <div className="client-search-bar">
-          <input className="client-search-input" placeholder="📍 Ubicación (Ej. Barcelona)" />
-          <div className="client-search-divider"></div>
-          <input className="client-search-input" type="date" />
-          <div className="client-search-divider"></div>
-          <input className="client-search-input" placeholder="👤 Personas" />
-          <button className="client-search-btn">Buscar</button>
+        <div className="client-search-bar" style={{ display: "flex", width: "100%", maxWidth: "600px" }}>
+          <input 
+            className="client-search-input" 
+            placeholder="📍 Ubicación (Ej. Alicante o Barcelona)" 
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                router.push(`/explore?city=${encodeURIComponent(city)}`);
+              }
+            }}
+          />
+          <button 
+            className="client-search-btn"
+            onClick={() => router.push(`/explore?city=${encodeURIComponent(city)}`)}
+          >
+            Buscar
+          </button>
         </div>
       </header>
 

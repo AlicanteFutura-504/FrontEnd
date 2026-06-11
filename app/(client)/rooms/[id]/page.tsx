@@ -3,17 +3,27 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getBusiness, createBooking } from "@/lib/api";
-import { Business } from "@/lib/types";
 import { useAuth } from "@/components/AuthProvider";
 import Loading from "@/components/ui/Loading";
 
-interface ExtendedBusiness extends Business {
+interface ExtendedBusiness {
+  id: number;
+  nombre: string;
+  city?: string;
+  address?: string;
+  telefono?: string;
+  usuarioId: number;
+  description?: string;
+  pricePerNight?: number;
+  maxGuests?: number;
+  amenities?: string[];
+  images?: string[];
+  usuario?: {
+    nombreCompleto?: string;
+    username: string;
+  };
   score?: number;
   isPromoted?: boolean;
-  pricePerNight?: number;
-  images?: string[];
-  description?: string;
-  amenities?: string[];
 }
 
 export default function PropertyDetailPage() {
@@ -29,11 +39,29 @@ export default function PropertyDetailPage() {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Reviews states
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewScore, setReviewScore] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  // Dynamic pricing
+  const [nights, setNights] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(0);
+
   useEffect(() => {
-    const fetchProperty = async () => {
+    const fetchPropertyAndReviews = async () => {
       try {
+        setLoading(true);
         const data = await getBusiness(Number(propertyId));
-        setProperty(data);
+        setProperty(data as any);
+
+        const reviewsData = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/properties/${propertyId}/reviews`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`
+          }
+        }).then(r => r.json());
+        setReviews(reviewsData || []);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Error al cargar la propiedad";
         setError(message);
@@ -41,8 +69,27 @@ export default function PropertyDetailPage() {
         setLoading(false);
       }
     };
-    if (propertyId) fetchProperty();
+    if (propertyId) fetchPropertyAndReviews();
   }, [propertyId]);
+
+  useEffect(() => {
+    if (checkIn && checkOut && property) {
+      const d1 = new Date(checkIn);
+      const d2 = new Date(checkOut);
+      const diffTime = Math.abs(d2.getTime() - d1.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays > 0) {
+        setNights(diffDays);
+        setTotalPrice(diffDays * Number(property.pricePerNight || 0));
+      } else {
+        setNights(0);
+        setTotalPrice(0);
+      }
+    } else {
+      setNights(0);
+      setTotalPrice(0);
+    }
+  }, [checkIn, checkOut, property]);
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,13 +112,47 @@ export default function PropertyDetailPage() {
         usuarioId: user.id
       });
       alert("¡Reserva solicitada con éxito! Está pendiente de confirmación.");
-      setCheckIn("");
-      setCheckOut("");
+      router.push("/mis-reservas");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error desconocido";
       alert("Error al reservar: " + message);
     } finally {
       setBookingLoading(false);
+    }
+  };
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setSubmittingReview(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/properties/${propertyId}/reviews`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        },
+        body: JSON.stringify({ score: reviewScore, comment: reviewComment })
+      });
+      if (!res.ok) {
+        const errObj = await res.json().catch(() => ({}));
+        throw new Error(errObj.message || "Error al enviar reseña");
+      }
+      alert("¡Reseña publicada con éxito!");
+      setReviewComment("");
+      
+      // Refresh reviews and score
+      const reviewsData = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/properties/${propertyId}/reviews`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
+      }).then(r => r.json());
+      setReviews(reviewsData || []);
+      
+      const propData = await getBusiness(Number(propertyId));
+      setProperty(propData as any);
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    } finally {
+      setSubmittingReview(false);
     }
   };
 
@@ -111,7 +192,7 @@ export default function PropertyDetailPage() {
       <div style={{ display: "flex", gap: "60px", flexWrap: "wrap" }}>
         <div style={{ flex: 2, minWidth: "300px" }}>
           <h2 style={{ fontSize: "1.5rem", fontWeight: 600, borderBottom: "1px solid var(--border)", paddingBottom: "20px", marginBottom: "20px" }}>
-            Anfitrión: {property.usuario?.nombreCompleto || 'Desconocido'}
+            Anfitrión: {property.usuario?.nombreCompleto || property.usuario?.username || 'Desconocido'}
           </h2>
           
           <p style={{ lineHeight: 1.6, color: "var(--text)", marginBottom: "40px" }}>
@@ -130,13 +211,13 @@ export default function PropertyDetailPage() {
           <div style={{ marginTop: "40px", padding: "20px", background: "var(--surface-hover)", borderRadius: "12px" }}>
             <h3 style={{ fontSize: "1.2rem", fontWeight: 600, marginBottom: "12px" }}>Privacidad de la Dirección</h3>
             <p style={{ color: "var(--text-muted)" }}>
-              Dirección exacta: <strong>{property.address || "La dirección se revelará una vez que tengas una reserva confirmada."}</strong>
+              Dirección exacta: <strong>{property.address || "La dirección se revelará una vez que tengas una reserva confirmada y pagada."}</strong>
             </p>
           </div>
         </div>
 
         <div style={{ flex: 1, minWidth: "300px" }}>
-          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "24px", boxShadow: "0 10px 30px rgba(0,0,0,0.1)", position: "sticky", top: "100px" }}>
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "24px", boxShadow: "0 10px 30px rgba(0,0,0,0.1)", position: "sticky", top: "120px" }}>
             <div style={{ fontSize: "1.4rem", fontWeight: 600, marginBottom: "20px" }}>
               {property.pricePerNight || 0} € <span style={{ fontSize: "1rem", fontWeight: 400, color: "var(--text-muted)" }}>noche</span>
             </div>
@@ -155,6 +236,19 @@ export default function PropertyDetailPage() {
                 </div>
               </div>
               
+              {nights > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", padding: "8px 0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.95rem" }}>
+                    <span>{property.pricePerNight} € x {nights} noches</span>
+                    <span>{totalPrice} €</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, fontSize: "1.05rem", borderTop: "1px solid var(--border)", paddingTop: "8px", marginTop: "4px" }}>
+                    <span>Total estimado</span>
+                    <span>{totalPrice} €</span>
+                  </div>
+                </div>
+              )}
+
               <button 
                 type="submit" 
                 disabled={bookingLoading}
@@ -179,6 +273,93 @@ export default function PropertyDetailPage() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Reviews list & write review */}
+      <div style={{ marginTop: "60px", borderTop: "1px solid var(--border)", paddingTop: "40px" }}>
+        <h2 style={{ fontSize: "1.6rem", fontWeight: 600, marginBottom: "24px" }}>
+          Reseñas ({reviews.length})
+        </h2>
+        
+        {reviews.length > 0 ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "24px", marginBottom: "40px" }}>
+            {reviews.map((rev) => (
+              <div key={rev.id} style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: "20px", borderRadius: "12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+                  <img 
+                    src={rev.guest?.profilePicture || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"} 
+                    style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
+                    alt={rev.guest?.nombreCompleto || rev.guest?.username}
+                  />
+                  <div>
+                    <div style={{ fontWeight: 600 }}>{rev.guest?.nombreCompleto || rev.guest?.username || "Huésped"}</div>
+                    <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+                      {new Date(rev.createdAt).toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" })}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ color: "#f59e0b", fontWeight: 700, marginBottom: "8px" }}>
+                  {"★".repeat(rev.score)}{"☆".repeat(5 - rev.score)}
+                </div>
+                <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.5, color: "var(--text)" }}>{rev.comment}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ color: "var(--text-muted)", marginBottom: "40px" }}>No hay reseñas todavía para este alojamiento.</p>
+        )}
+
+        {user && user.role === "guest" && (
+          <div style={{ background: "var(--surface-hover)", padding: "24px", borderRadius: "16px", border: "1px solid var(--border-strong)" }}>
+            <h3 style={{ fontSize: "1.3rem", fontWeight: 600, marginBottom: "16px" }}>Deja tu opinión</h3>
+            <form onSubmit={handleReviewSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div>
+                <label style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}>Puntuación</label>
+                <select 
+                  value={reviewScore} 
+                  onChange={e => setReviewScore(Number(e.target.value))}
+                  style={{ padding: "10px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none", fontSize: "1rem" }}
+                >
+                  <option value={5}>⭐⭐⭐⭐⭐ (5 - Excelente)</option>
+                  <option value={4}>⭐⭐⭐⭐ (4 - Muy bueno)</option>
+                  <option value={3}>⭐⭐⭐ (3 - Bueno)</option>
+                  <option value={2}>⭐⭐ (2 - Aceptable)</option>
+                  <option value={1}>⭐ (1 - Malo)</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}>Comentario</label>
+                <textarea 
+                  rows={4}
+                  value={reviewComment}
+                  onChange={e => setReviewComment(e.target.value)}
+                  placeholder="Comparte tu experiencia en este alojamiento..."
+                  maxLength={300}
+                  required
+                  style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none", fontSize: "1rem", resize: "none" }}
+                />
+                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", alignSelf: "flex-end" }}>Máximo 300 caracteres</span>
+              </div>
+              <button 
+                type="submit" 
+                disabled={submittingReview}
+                style={{
+                  background: 'linear-gradient(135deg, #FF385C, #E61E4D)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '12px 24px',
+                  fontWeight: 600,
+                  cursor: submittingReview ? 'not-allowed' : 'pointer',
+                  alignSelf: "flex-start",
+                  opacity: submittingReview ? 0.7 : 1
+                }}
+              >
+                {submittingReview ? "Enviando..." : "Enviar Reseña"}
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );
