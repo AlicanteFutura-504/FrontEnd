@@ -8,10 +8,10 @@ import { Business } from "@/lib/types";
 interface ExtendedBusiness extends Business {
   score?: number;
   isPromoted?: boolean;
-  pricePerNight?: number;
-  images?: string[];
+  pricePerNight: number; // Forzado según el nuevo tipado base
+  images: string[];      // Forzado según el nuevo tipado base
   description?: string;
-  amenities?: string[];
+  amenities: string[];   // Forzado según el nuevo tipado base
 }
 
 export default function ClientExplorePage() {
@@ -20,7 +20,7 @@ export default function ClientExplorePage() {
 
   const [businesses, setBusinesses] = useState<ExtendedBusiness[]>([]);
   const [loading, setLoading] = useState(true);
-  const [maxPrice, setMaxPrice] = useState(300);
+  const [maxPrice, setMaxPrice] = useState(1000); // 🔴 MEJORA: Subido de 300 a 1000 para no bloquear propiedades caras
   const [selectedStars, setSelectedStars] = useState<number[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,7 +35,8 @@ export default function ClientExplorePage() {
     const fetchBiz = async () => {
       try {
         setLoading(true);
-        const res = await getBusinesses(1, 100, "", "score", "DESC");
+        // 🔴 CRÍTICO: Ahora se le pasa el query string (cityParam) inicial a la API si existe
+        const res = await getBusinesses(1, 100, cityParam || "", "score", "DESC");
         setBusinesses(res.data || []);
       } catch (e) {
         console.error(e);
@@ -44,7 +45,7 @@ export default function ClientExplorePage() {
       }
     };
     fetchBiz();
-  }, []);
+  }, [cityParam]); // Ejecutar de nuevo si cambia el parámetro de ciudad de la URL
 
   const filteredBusinesses = businesses.filter((b) => {
     // 1. Search Query filter (matches name, city, address, description)
@@ -58,7 +59,9 @@ export default function ClientExplorePage() {
     }
 
     // 2. Price filter
-    if (b.pricePerNight && Number(b.pricePerNight) > maxPrice) {
+    // 🔴 CRÍTICO: Cast preventivo a Number por si el backend responde con un string numérico
+    const actualPrice = b.pricePerNight ? Number(b.pricePerNight) : 0;
+    if (actualPrice > maxPrice) {
       return false;
     }
 
@@ -95,7 +98,7 @@ export default function ClientExplorePage() {
           <input 
             type="range" 
             min="10" 
-            max="300" 
+            max="1000" // 🔴 Actualizado a juego con el estado inicial
             value={maxPrice}
             onChange={(e) => setMaxPrice(Number(e.target.value))}
             style={{ width: "100%", accentColor: "var(--accent-1)" }} 
@@ -209,17 +212,27 @@ export default function ClientExplorePage() {
                 </p>
 
                 <div className="client-business-footer">
-                  <div className="client-business-features">
+                  <div className="client-business-features" style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                     {(b.amenities || []).slice(0, 5).map((amenity, idx) => {
-                      let icon = '✨';
-                      const lower = amenity.toLowerCase();
+                      let icon = '';
+                      const lower = amenity.toLowerCase().trim();
                       if (lower.includes('wifi')) icon = '📶';
                       else if (lower.includes('caf')) icon = '☕';
                       else if (lower.includes('piscina')) icon = '🏊';
                       else if (lower.includes('cocina')) icon = '🍳';
                       else if (lower.includes('aire')) icon = '❄️';
                       else if (lower.includes('tv')) icon = '📺';
-                      return <span key={idx} title={amenity}>{icon}</span>;
+                      
+                      // 🔴 MEJORA: Si es un amenity no tipado, se muestra el texto completo para que no sea un icono genérico
+                      if (icon === '') {
+                        return (
+                          <span key={idx} style={{ fontSize: "12px", background: "var(--surface-hover)", padding: "4px 8px", borderRadius: "4px" }}>
+                            ✨ {amenity}
+                          </span>
+                        );
+                      }
+                      
+                      return <span key={idx} title={amenity} style={{ fontSize: "18px" }}>{icon}</span>;
                     })}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
