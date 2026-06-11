@@ -248,8 +248,9 @@ export default function BusinessBookingsPage() {
       setEditBookingId(null);
       setSelectedBooking(null);
       setRowActionsId(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error updating booking", err);
+      alert("Error al actualizar la reserva: " + err.message);
     } finally {
       setIsSubmitting(false);
     }
