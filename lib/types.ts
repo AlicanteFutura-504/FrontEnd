@@ -6,7 +6,7 @@
 /**
  * Estados posibles de una cita en el sistema.  
  */
-export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled" | "modified";
+export type BookingStatus = "pending" | "confirmed" | "terminada" | "cancelled" | "modified";
 
 /**
  * Representa una cita/reserva tal como se almacena en la base de datos.
@@ -125,6 +125,7 @@ export interface Review {
   guestId: number;
   score: number;
   comment: string;
+  hostReply?: string;
   createdAt: string;
   guest?: User;
 }

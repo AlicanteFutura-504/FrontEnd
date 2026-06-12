@@ -10,6 +10,7 @@ import dynamic from "next/dynamic";
 import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { es } from "date-fns/locale/es";
+import { useToast } from "@/components/ui/Toast";
 
 registerLocale("es", es);
 
@@ -59,6 +60,7 @@ export default function PropertyDetailPage() {
   // Dynamic pricing
   const [nights, setNights] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
+  const { toast } = useToast();
 
   // Control de fecha de hoy para los inputs
   const today = new Date().toISOString().split("T")[0];
@@ -122,12 +124,12 @@ export default function PropertyDetailPage() {
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      alert("Por favor, inicia sesión para reservar.");
+      toast.info("Por favor, inicia sesión para reservar.");
       router.push("/login");
       return;
     }
     if (!checkIn || !checkOut) {
-      alert("Por favor, selecciona las fechas de entrada y salida.");
+      toast.error("Por favor, selecciona las fechas de entrada y salida.");
       return;
     }
     setBookingLoading(true);
@@ -146,11 +148,11 @@ export default function PropertyDetailPage() {
         propertyId: Number(propertyId),
         usuarioId: user.id
       });
-      alert("¡Reserva solicitada con éxito! Está pendiente de confirmación.");
+      toast.success("¡Reserva solicitada con éxito! Está pendiente de confirmación.");
       router.push("/mis-reservas");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error desconocido";
-      alert("Error al reservar: " + message);
+      toast.error("Error al reservar: " + message);
     } finally {
       setBookingLoading(false);
     }
@@ -173,7 +175,7 @@ export default function PropertyDetailPage() {
         const errObj = await res.json().catch(() => ({}));
         throw new Error(errObj.message || "Error al enviar reseña");
       }
-      alert("¡Reseña publicada con éxito!");
+      toast.success("¡Reseña publicada con éxito!");
       setReviewComment("");
       
       // Refresh reviews and score
@@ -185,7 +187,7 @@ export default function PropertyDetailPage() {
       const propData = await getBusiness(Number(propertyId));
       setProperty(propData as any);
     } catch (err: any) {
-      alert("Error: " + err.message);
+      toast.error("Error: " + err.message);
     } finally {
       setSubmittingReview(false);
     }
@@ -400,6 +402,13 @@ export default function PropertyDetailPage() {
                   {"★".repeat(rev.score)}{"☆".repeat(5 - rev.score)}
                 </div>
                 <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.5, color: "var(--text)" }}>{rev.comment}</p>
+                
+                {rev.hostReply && (
+                  <div style={{ marginTop: "16px", padding: "16px", background: "var(--surface-hover)", borderRadius: "12px", borderLeft: "4px solid var(--accent)" }}>
+                    <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--accent)", marginBottom: "4px" }}>Respuesta del Anfitrión:</div>
+                    <p style={{ margin: 0, fontSize: "0.9rem", lineHeight: 1.5, color: "var(--text)" }}>{rev.hostReply}</p>
+                  </div>
+                )}
               </div>
             ))}
           </div>

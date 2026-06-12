@@ -6,6 +6,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ToastProvider } from "@/components/ui/Toast";
 
 const outfit = Outfit({ 
   subsets: ["latin"],
@@ -41,7 +42,9 @@ export default function RootLayout({
           }}
         />
         <AuthProvider>
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

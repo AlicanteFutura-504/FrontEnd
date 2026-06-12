@@ -40,6 +40,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <nav className="client-nav">
               <Link href="/explore" className={pathname === "/explore" ? "active" : ""}>Explorar</Link>
               <Link href="/mis-reservas" className={pathname === "/mis-reservas" ? "active" : ""}>Mis Reservas</Link>
+              <Link href="/mis-mensajes" className={pathname === "/mis-mensajes" ? "active" : ""}>Mensajes</Link>
               <Link href="/profile" className={pathname === "/profile" ? "active" : ""}>Mi Perfil</Link>
             </nav>
             

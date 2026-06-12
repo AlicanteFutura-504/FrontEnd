@@ -202,13 +202,19 @@ export async function getBusinesses(
   sortBy: string = '',
   sortOrder: string = '',
   filterField: string = '',
-  filterValue: string = ''
+  filterValue: string = '',
+  lat?: number,
+  lng?: number,
+  radius?: number
 ): Promise<{ data: Business[], total: number }> {
   const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
   if (sortBy) params.append('sortBy', sortBy);
   if (sortOrder) params.append('sortOrder', sortOrder);
   if (filterField) params.append('filterField', filterField);
   if (filterValue) params.append('filterValue', filterValue);
+  if (lat !== undefined) params.append('lat', lat.toString());
+  if (lng !== undefined) params.append('lng', lng.toString());
+  if (radius !== undefined) params.append('radius', radius.toString());
 
   // 🛠️ CORRECCIÓN: Si no se define filtro de precio, forzamos un rango alto para evitar que el backend aplique su filtro de 300€ por defecto.
   if (filterField !== 'maxPrice' && filterField !== 'precio') {
@@ -252,6 +258,29 @@ export async function updateBusiness(id: number, data: any): Promise<Business> {
   return handleResponse(res);
 }
 
+export async function uploadPropertyImage(id: number, file: File): Promise<Business> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const token = localStorage.getItem('access_token');
+  const res = await fetch(`${API_URL}/properties/${id}/images`, {
+    method: 'POST',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+  return handleResponse(res);
+}
+
+export async function deletePropertyImage(id: number, imageUrl: string): Promise<Business> {
+  const res = await fetch(`${API_URL}/properties/${id}/images`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+    body: JSON.stringify({ imageUrl }),
+  });
+  return handleResponse(res);
+}
+
 export async function deleteBusiness(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/properties/${id}`, {
     method: "DELETE",
@@ -282,6 +311,15 @@ export async function createPropertyReview(propertyId: number, data: { score: nu
     method: "POST",
     headers: getHeaders(),
     body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function replyToReview(reviewId: number, hostReply: string): Promise<any> {
+  const res = await fetch(`${API_URL}/properties/reviews/${reviewId}/reply`, {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify({ hostReply }),
   });
   return handleResponse(res);
 }
@@ -432,6 +470,34 @@ export async function updatePayment(id: number, data: UpdatePaymentDtoReq): Prom
 export async function deletePayment(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/payments/${id}`, {
     method: "DELETE",
+    headers: getHeaders(),
+  });
+  return handleResponse(res);
+}
+
+// --- MESSAGES ---
+export async function getConversations(): Promise<any[]> {
+  const res = await fetch(`${API_URL}/messages/conversations`, { headers: getHeaders() });
+  return handleResponse(res);
+}
+
+export async function getMessagesBetween(otherUserId: number): Promise<any[]> {
+  const res = await fetch(`${API_URL}/messages/${otherUserId}`, { headers: getHeaders() });
+  return handleResponse(res);
+}
+
+export async function sendMessage(receiverId: number, content: string, bookingId?: number): Promise<any> {
+  const res = await fetch(`${API_URL}/messages/${receiverId}`, {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify({ content, bookingId }),
+  });
+  return handleResponse(res);
+}
+
+export async function markMessagesAsRead(otherUserId: number): Promise<void> {
+  const res = await fetch(`${API_URL}/messages/${otherUserId}/read`, {
+    method: "PATCH",
     headers: getHeaders(),
   });
   return handleResponse(res);

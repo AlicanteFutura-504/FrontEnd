@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Loading from "@/components/ui/Loading";
-import { getBusiness, getBusinessDashboardSummary, getAllBookingsByBusiness, getAllClientsByBusiness, getReviewsByProperty } from "@/lib/api";
+import { getBusiness, getBusinessDashboardSummary, getAllBookingsByBusiness, getAllClientsByBusiness, getReviewsByProperty, replyToReview } from "@/lib/api";
 import { Booking, Business, Review } from "@/lib/types";
 import KpiCard from "@/components/ui/KpiCard";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
 import Badge from "@/components/ui/Badge";
 import { Building2 } from "lucide-react";
+import { useToast } from "@/components/ui/Toast";
 
 interface BusinessSummary {
   totalBookings: number;
@@ -45,6 +46,10 @@ export default function BusinessDashboardPage() {
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [replyingReviewId, setReplyingReviewId] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [isReplying, setIsReplying] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -183,11 +188,29 @@ export default function BusinessDashboardPage() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error exportando reporte del propiedad:', error);
-      alert('No se pudo exportar el reporte del propiedad. Revisa la consola para más detalles.');
+      toast.error('No se pudo exportar el reporte del local. Revisa la consola para más detalles.');
     } finally {
       setExporting(false);
     }
   }
+
+  const handleReplySubmit = async (reviewId: number) => {
+    if (!replyText.trim()) return;
+    setIsReplying(true);
+    try {
+      await replyToReview(reviewId, replyText);
+      toast.success('Respuesta publicada con éxito.');
+      setReplyingReviewId(null);
+      setReplyText("");
+      // Refresh reviews
+      const updatedReviews = await getReviewsByProperty(Number(businessId));
+      setReviews(updatedReviews);
+    } catch (err: any) {
+      toast.error('Error al responder: ' + err.message);
+    } finally {
+      setIsReplying(false);
+    }
+  };
 
   return (
     <div className="page-stack">
@@ -354,6 +377,39 @@ export default function BusinessDashboardPage() {
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>
                 {formatDate(r.createdAt)}
               </div>
+
+              {r.hostReply && (
+                <div style={{ marginTop: '12px', padding: '12px', background: 'var(--surface-hover)', borderRadius: '8px', borderLeft: '3px solid var(--accent)' }}>
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--accent)', display: 'block', marginBottom: '4px' }}>Tu respuesta:</strong>
+                  <p style={{ fontSize: '0.9rem', margin: 0 }}>{r.hostReply}</p>
+                </div>
+              )}
+
+              {!r.hostReply && user?.role === 'host' && (
+                <div style={{ marginTop: '12px' }}>
+                  {replyingReviewId === r.id ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <textarea
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        placeholder="Escribe tu respuesta pública..."
+                        rows={3}
+                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-strong)', background: 'var(--surface)' }}
+                      />
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button type="button" onClick={() => { setReplyingReviewId(null); setReplyText(''); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>Cancelar</button>
+                        <button type="button" onClick={() => handleReplySubmit(r.id)} disabled={isReplying} style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', opacity: isReplying ? 0.7 : 1 }}>
+                          {isReplying ? 'Enviando...' : 'Responder'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => { setReplyingReviewId(r.id); setReplyText(''); }} style={{ background: 'transparent', border: '1px solid var(--border-strong)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600 }}>
+                      Responder a esta reseña
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )) : (
             <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>Aún no hay reseñas para esta propiedad.</p>

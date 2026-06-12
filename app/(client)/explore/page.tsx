@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getBusinesses } from "@/lib/api";
@@ -16,7 +17,7 @@ interface ExtendedBusiness extends Business {
   amenities: string[];   // Forzado según el nuevo tipado base
 }
 
-export default function ClientExplorePage() {
+function ExploreContent() {
   const searchParams = useSearchParams();
   const cityParam = searchParams.get("city") || "";
 
@@ -26,6 +27,8 @@ export default function ClientExplorePage() {
   const [selectedStars, setSelectedStars] = useState<number[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [radius, setRadius] = useState<number>(50); // Radio por defecto: 50km
+  const [geoCoordinates, setGeoCoordinates] = useState<{lat: number, lng: number} | null>(null);
 
   useEffect(() => {
     if (cityParam) {
@@ -37,8 +40,29 @@ export default function ClientExplorePage() {
     const fetchBiz = async () => {
       try {
         setLoading(true);
-        // 🔴 CRÍTICO: Ahora se le pasa el query string (cityParam) inicial a la API si existe
-        const res = await getBusinesses(1, 100, cityParam || "", "score", "DESC");
+        let lat, lng;
+        let finalSearchQuery = cityParam || "";
+        
+        if (cityParam) {
+          // Attempt to geocode via Nominatim
+          try {
+            const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityParam)}`);
+            const geoData = await geoRes.json();
+            if (geoData && geoData.length > 0) {
+              lat = parseFloat(geoData[0].lat);
+              lng = parseFloat(geoData[0].lon);
+              setGeoCoordinates({ lat, lng });
+              finalSearchQuery = ""; // Si usamos geocoding, limpiamos la búsqueda de texto al backend para depender del radio
+            }
+          } catch (geoError) {
+            console.error("Error geocoding:", geoError);
+          }
+        } else {
+          setGeoCoordinates(null);
+        }
+
+        // 🔴 CRÍTICO: Pasamos los parámetros de geolocalización al backend si existen
+        const res = await getBusinesses(1, 100, finalSearchQuery, "score", "DESC", "", "", lat, lng, lat ? radius : undefined);
         setBusinesses(res.data || []);
       } catch (e) {
         console.error(e);
@@ -47,7 +71,7 @@ export default function ClientExplorePage() {
       }
     };
     fetchBiz();
-  }, [cityParam]); // Ejecutar de nuevo si cambia el parámetro de ciudad de la URL
+  }, [cityParam, radius]); // Ejecutar de nuevo si cambia el parámetro de ciudad de la URL o el radio
 
   const filteredBusinesses = businesses.filter((b) => {
     // 1. Search Query filter (matches name, city, address, description)
@@ -95,6 +119,24 @@ export default function ClientExplorePage() {
       <aside className="client-sidebar">
         <h3 className="client-filter-title">Filtros Avanzados</h3>
         
+        <div className="client-filter-section">
+          <h4 style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 8 }}>Radio de Búsqueda</h4>
+          <input 
+            type="range" 
+            min="1" 
+            max="200" 
+            step="1"
+            value={radius} 
+            onChange={(e) => setRadius(Number(e.target.value))}
+            style={{ width: "100%", accentColor: "var(--accent)" }}
+          />
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
+            <span>1 km</span>
+            <span style={{ fontWeight: 600, color: "var(--accent)" }}>{radius} km</span>
+            <span>200 km</span>
+          </div>
+        </div>
+
         <div className="client-filter-section">
           <h4 style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 8 }}>Precio Máximo</h4>
           <input 
@@ -264,5 +306,13 @@ export default function ClientExplorePage() {
         )}
       </section>
     </>
+  );
+}
+
+export default function ClientExplorePage() {
+  return (
+    <Suspense fallback={<div className="client-loading-state"><div className="client-loading-spinner" /></div>}>
+      <ExploreContent />
+    </Suspense>
   );
 }

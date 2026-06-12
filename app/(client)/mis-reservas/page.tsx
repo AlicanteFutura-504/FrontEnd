@@ -6,6 +6,7 @@ import { getBookingsByCustomer, updateBooking, updatePayment } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import Loading from "@/components/ui/Loading";
 import { MapPin, CreditCard, Calendar, CheckCircle, XCircle } from "lucide-react";
+import { useToast } from "@/components/ui/Toast";
 
 export default function MisReservasPage() {
   const { user } = useAuth();
@@ -17,6 +18,7 @@ export default function MisReservasPage() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [paymentType, setPaymentType] = useState<"tarjeta" | "bizum" | "transferencia">("tarjeta");
   const [paying, setPaying] = useState(false);
+  const { toast } = useToast();
 
   const fetchBookings = async () => {
     if (!user) return;
@@ -39,10 +41,10 @@ export default function MisReservasPage() {
     if (!confirm("¿Estás seguro de que deseas cancelar esta reserva?")) return;
     try {
       await updateBooking(bookingId, { status: "cancelled" });
-      alert("Reserva cancelada con éxito.");
+      toast.success("Reserva cancelada con éxito.");
       fetchBookings();
     } catch (e: any) {
-      alert("Error al cancelar: " + e.message);
+      toast.error("Error al cancelar: " + e.message);
     }
   };
 
@@ -60,12 +62,12 @@ export default function MisReservasPage() {
         status: "pagado",
         type: paymentType
       });
-      alert("¡Pago realizado con éxito!");
+      toast.success("¡Pago realizado con éxito!");
       setShowPayModal(false);
       setSelectedBooking(null);
       fetchBookings();
     } catch (e: any) {
-      alert("Error al realizar el pago: " + e.message);
+      toast.error("Error al realizar el pago: " + e.message);
     } finally {
       setPaying(false);
     }
@@ -73,8 +75,8 @@ export default function MisReservasPage() {
 
   if (loading) return <Loading />;
 
-  const activeBookings = bookings.filter(b => b.status !== "cancelled" && b.status !== "completed");
-  const completedBookings = bookings.filter(b => b.status === "completed");
+  const activeBookings = bookings.filter(b => b.status !== "cancelled" && b.status !== "terminada");
+  const completedBookings = bookings.filter(b => b.status === "terminada");
   const cancelledBookings = bookings.filter(b => b.status === "cancelled");
 
   const getStatusBadge = (status: string) => {
@@ -90,8 +92,8 @@ export default function MisReservasPage() {
       text = "Confirmada";
       bg = "rgba(40,167,69,0.1)";
       fg = "#28a745";
-    } else if (status === "completed") {
-      text = "Completada";
+    } else if (status === "terminada") {
+      text = "Terminada";
       bg = "rgba(108,117,125,0.1)";
       fg = "#6c757d";
     } else if (status === "cancelled") {

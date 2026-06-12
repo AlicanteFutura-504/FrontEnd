@@ -72,7 +72,7 @@ const STATUS_DOT: Record<string, string> = {
   confirmed: "var(--info)",
   modified: "var(--accent-2)",
   cancelled: "var(--danger)",
-  completed: "var(--success)",
+  terminada: "var(--success)",
 };
 
 
@@ -117,7 +117,7 @@ export default function BusinessBookingsPage() {
   const [rowActionsId, setRowActionsId] = useState<number | null>(null);
   const [viewingBooking, setViewingBooking] = useState<Booking | null>(null);
 
-  const isReadOnly = selectedBooking?.status === 'completed' && selectedBooking?.payment?.status === 'pagado';
+  const isReadOnly = selectedBooking?.status === 'terminada' && selectedBooking?.payment?.status === 'pagado';
 
   // Summary state
   const [summaryRange, setSummaryRange] = useState<"all" | "month" | "week">("all");
@@ -487,7 +487,7 @@ export default function BusinessBookingsPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.confirmed }} /> Confirmada</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.modified }} /> Modificada</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.cancelled }} /> Cancelada</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.completed }} /> Completada</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div className="calendar-event-dot" style={{ backgroundColor: STATUS_DOT.terminada }} /> Terminada</div>
           </div>
         </section>
       )}
@@ -582,7 +582,7 @@ export default function BusinessBookingsPage() {
                     </button>
                     {rowActionsId === b.id ? (
                       <>
-                        {!((b.status === 'completed' && b.payment?.status === 'pagado')) && (
+                        {!((b.status === 'terminada' && b.payment?.status === 'pagado')) && (
                           <>
                             <button 
                               type="button" 
@@ -704,7 +704,7 @@ export default function BusinessBookingsPage() {
                 <option value="confirmed">Confirmada</option>
                 <option value="modified">Modificada</option>
                 <option value="cancelled">Cancelada</option>
-                <option value="completed">Completada</option>
+                <option value="terminada">Terminada</option>
               </select>
               
               <div className="modal-actions" style={{ marginTop: 8 }}>

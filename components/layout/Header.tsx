@@ -53,6 +53,8 @@ export default function Header() {
             <Link href="/dashboard" className={`admin-nav-link ${pathname === "/dashboard" ? "active" : ""}`}>Dashboard</Link>
 
             <Link href="/properties" className={`admin-nav-link ${pathname === "/properties" ? "active" : ""}`}>Propiedades</Link>
+            
+            <Link href="/messages" className={`admin-nav-link ${pathname === "/messages" ? "active" : ""}`}>Mensajes</Link>
           </>
         )}
         {showBusinessMenu && effectiveBusinessId && (
