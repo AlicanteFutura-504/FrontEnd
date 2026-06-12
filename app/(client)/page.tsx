@@ -2,7 +2,7 @@ import { getBusinesses } from "@/lib/api";
 import Link from "next/link";
 import { Business } from "@/lib/types";
 
-interface ExtendedBusiness extends Business {
+interface ExtendedBusiness extends Omit<Business, 'pricePerNight' | 'images'> {
   score?: number;
   isPromoted?: boolean;
   pricePerNight?: number;
