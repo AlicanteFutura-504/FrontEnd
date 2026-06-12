@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import NotificationDropdown from "@/components/ui/NotificationDropdown";
 import "../client.css";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -42,30 +43,33 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               <Link href="/profile" className={pathname === "/profile" ? "active" : ""}>Mi Perfil</Link>
             </nav>
             
-            {/* Booking Style Search Bar */}
-            <div className="client-search-bar" style={{ display: "flex", width: "100%", maxWidth: "600px" }}>
-              <input 
-                className="client-search-input" 
-                placeholder="📍 Ubicación (Ej. Alicante o Barcelona)" 
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    router.push(`/explore?city=${encodeURIComponent(city)}`);
-                  }
-                }}
-              />
-              <button 
-                className="client-search-btn"
-                onClick={() => router.push(`/explore?city=${encodeURIComponent(city)}`)}
-              >
-                Buscar
-              </button>
-            </div>
+            {/* Booking Style Search Bar - Hidden on /explore */}
+            {pathname !== "/explore" && (
+              <div className="client-search-bar" style={{ display: "flex", width: "100%", maxWidth: "600px" }}>
+                <input 
+                  className="client-search-input" 
+                  placeholder="Ubicación (Ej. Alicante o Barcelona)" 
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      router.push(`/explore?city=${encodeURIComponent(city)}`);
+                    }
+                  }}
+                />
+                <button 
+                  className="client-search-btn"
+                  onClick={() => router.push(`/explore?city=${encodeURIComponent(city)}`)}
+                >
+                  Buscar
+                </button>
+              </div>
+            )}
           </div>
 
           <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
             <ThemeToggle />
+            <NotificationDropdown />
             <span style={{ fontWeight: 600 }}>Hola, {user.nombreCompleto || user.email}</span>
             <button 
               onClick={logout}

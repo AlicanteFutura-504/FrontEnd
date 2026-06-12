@@ -111,6 +111,8 @@ export interface Business {
   usuario?: User;
   
   pricePerNight: number;
+  maxGuests?: number;
+  description?: string;
   images: string[];
   amenities: string[];
 }

@@ -6,67 +6,68 @@ import styles from '@/app/Landing.module.css';
 import LandingHeader from '@/components/ui/LandingHeader';
 import LandingFooter from '@/components/ui/LandingFooter';
 import CookieBanner from '@/components/ui/CookieBanner';
+import { Rocket, Calendar, CreditCard, Settings, Users, Handshake, TrendingUp, ReceiptText, Smartphone, Search } from 'lucide-react';
 
 // Mock data for Help Center Categories
 const categories = [
   {
-    icon: "🚀",
+    icon: <Rocket size={32} color="#3b82f6" />,
     title: "Cómo empezar",
     description: "Da los primeros pasos para empezar a usar Yoku. Obtén instrucciones detalladas acerca del sistema y aprende a crear una cuenta.",
     articles: "8 artículos",
     href: "#",
   },
   {
-    icon: "📅",
+    icon: <Calendar size={32} color="#3b82f6" />,
     title: "Gestión del calendario y las reservas",
     description: "Aprende a crear y modificar reservas, enviar notificaciones a clientes y miembros del personal, y ajustar el horario de apertura.",
     articles: "83 artículos",
     href: "#",
   },
   {
-    icon: "💳",
+    icon: <CreditCard size={32} color="#3b82f6" />,
     title: "Pagos e ingresos",
     description: "Obtén más información sobre los pagos, sus ventajas, condiciones y descubre cómo configurar el TPV (Terminal Punto de Venta).",
     articles: "25 artículos",
     href: "#",
   },
   {
-    icon: "⚙️",
+    icon: <Settings size={32} color="#3b82f6" />,
     title: "Configuración de la cuenta",
     description: "Información sobre los pasos básicos de configuración, como restablecer la contraseña o cambiar la dirección de tu propiedad.",
     articles: "15 artículos",
     href: "#",
   },
   {
-    icon: "👥",
+    icon: <Users size={32} color="#3b82f6" />,
     title: "Gestión del personal",
     description: "Descubre cómo gestionar a tus empleados, así como sus perfiles, agendas y derechos de acceso al sistema.",
     articles: "9 artículos",
     href: "#",
   },
   {
-    icon: "🤝",
+    icon: <Handshake size={32} color="#3b82f6" />,
     title: "Gestión de clientes",
     description: "Administra la base de datos de tu clientela. Aprende a importar, editar o bloquear perfiles de clientes.",
     articles: "10 artículos",
     href: "#",
   },
   {
-    icon: "📈",
+    icon: <TrendingUp size={32} color="#3b82f6" />,
     title: "Marketing y Fidelización",
     description: "Lee consejos acerca de cómo utilizar Yoku para promocionar tu propiedad, crear vales y mejorar la experiencia de tus clientes.",
     articles: "39 artículos",
     href: "#",
   },
   {
-    icon: "🧾",
+    icon: <ReceiptText size={32} color="#3b82f6" />,
     title: "Facturación y suscripción",
     description: "Consulta toda la información necesaria sobre tu suscripción. Descubre cómo renovarla o cambiar de plan.",
     articles: "24 artículos",
     href: "#",
   },
   {
-    icon: "📱",
+    icon: <Smartphone size={32} color="#3b82f6" />,
     title: "Reservas en línea para clientes",
     description: "Explora el proceso de creación y gestión de reservas desde el punto de vista del cliente. Cómo cancelar o reagendar citas.",
     articles: "16 artículos",
@@ -125,10 +126,10 @@ export default function CentroAyudaPage() {
               left: '20px', 
               top: '50%', 
               transform: 'translateY(-50%)', 
-              fontSize: '1.25rem',
-              color: '#6b7280'
+              display: 'flex',
+              alignItems: 'center'
             }}>
-              🔍
+              <Search size={20} color="#6b7280" />
             </span>
             <input 
               type="text" 

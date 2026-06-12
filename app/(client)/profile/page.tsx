@@ -5,6 +5,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { updateMe, uploadAvatar, getBusinesses } from "@/lib/api";
 import { Business } from "@/lib/types";
 import Loading from "@/components/ui/Loading";
+import { Camera, Trash2, Edit2, X } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
@@ -16,7 +17,9 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [contrasena, setContrasena] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
@@ -90,12 +93,18 @@ export default function ProfilePage() {
         email
       };
       if (contrasena) {
+        if (!currentPassword) {
+           throw new Error("Debe introducir la contraseña actual para poder establecer una nueva.");
+        }
         dataToUpdate.contrasena = contrasena;
+        dataToUpdate.currentPassword = currentPassword;
       }
       const updatedUser = await updateMe(dataToUpdate);
       updateUser(updatedUser);
       alert("¡Perfil actualizado con éxito!");
       setContrasena("");
+      setCurrentPassword("");
+      setIsEditing(false);
     } catch (e: any) {
       alert("Error al actualizar perfil: " + e.message);
     } finally {
@@ -161,15 +170,12 @@ export default function ProfilePage() {
               alt="Avatar"
             />
             <label style={{ position: "absolute", bottom: 0, right: 0, background: "var(--accent-gradient)", color: "white", padding: "8px", borderRadius: "50%", cursor: "pointer", display: "grid", placeItems: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.15)", width: "36px", height: "36px" }}>
-              📷
+              <Camera size={18} />
               <input type="file" onChange={handleAvatarChange} disabled={uploadingAvatar} accept="image/*" style={{ display: "none" }} />
             </label>
           </div>
           <h2 style={{ fontSize: "1.4rem", fontWeight: 700, margin: "0 0 4px 0" }}>{user.nombreCompleto || user.username}</h2>
           <p style={{ color: "var(--text-muted)", margin: "0 0 16px 0", fontSize: "0.95rem" }}>{user.email}</p>
-          <span style={{ background: "var(--surface-hover)", border: "1px solid var(--border-strong)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.85rem", fontWeight: 600, textTransform: "uppercase" }}>
-            Rol: {user.role === "guest" ? "Cliente" : user.role}
-          </span>
         </div>
 
         {/* Guest Trust Score Card */}
@@ -216,46 +222,64 @@ export default function ProfilePage() {
         
         {/* Edit profile form */}
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "32px", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
-          <h3 style={{ fontSize: "1.3rem", fontWeight: 800, marginBottom: "20px" }}>Ajustes de la Cuenta</h3>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>Ajustes de la Cuenta</h3>
+            <button 
+              onClick={() => setIsEditing(!isEditing)} 
+              type="button"
+              style={{ background: isEditing ? "var(--surface-hover)" : "var(--accent-gradient)", color: isEditing ? "var(--text)" : "white", border: isEditing ? "1px solid var(--border)" : "none", borderRadius: "8px", padding: "6px 12px", cursor: "pointer", display: "flex", gap: "6px", alignItems: "center", fontWeight: 600, fontSize: "0.85rem" }}
+            >
+              {isEditing ? <X size={16} /> : <Edit2 size={16} />}
+              {isEditing ? "Cancelar edición" : "Editar perfil"}
+            </button>
+          </div>
           <form onSubmit={handleUpdateProfile} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
             <div style={{ gridColumn: "span 2" }}>
               <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase", marginBottom: "6px" }}>Nombre Completo</label>
-              <input type="text" value={nombreCompleto} onChange={e => setNombreCompleto(e.target.value)} required style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none" }} />
+              <input type="text" value={nombreCompleto} onChange={e => setNombreCompleto(e.target.value)} disabled={!isEditing} required style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none", opacity: isEditing ? 1 : 0.6 }} />
             </div>
             <div>
               <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase", marginBottom: "6px" }}>DNI / NIE</label>
-              <input type="text" value={dni} onChange={e => setDni(e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none" }} />
+              <input type="text" value={dni} onChange={e => setDni(e.target.value)} disabled={!isEditing} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none", opacity: isEditing ? 1 : 0.6 }} />
             </div>
             <div>
               <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase", marginBottom: "6px" }}>Teléfono</label>
-              <input type="text" value={phone} onChange={e => setPhone(e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none" }} />
+              <input type="text" value={phone} onChange={e => setPhone(e.target.value)} disabled={!isEditing} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none", opacity: isEditing ? 1 : 0.6 }} />
             </div>
             <div style={{ gridColumn: "span 2" }}>
               <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase", marginBottom: "6px" }}>Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none" }} />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} disabled={!isEditing} required style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none", opacity: isEditing ? 1 : 0.6 }} />
             </div>
-            <div style={{ gridColumn: "span 2" }}>
-              <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase", marginBottom: "6px" }}>Nueva Contraseña (dejar en blanco para no cambiar)</label>
-              <input type="password" value={contrasena} onChange={e => setContrasena(e.target.value)} placeholder="Mínimo 6 caracteres" style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none" }} />
-            </div>
-            <div style={{ gridColumn: "span 2", marginTop: "8px" }}>
-              <button 
-                type="submit" 
-                disabled={updating}
-                style={{
-                  background: "linear-gradient(135deg, #FF385C, #E61E4D)",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  padding: "12px 24px",
-                  fontWeight: 600,
-                  cursor: updating ? "not-allowed" : "pointer",
-                  opacity: updating ? 0.7 : 1
-                }}
-              >
-                {updating ? "Guardando..." : "Guardar Cambios"}
-              </button>
-            </div>
+            {isEditing && (
+              <>
+                <div style={{ gridColumn: "span 2" }}>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase", marginBottom: "6px" }}>Contraseña Actual (requerida para cambiar a una nueva)</label>
+                  <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="Introduce tu contraseña actual" style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none" }} />
+                </div>
+                <div style={{ gridColumn: "span 2" }}>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase", marginBottom: "6px" }}>Nueva Contraseña</label>
+                  <input type="password" value={contrasena} onChange={e => setContrasena(e.target.value)} placeholder="Mínimo 6 caracteres" style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none" }} />
+                </div>
+                <div style={{ gridColumn: "span 2", marginTop: "8px" }}>
+                  <button 
+                    type="submit" 
+                    disabled={updating}
+                    style={{
+                      background: "linear-gradient(135deg, #FF385C, #E61E4D)",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      padding: "12px 24px",
+                      fontWeight: 600,
+                      cursor: updating ? "not-allowed" : "pointer",
+                      opacity: updating ? 0.7 : 1
+                    }}
+                  >
+                    {updating ? "Guardando..." : "Guardar Cambios"}
+                  </button>
+                </div>
+              </>
+            )}
           </form>
         </div>
 
@@ -281,10 +305,10 @@ export default function ProfilePage() {
                   </div>
                   <button 
                     onClick={() => handleRemoveFavorite(fav.id)}
-                    style={{ background: "transparent", border: "none", color: "var(--danger)", cursor: "pointer", fontSize: "1.25rem", padding: "8px" }}
+                    style={{ background: "transparent", border: "none", color: "var(--danger)", cursor: "pointer", fontSize: "1.25rem", padding: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}
                     title="Eliminar de favoritos"
                   >
-                    🗑️
+                    <Trash2 size={20} />
                   </button>
                 </div>
               ))}

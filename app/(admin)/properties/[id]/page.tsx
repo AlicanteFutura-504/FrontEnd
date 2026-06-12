@@ -9,6 +9,7 @@ import KpiCard from "@/components/ui/KpiCard";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
 import Badge from "@/components/ui/Badge";
+import { Building2 } from "lucide-react";
 
 interface BusinessSummary {
   totalBookings: number;
@@ -192,7 +193,13 @@ export default function BusinessDashboardPage() {
     <div className="page-stack">
       <header className="page-hero">
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div style={{ fontSize: '40px', background: 'var(--primary-soft)', padding: '15px', borderRadius: '20px' }}>🏢</div>
+          {(business as any).images && (business as any).images.length > 0 ? (
+            <img src={(business as any).images[0]} alt={business.nombre} style={{ width: '80px', height: '80px', borderRadius: '20px', objectFit: 'cover' }} />
+          ) : (
+            <div style={{ width: '80px', height: '80px', background: 'var(--primary-soft)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Building2 size={40} color="var(--accent-1)" />
+            </div>
+          )}
           <div>
             <h2>Dashboard: {business.nombre}</h2>
             <p>{business.city || 'Sin ciudad'}, {business.address || ''} · {business.telefono || 'Sin teléfono'}</p>

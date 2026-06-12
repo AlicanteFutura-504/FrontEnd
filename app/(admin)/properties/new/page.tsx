@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { createBusiness } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
+import { MapPin, Home, Phone, Banknote, Users, FileText, Building, UserCircle, Mail, Lock } from "lucide-react";
 
 export default function NewBusinessPage() {
   const { user } = useAuth();
@@ -16,6 +17,9 @@ export default function NewBusinessPage() {
     username: "",
     email: "",
     contrasena: "",
+    pricePerNight: 0,
+    maxGuests: 2,
+    description: "",
   });
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -72,14 +76,17 @@ export default function NewBusinessPage() {
           <div>
             <h3 className="panel-title" style={{ marginBottom: '16px' }}>Información Comercial</h3>
             <div className="form-grid">
-              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-                <label className="kpi-card__label">Nombre del Local</label>
-                <input name="nombre" value={formData.nombre} onChange={handleChange} required className="input" placeholder="Ej. Restaurante El Puerto" />
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label>Nombre del Local</label>
+                <div className="input-with-icon">
+                  <span className="input-icon"><Building size={16} /></span>
+                  <input name="nombre" value={formData.nombre} onChange={handleChange} required className="input" placeholder="Ej. Restaurante El Puerto" />
+                </div>
               </div>
               <div className="form-group">
                 <label>Ciudad</label>
                 <div className="input-with-icon">
-                  <span className="input-icon">📍</span>
+                  <span className="input-icon"><MapPin size={16} /></span>
                   <input name="city" value={formData.city} onChange={handleChange} className="input" placeholder="Alicante" />
                 </div>
               </div>
@@ -87,13 +94,41 @@ export default function NewBusinessPage() {
               <div className="form-group">
                 <label>Dirección completa</label>
                 <div className="input-with-icon">
-                  <span className="input-icon">🏠</span>
+                  <span className="input-icon"><Home size={16} /></span>
                   <input name="address" value={formData.address} onChange={handleChange} className="input" placeholder="Av. Mediterráneo, 12" />
                 </div>
               </div>
-              <div className="input-group">
-                <label className="kpi-card__label">Teléfono de Contacto</label>
-                <input name="telefono" value={formData.telefono} onChange={handleChange} className="input" placeholder="965 00 00 00" />
+              
+              <div className="form-group">
+                <label>Teléfono de Contacto</label>
+                <div className="input-with-icon">
+                  <span className="input-icon"><Phone size={16} /></span>
+                  <input name="telefono" value={formData.telefono} onChange={handleChange} className="input" placeholder="965 00 00 00" />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Precio por noche (€)</label>
+                <div className="input-with-icon">
+                  <span className="input-icon"><Banknote size={16} /></span>
+                  <input name="pricePerNight" type="number" min="0" value={formData.pricePerNight} onChange={handleChange} className="input" placeholder="Ej. 75" />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Huéspedes Máximos</label>
+                <div className="input-with-icon">
+                  <span className="input-icon"><Users size={16} /></span>
+                  <input name="maxGuests" type="number" min="1" value={formData.maxGuests} onChange={handleChange} className="input" placeholder="Ej. 4" />
+                </div>
+              </div>
+
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label>Descripción</label>
+                <div className="input-with-icon">
+                  <span className="input-icon" style={{ alignSelf: 'flex-start', marginTop: '12px' }}><FileText size={16} /></span>
+                  <textarea name="description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="input" placeholder="Alojamiento espacioso con vistas al mar..." rows={4} style={{ resize: 'vertical' }} />
+                </div>
               </div>
             </div>
           </div>
@@ -101,17 +136,26 @@ export default function NewBusinessPage() {
           <div style={{ marginTop: '12px', paddingTop: '24px', borderTop: '1px solid var(--border)' }}>
             <h3 className="panel-title" style={{ marginBottom: '16px' }}>Acceso del Local</h3>
             <div className="form-grid">
-              <div className="input-group">
-                <label className="kpi-card__label">Usuario (para el personal)</label>
-                <input name="username" value={formData.username} onChange={handleChange} required className="input" placeholder="usuario_local" />
+              <div className="form-group">
+                <label>Usuario (para el personal)</label>
+                <div className="input-with-icon">
+                  <span className="input-icon"><UserCircle size={16} /></span>
+                  <input name="username" value={formData.username} onChange={handleChange} required className="input" placeholder="usuario_local" />
+                </div>
               </div>
-              <div className="input-group">
-                <label className="kpi-card__label">Email corporativo</label>
-                <input name="email" type="email" value={formData.email} onChange={handleChange} required className="input" placeholder="local@propiedad.com" />
+              <div className="form-group">
+                <label>Email corporativo</label>
+                <div className="input-with-icon">
+                  <span className="input-icon"><Mail size={16} /></span>
+                  <input name="email" type="email" value={formData.email} onChange={handleChange} required className="input" placeholder="local@propiedad.com" />
+                </div>
               </div>
-              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-                <label className="kpi-card__label">Contraseña de acceso</label>
-                <input name="contrasena" type="password" value={formData.contrasena} onChange={handleChange} required className="input" placeholder="••••••••" />
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label>Contraseña de acceso</label>
+                <div className="input-with-icon">
+                  <span className="input-icon"><Lock size={16} /></span>
+                  <input name="contrasena" type="password" value={formData.contrasena} onChange={handleChange} required className="input" placeholder="••••••••" />
+                </div>
               </div>
             </div>
           </div>

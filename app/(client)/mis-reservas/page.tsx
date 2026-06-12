@@ -5,6 +5,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { getBookingsByCustomer, updateBooking, updatePayment } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import Loading from "@/components/ui/Loading";
+import { MapPin, CreditCard, Calendar, CheckCircle, XCircle } from "lucide-react";
 
 export default function MisReservasPage() {
   const { user } = useAuth();
@@ -120,8 +121,8 @@ export default function MisReservasPage() {
             <h3 style={{ fontSize: "1.25rem", fontWeight: 700, margin: 0 }}>
               {b.propertyName || (b.property as any)?.nombre || `Propiedad #${b.propertyId}`}
             </h3>
-            <p style={{ color: "var(--text-muted)", margin: "4px 0 0 0", fontSize: "0.95rem" }}>
-              📍 {(b.property as any)?.city || "Alicante"}
+            <p style={{ color: "var(--text-muted)", margin: "4px 0 0 0", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "4px" }}>
+              <MapPin size={16} /> {(b.property as any)?.city || "Alicante"}
             </p>
           </div>
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -179,7 +180,7 @@ export default function MisReservasPage() {
                 boxShadow: "0 4px 10px rgba(255, 56, 92, 0.3)"
               }}
             >
-              💸 Realizar Pago
+              <CreditCard size={18} /> Realizar Pago
             </button>
           )}
 
@@ -213,7 +214,7 @@ export default function MisReservasPage() {
         {/* Activas */}
         <section>
           <h2 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-            📅 Activas/Pendientes
+            <Calendar size={24} /> Activas/Pendientes
             <span style={{ fontSize: "0.9rem", background: "var(--surface-active)", padding: "2px 8px", borderRadius: "100px", color: "var(--text)" }}>
               {activeBookings.length}
             </span>
@@ -232,8 +233,8 @@ export default function MisReservasPage() {
         {/* Completadas */}
         {completedBookings.length > 0 && (
           <section>
-            <h2 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "16px", color: "var(--text-muted)" }}>
-              ✓ Completadas
+            <h2 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "16px", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "8px" }}>
+              <CheckCircle size={24} /> Completadas
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               {completedBookings.map(renderBookingCard)}
@@ -244,8 +245,8 @@ export default function MisReservasPage() {
         {/* Canceladas */}
         {cancelledBookings.length > 0 && (
           <section>
-            <h2 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "16px", color: "var(--text-muted)" }}>
-              ✗ Canceladas
+            <h2 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "16px", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "8px" }}>
+              <XCircle size={24} /> Canceladas
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               {cancelledBookings.map(renderBookingCard)}

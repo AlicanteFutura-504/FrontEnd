@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { Moon, Sun } from "lucide-react";
 
 export default function ThemeToggle() {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
@@ -43,7 +44,7 @@ export default function ThemeToggle() {
       onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-hover)")}
       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
     >
-      {mounted && isDarkMode ? "🌙" : "☀️"}
+      {mounted ? (isDarkMode ? <Moon size={18} /> : <Sun size={18} />) : <span style={{ width: 18, height: 18 }}></span>}
     </button>
   );
 }

@@ -3,71 +3,49 @@
 Este documento contiene el plan de ejecución paso a paso para cumplir con todos los requerimientos y reglas globales del proyecto. Según las reglas, la ejecución se detendrá tras cada fase para solicitar confirmación explícita.
 
 **Estado Actual:**
-- **Esquema de BD:** Utilizamos TypeORM en NestJS. La entidad `Property` (`property.entity.ts`) actualmente tiene un campo `direccion`, el cual será refactorizado/ampliado a `city` y `address` según los requerimientos. Las tablas nuevas requerirán sus respectivas entidades TypeORM (`Review` y `GuestRating`).
-- **Seed Scripts:** `seed_dev.js` y `seed_massive.js` están construidos con sentencias SQL puras usando `pg`. Deberán actualizarse para reflejar los nuevos campos y las nuevas tablas respetando la integridad relacional (solo reseñas entre usuarios que han tenido una reserva).
+- **Esquema de BD:** Completado (Entidades `Property`, `Review`, `GuestRating` implementadas en Backend).
+- **Lógica de Negocio y Dashboard Anfitrión:** Completado (Dashboard, Puntuaciones, Formularios).
+- **Ramas:** Trabajando actualmente en la nueva rama `feature/final-phases` unificada para Back y Front.
 
 ---
 
 ## FASE 1: Esquema de Base de Datos y Seeding Relacional
-- [x] Refactorizar `property.entity.ts` (Property): Añadir campos `city` y `address` (tipo string). Sustituir o migrar el uso actual de `direccion`.
-- [x] Crear nueva entidad `review.entity.ts`:
-  - `id` (Primary Key)
-  - `propertyId` (Relación ManyToOne con Property)
-  - `guestId` (Relación ManyToOne con Usuario)
-  - `score` (Int, 0 a 5)
-  - `comment` (Varchar, max 300)
-  - `createdAt` (Timestamp)
-- [x] Crear nueva entidad `guest-rating.entity.ts`:
-  - `id` (Primary Key)
-  - `guestId` (Relación ManyToOne con Usuario)
-  - `hostId` (Relación ManyToOne con Usuario)
-  - `score` (Int, 0 a 5)
-  - `createdAt` (Timestamp)
-- [x] Actualizar el módulo NestJS (`app.module.ts` u otros módulos relevantes) para registrar estas nuevas entidades.
-- [x] Modificar `seed_dev.js`:
-  - Generar `city` y `address` (usando faker) para las propiedades.
-  - Insertar registros en la tabla `review` basados en reservas (`booking`) existentes.
-  - Insertar registros en la tabla `guest_rating` basados en reservas existentes entre huéspedes y anfitriones.
-- [x] Modificar `seed_massive.js`:
-  - Aplicar la misma lógica relacional para la inserción masiva asegurando el correcto manejo de los *chunks* (lotes).
+- [x] Refactorizar `property.entity.ts` (Property): Añadidos `city` y `address`.
+- [x] Crear nuevas entidades `review.entity.ts` y `guest-rating.entity.ts`.
+- [x] Modificar seeders (`seed_dev.js` y `seed_massive.js`).
 
 ## FASE 2: Lógica de Negocio (Algoritmo de Puntuación, Estado y Promociones)
-- [x] Implementar el "Guest Trust Score" (0-100) en el backend (ej. `usuarios.service.ts`):
-  - 50%: `(Promedio GuestRating / 5) * 50`
-  - 30%: `(Reservas Completadas y Pagadas / Reservas Totales) * 30`
-  - 20%: `(Reservas Totales / 5) * 20` (Máximo 20 puntos).
-- [x] Implementar cálculo de Estado del Huésped:
-  - Promotor (>= 80)
-  - Neutral (40-79)
-  - Detractor (< 40)
-- [x] Implementar la puntuación de Propiedad (promedio simple de `Review.score`).
-- [x] Implementar lógica de promociones:
-  - Bandera de "Promocionado" para propiedades con score >= 4.5.
-  - Aplicación automática de descuentos en el checkout para huéspedes "Promotor".
+- [x] Implementar el "Guest Trust Score" y Estados (Promotor, Neutral, Detractor).
+- [x] Implementar la puntuación de Propiedad y Promociones.
 
 ## FASE 3: Dashboard del Anfitrión - Calendario Interactivo y Lista de Reservas
-- [x] Actualizar el formulario de Propiedad (`frontend/.../PropertyForm.tsx`):
-  - Reemplazar `direccion` por los dos nuevos inputs `city` y `address`.
-  - Validar los campos nuevos.
-- [x] Refactorizar el Calendario (`Calendar.tsx` o similar):
-  - Diferenciar visualmente (colores) reservas "Confirmadas", "Pendientes" y "Completadas".
-  - Permitir crear una reserva haciendo click en una fecha libre.
-  - Permitir editar una reserva haciendo click en una ocupada.
-- [x] Implementar la regla de "Read-Only" en reservas:
-  - Si `status` es 'completed', el pago es 'pagado' y ya existe una reseña (`review` o `guest_rating` asociado, o simplemente el status completed), no permitir su edición/borrado. Bloquear inputs en el modal.
-- [x] Revisión UI/UX:
-  - Todo el texto, botones (ej. "Guardar", "Cerrar", "Crear") y modales en perfecto Español.
+- [x] Actualizar formulario de Propiedad con `city` y `address`.
+- [x] Refactorizar el Calendario y lógica "Read-Only".
 
 ## FASE 4: Experiencia del Huésped - Búsqueda, Reseñas y Flujo de Reserva
-- [ ] Refactorizar la vista de inicio del huésped (estilo Airbnb).
-- [ ] Implementar búsqueda y feed:
-  - Filtrado por coincidencia de texto simple en `city`.
-  - Ordenación por puntuación (propiedades "promocionadas" primero).
-- [ ] Crear página de Vista Detallada de Propiedad:
-  - Mostrar `city`, score promedio, reseñas públicas, comodidades, calendario de disponibilidad y flujo de reserva.
-- [ ] Regla de Privacidad de Dirección:
-  - Ocultar `address` a usuarios generales.
-  - Mostrar `address` únicamente tras una reserva confirmada y pagada.
+- [x] Refactorizar la vista de inicio del huésped (estilo Airbnb).
+- [x] Implementar búsqueda y feed (Filtrado por coincidencia en `city`).
+- [ ] Crear página de Vista Detallada de Propiedad (Pendiente integrar calendario bloqueado y mapa).
+- [ ] Regla de Privacidad de Dirección: Ocultar `address` a usuarios generales, mostrar únicamente tras reserva confirmada y pagada.
+
+## FASE 5: Backend & System Integrations (Maps, Notifications, Payments)
+- [x] **Geolocalización (Maps)**: Añadir `latitude`/`longitude` a `Property`, integrar geocodificación en `properties.service.ts` y filtrado por proximidad.
+- [x] **Sistema de Notificaciones Dual**: Crear `Notification` entity/module, acoplar con `MailerService` (Notificaciones en BD + Email mock).
+- [x] **Booking Flow Updates**: Integrar lógica de "Pending Host Approval" tras pago y crear endpoint `PATCH /bookings/:id/host-decision` (con `cancelReason`).
+- [x] **Payment/Mock Gateway**: Endpoint `POST /payments/mock-checkout`, e integrar descuento 10% si Trust Score del Guest es Promotor.
+- [x] **Seed Updates**: Actualizados `seed_dev.js` y `seed_massive.js` con propiedades en diferentes ciudades de España, coordenadas geográficas, y simulación lógica de Promotores/Detractores.
+- [x] **Notification Tracking DB**: Expandida la tabla de notificaciones para guardar referencias (`bookingId`, `reviewId`, `link`) e implementados endpoints de historial, marcado como leído y borrado.
+*(Requires Explicit User Confirmation before moving to Phase 6)*
+
+## FASE 6: Guest Profile & Layout Refactoring (Frontend)
+- [ ] **Profile Page Fixes**: Ocultar rol de DB. Mantener visible el Guest Score. Arreglar carga de teléfono de DB. Botón toggle "Editar Perfil" (read-only hasta hacer click). Validación de contraseña actual requerida para cambiar contraseña.
+- [ ] **Explore Screen UI**: Remover barra de búsqueda redundante en el header global de esta pantalla. Expandir márgenes laterales del contenedor principal para mejor uso de espacio.
+
+## FASE 7: Property View & Booking Flow (Frontend)
+- [ ] **Routing & Images**: Arreglar botón "Ver Propiedad" en la lista para rutear bien a la Property Page. Asegurar correcto renderizado de imágenes.
+- [ ] **Availability Calendar**: Reemplazar date picker genérico con librería react (ej. `react-datepicker`) bloqueando explícitamente fechas no disponibles.
+- [ ] **Interactive Map**: Añadir Google Map a la Property Page con área circular sombreada (sin pin exacto).
+- [ ] **Reviews Security**: Forzar que SOLO guests con reserva 'completed' y 'pagado' puedan dejar reseña en la propiedad. Lectura pública global.
 
 ---
 **Nota de Ejecución:** El proceso se detendrá tras completar cada fase (o al finalizar partes clave) para solicitar la confirmación explícita antes de continuar.

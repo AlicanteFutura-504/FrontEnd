@@ -6,6 +6,7 @@ import Loading from "@/components/ui/Loading";
 import { useAuth } from "@/components/AuthProvider";
 import { getBusinesses, deleteBusiness } from "@/lib/api";
 import { Business } from "@/lib/types";
+import { Building2, Edit2, Trash2, Phone, User as UserIcon } from "lucide-react";
 
 export default function PropertiesListPage() {
   const { user } = useAuth();
@@ -84,8 +85,8 @@ export default function PropertiesListPage() {
         <div className="kpi-card">
           <div className="kpi-card__label">Total Propiedades</div>
           <div className="kpi-card__value">{total}</div>
-          <div className="kpi-card__meta kpi-card__meta--positive">
-            <span role="img" aria-label="buildings">🏢</span> Registradas en el sistema
+          <div className="kpi-card__meta kpi-card__meta--positive" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <Building2 size={14} /> Registradas en el sistema
           </div>
         </div>
       </div>
@@ -178,22 +179,28 @@ export default function PropertiesListPage() {
             onClick={() => window.location.href = `/properties/${b.id}`}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ fontSize: '24px', background: 'var(--primary-soft)', padding: '10px', borderRadius: '12px' }}>🏢</div>
+              {b.images && b.images.length > 0 ? (
+                <img src={b.images[0]} alt={b.nombre} style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: '48px', height: '48px', background: 'var(--primary-soft)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Building2 size={24} color="var(--accent-1)" />
+                </div>
+              )}
               <div style={{ display: 'flex', gap: '8px' }}>
                 <Link 
                   href={`/properties/edit/${b.id}`}
                   className="secondary-btn"
-                  style={{ padding: '6px 10px', fontSize: '12px' }}
+                  style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  ✎
+                  <Edit2 size={14} />
                 </Link>
                 <button 
                   onClick={(e) => handleDelete(e, b.id)}
                   className="secondary-btn"
-                  style={{ padding: '6px 10px', fontSize: '12px', color: '#ef4444' }}
+                  style={{ padding: '6px 10px', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  🗑
+                  <Trash2 size={14} />
                 </button>
               </div>
             </div>
@@ -202,12 +209,12 @@ export default function PropertiesListPage() {
             <p className="customer-meta">{b.city ? `${b.city}, ${b.address || ''}` : "Sin ubicación registrada"}</p>
             
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <div className="customer-tag">
-                📞 {b.telefono || "N/A"}
+              <div className="customer-tag" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <Phone size={12} /> {b.telefono || "N/A"}
               </div>
               {user?.username === 'root' && (
-                <div className="customer-tag" style={{ background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent-1)' }}>
-                  👤 {b.usuario?.nombreCompleto || b.usuario?.username || 'Sin Propietario'}
+                <div className="customer-tag" style={{ background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent-1)', display: "flex", alignItems: "center", gap: "4px" }}>
+                  <UserIcon size={12} /> {b.usuario?.nombreCompleto || b.usuario?.username || 'Sin Propietario'}
                 </div>
               )}
             </div>

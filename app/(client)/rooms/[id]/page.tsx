@@ -5,6 +5,15 @@ import { useParams, useRouter } from "next/navigation";
 import { getBusiness, createBooking } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 import Loading from "@/components/ui/Loading";
+import { Wifi, Coffee, Waves, CookingPot, Snowflake, Tv, Sparkles, MapPin, Star } from "lucide-react";
+import dynamic from "next/dynamic";
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { es } from "date-fns/locale/es";
+
+registerLocale("es", es);
+
+const PropertyMap = dynamic(() => import("@/components/ui/PropertyMap"), { ssr: false });
 
 interface ExtendedBusiness {
   id: number;
@@ -34,8 +43,10 @@ export default function PropertyDetailPage() {
   const { user } = useAuth();
   const [property, setProperty] = useState<ExtendedBusiness | null>(null);
   const [loading, setLoading] = useState(true);
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
+  const [checkIn, setCheckIn] = useState<Date | null>(null);
+  const [checkOut, setCheckOut] = useState<Date | null>(null);
+  const [occupiedDates, setOccupiedDates] = useState<Date[]>([]);
+  const [canReview, setCanReview] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,6 +80,16 @@ export default function PropertyDetailPage() {
           return r.json();
         });
         setReviews(reviewsData || []);
+
+        const occupiedData = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/bookings/property/${propertyId}/occupied-dates`).then(r => r.json()).catch(() => []);
+        setOccupiedDates((Array.isArray(occupiedData) ? occupiedData : []).map((d: string) => new Date(d)));
+
+        if (localStorage.getItem("access_token")) {
+          const canRevData = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/properties/${propertyId}/can-review`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
+          }).then(r => r.json()).catch(() => ({ canReview: false }));
+          setCanReview(canRevData.canReview || false);
+        }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Error al cargar la propiedad";
         setError(message);
@@ -81,8 +102,8 @@ export default function PropertyDetailPage() {
 
   useEffect(() => {
     if (checkIn && checkOut && property) {
-      const d1 = new Date(checkIn);
-      const d2 = new Date(checkOut);
+      const d1 = checkIn;
+      const d2 = checkOut;
       const diffTime = d2.getTime() - d1.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       if (diffDays > 0) {
@@ -111,9 +132,16 @@ export default function PropertyDetailPage() {
     }
     setBookingLoading(true);
     try {
+      const formatLocal = (d: Date) => {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      };
+
       await createBooking({
-        checkInDate: checkIn,
-        checkOutDate: checkOut,
+        checkInDate: formatLocal(checkIn),
+        checkOutDate: formatLocal(checkOut),
         status: "pending",
         propertyId: Number(propertyId),
         usuarioId: user.id
@@ -172,13 +200,13 @@ export default function PropertyDetailPage() {
       
       <div style={{ display: "flex", gap: "16px", marginBottom: "24px", fontSize: "1.1rem", alignItems: "center" }}>
         {(property.score && property.score > 0) ? (
-          <span style={{ fontWeight: 600 }}>★ {property.score.toFixed(1)}</span>
+          <span style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}><Star size={20} color="#f59e0b" fill="#f59e0b" /> {property.score.toFixed(1)}</span>
         ) : (
           <span style={{ color: "var(--text-muted)" }}>Nueva</span>
         )}
         <span>·</span>
-        <span style={{ textDecoration: "underline", color: "var(--text-muted)" }}>
-          {property.city ? `${property.city}, España` : "Ubicación no especificada"}
+        <span style={{ textDecoration: "underline", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}>
+          <MapPin size={18} /> {property.city ? `${property.city}, España` : "Ubicación no especificada"}
         </span>
       </div>
 
@@ -228,18 +256,18 @@ export default function PropertyDetailPage() {
           <h3 style={{ fontSize: "1.3rem", fontWeight: 600, marginBottom: "20px" }}>Lo que ofrece este lugar</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", color: "var(--text)" }}>
             {(property.amenities && property.amenities.length > 0 ? property.amenities : ["Wifi", "Piscina", "Cocina", "TV", "Aire acondicionado", "Cafetera"]).map((amenity, i) => {
-              let icon = "✨";
+              let icon: React.ReactNode = <Sparkles size={24} />;
               const lower = amenity.toLowerCase();
-              if (lower.includes("wifi")) icon = "📶";
-              else if (lower.includes("caf")) icon = "☕";
-              else if (lower.includes("piscina")) icon = "🏊";
-              else if (lower.includes("cocina")) icon = "🍳";
-              else if (lower.includes("aire")) icon = "❄️";
-              else if (lower.includes("tv") || lower.includes("televisión")) icon = "📺";
+              if (lower.includes("wifi")) icon = <Wifi size={24} />;
+              else if (lower.includes("caf")) icon = <Coffee size={24} />;
+              else if (lower.includes("piscina")) icon = <Waves size={24} />;
+              else if (lower.includes("cocina")) icon = <CookingPot size={24} />;
+              else if (lower.includes("aire")) icon = <Snowflake size={24} />;
+              else if (lower.includes("tv") || lower.includes("televisión")) icon = <Tv size={24} />;
               
               return (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <span style={{ fontSize: "1.3rem", width: "24px", textAlign: "center" }}>{icon}</span> 
+                  <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "24px" }}>{icon}</span> 
                   <span style={{ fontSize: "1.05rem" }}>{amenity}</span>
                 </div>
               );
@@ -250,6 +278,14 @@ export default function PropertyDetailPage() {
             <h3 style={{ fontSize: "1.2rem", fontWeight: 600, marginBottom: "12px" }}>Privacidad de la Dirección</h3>
             <p style={{ color: "var(--text-muted)" }}>
               Dirección exacta: <strong>{property.address || "La dirección se revelará una vez que tengas una reserva confirmada y pagada."}</strong>
+            </p>
+          </div>
+
+          <div style={{ marginTop: "40px" }}>
+            <h3 style={{ fontSize: "1.3rem", fontWeight: 600, marginBottom: "20px" }}>A dónde irás</h3>
+            <PropertyMap city={property.city} />
+            <p style={{ marginTop: "12px", color: "var(--text-muted)", fontSize: "0.95rem" }}>
+              Ubicación exacta proporcionada después de la reserva.
             </p>
           </div>
         </div>
@@ -265,24 +301,34 @@ export default function PropertyDetailPage() {
                 <div style={{ display: "flex", borderBottom: "1px solid var(--border-strong)" }}>
                   <div style={{ flex: 1, padding: "10px", borderRight: "1px solid var(--border-strong)" }}>
                     <label style={{ display: "block", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase" }}>Llegada</label>
-                    <input 
-                      type="date" 
-                      min={today} // 🔴 MEJORA: No permite viajar al pasado
-                      value={checkIn} 
-                      onChange={e => setCheckIn(e.target.value)} 
-                      required 
-                      style={{ width: "100%", border: "none", outline: "none", background: "transparent", marginTop: "4px", color: "var(--text)" }} 
+                    <DatePicker 
+                      selected={checkIn} 
+                      onChange={(date: Date | null) => { setCheckIn(date); if (checkOut && date && date >= checkOut) setCheckOut(null); }} 
+                      selectsStart 
+                      startDate={checkIn || undefined} 
+                      endDate={checkOut || undefined} 
+                      minDate={new Date()} 
+                      excludeDates={occupiedDates}
+                      locale="es"
+                      placeholderText="Añade fechas"
+                      customInput={<input style={{ width: "100%", border: "none", outline: "none", background: "transparent", marginTop: "4px", color: "var(--text)" }} />}
+                      required
                     />
                   </div>
                   <div style={{ flex: 1, padding: "10px" }}>
                     <label style={{ display: "block", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase" }}>Salida</label>
-                    <input 
-                      type="date" 
-                      min={checkIn || today} // 🔴 MEJORA: La salida debe ser posterior o igual a la llegada
-                      value={checkOut} 
-                      onChange={e => setCheckOut(e.target.value)} 
-                      required 
-                      style={{ width: "100%", border: "none", outline: "none", background: "transparent", marginTop: "4px", color: "var(--text)" }} 
+                    <DatePicker 
+                      selected={checkOut} 
+                      onChange={(date: Date | null) => setCheckOut(date)} 
+                      selectsEnd 
+                      startDate={checkIn || undefined} 
+                      endDate={checkOut || undefined} 
+                      minDate={checkIn || new Date()} 
+                      excludeDates={occupiedDates}
+                      locale="es"
+                      placeholderText="Añade fechas"
+                      customInput={<input style={{ width: "100%", border: "none", outline: "none", background: "transparent", marginTop: "4px", color: "var(--text)" }} />}
+                      required
                     />
                   </div>
                 </div>
@@ -361,7 +407,7 @@ export default function PropertyDetailPage() {
           <p style={{ color: "var(--text-muted)", marginBottom: "40px" }}>No hay reseñas todavía para este alojamiento.</p>
         )}
 
-        {user && user.role === "guest" && (
+        {user && user.role === "guest" && canReview && (
           <div style={{ background: "var(--surface-hover)", padding: "24px", borderRadius: "16px", border: "1px solid var(--border-strong)" }}>
             <h3 style={{ fontSize: "1.3rem", fontWeight: 600, marginBottom: "16px" }}>Deja tu opinión</h3>
             <form onSubmit={handleReviewSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -372,11 +418,11 @@ export default function PropertyDetailPage() {
                   onChange={e => setReviewScore(Number(e.target.value))}
                   style={{ padding: "10px", borderRadius: "8px", border: "1px solid var(--border-strong)", background: "var(--surface)", color: "var(--text)", outline: "none", fontSize: "1rem" }}
                 >
-                  <option value={5}>⭐⭐⭐⭐⭐ (5 - Excelente)</option>
-                  <option value={4}>⭐⭐⭐⭐ (4 - Muy bueno)</option>
-                  <option value={3}>⭐⭐⭐ (3 - Bueno)</option>
-                  <option value={2}>⭐⭐ (2 - Aceptable)</option>
-                  <option value={1}>⭐ (1 - Malo)</option>
+                  <option value={5}>★★★★★ (5 - Excelente)</option>
+                  <option value={4}>★★★★☆ (4 - Muy bueno)</option>
+                  <option value={3}>★★★☆☆ (3 - Bueno)</option>
+                  <option value={2}>★★☆☆☆ (2 - Aceptable)</option>
+                  <option value={1}>★☆☆☆☆ (1 - Malo)</option>
                 </select>
               </div>
               <div>

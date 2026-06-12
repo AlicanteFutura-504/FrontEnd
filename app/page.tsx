@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Calendar, Bell, Users } from 'lucide-react';
 import styles from './Landing.module.css';
 import CookieBanner from '@/components/ui/CookieBanner';
 import LandingFooter from '@/components/ui/LandingFooter';
@@ -79,7 +80,7 @@ export default function LandingPage() {
               </div>
               <div className={styles.featureImageWrapper}>
                 <div className={styles.featureMockup}>
-                  <span style={{ fontSize: '3rem' }}>📅</span>
+                  <Calendar size={48} color="var(--accent-1)" />
                   <p>Mockup de Calendario</p>
                 </div>
               </div>
@@ -107,7 +108,7 @@ export default function LandingPage() {
               </div>
               <div className={styles.featureImageWrapper}>
                 <div className={styles.featureMockup}>
-                  <span style={{ fontSize: '3rem' }}>🔔</span>
+                  <Bell size={48} color="var(--accent-1)" />
                   <p>Mockup de Notificaciones</p>
                 </div>
               </div>
@@ -135,7 +136,7 @@ export default function LandingPage() {
               </div>
               <div className={styles.featureImageWrapper}>
                 <div className={styles.featureMockup}>
-                  <span style={{ fontSize: '3rem' }}>👥</span>
+                  <Users size={48} color="var(--accent-1)" />
                   <p>Mockup de Clientes</p>
                 </div>
               </div>

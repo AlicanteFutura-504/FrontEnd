@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Loading from "@/components/ui/Loading";
 import { getBusiness, updateBusiness } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { MapPin, Home, Phone, Banknote, Users, FileText, Building } from "lucide-react";
 
 export default function EditBusinessPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
@@ -13,6 +14,9 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
     city: "",
     address: "",
     telefono: "",
+    pricePerNight: 0,
+    maxGuests: 2,
+    description: "",
   });
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -27,6 +31,9 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
           city: business.city || "",
           address: business.address || "",
           telefono: business.telefono || "",
+          pricePerNight: business.pricePerNight || 0,
+          maxGuests: business.maxGuests || 2,
+          description: business.description || "",
         });
       } catch (error: any) {
         setAlert({
@@ -88,14 +95,17 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
           <div>
             <h3 className="panel-title" style={{ marginBottom: '16px' }}>Información Comercial</h3>
             <div className="form-grid">
-              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-                <label className="kpi-card__label">Nombre del Local</label>
-                <input name="nombre" value={formData.nombre} onChange={handleChange} required className="input" placeholder="Ej. Restaurante El Puerto" />
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label>Nombre del Local</label>
+                <div className="input-with-icon">
+                  <span className="input-icon"><Building size={16} /></span>
+                  <input name="nombre" value={formData.nombre} onChange={handleChange} required className="input" placeholder="Ej. Restaurante El Puerto" />
+                </div>
               </div>
               <div className="form-group">
                 <label>Ciudad</label>
                 <div className="input-with-icon">
-                  <span className="input-icon">📍</span>
+                  <span className="input-icon"><MapPin size={16} /></span>
                   <input name="city" value={formData.city} onChange={handleChange} className="input" placeholder="Alicante" />
                 </div>
               </div>
@@ -103,14 +113,41 @@ export default function EditBusinessPage({ params }: { params: Promise<{ id: str
               <div className="form-group">
                 <label>Dirección completa</label>
                 <div className="input-with-icon">
-                  <span className="input-icon">🏠</span>
+                  <span className="input-icon"><Home size={16} /></span>
                   <input name="address" value={formData.address} onChange={handleChange} className="input" placeholder="Av. Mediterráneo, 12" />
                 </div>
               </div>
               
-              <div className="input-group">
-                <label className="kpi-card__label">Teléfono de Contacto</label>
-                <input name="telefono" value={formData.telefono} onChange={handleChange} className="input" placeholder="965 00 00 00" />
+              <div className="form-group">
+                <label>Teléfono de Contacto</label>
+                <div className="input-with-icon">
+                  <span className="input-icon"><Phone size={16} /></span>
+                  <input name="telefono" value={formData.telefono} onChange={handleChange} className="input" placeholder="965 00 00 00" />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Precio por noche (€)</label>
+                <div className="input-with-icon">
+                  <span className="input-icon"><Banknote size={16} /></span>
+                  <input name="pricePerNight" type="number" min="0" value={formData.pricePerNight} onChange={handleChange} className="input" placeholder="Ej. 75" />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Huéspedes Máximos</label>
+                <div className="input-with-icon">
+                  <span className="input-icon"><Users size={16} /></span>
+                  <input name="maxGuests" type="number" min="1" value={formData.maxGuests} onChange={handleChange} className="input" placeholder="Ej. 4" />
+                </div>
+              </div>
+
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label>Descripción</label>
+                <div className="input-with-icon">
+                  <span className="input-icon" style={{ alignSelf: 'flex-start', marginTop: '12px' }}><FileText size={16} /></span>
+                  <textarea name="description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="input" placeholder="Alojamiento espacioso con vistas al mar..." rows={4} style={{ resize: 'vertical' }} />
+                </div>
               </div>
             </div>
           </div>

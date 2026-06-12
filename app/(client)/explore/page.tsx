@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { getBusinesses } from "@/lib/api";
 import Link from "next/link";
 import { Business } from "@/lib/types";
+import { Wifi, Coffee, Waves, CookingPot, Snowflake, Tv, Sparkles, MapPin, Star } from "lucide-react";
 
 interface ExtendedBusiness extends Business {
   score?: number;
@@ -125,7 +126,7 @@ export default function ClientExplorePage() {
                   }
                 }}
               />
-              <span>{star} ⭐ ({star === 5 ? "Excelente" : star === 4 ? "Muy bueno" : star === 3 ? "Bueno" : "Aceptable"})</span>
+              <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>{star} <Star size={14} fill="#f59e0b" color="#f59e0b" /> ({star === 5 ? "Excelente" : star === 4 ? "Muy bueno" : star === 3 ? "Bueno" : "Aceptable"})</span>
             </label>
           ))}
         </div>
@@ -205,10 +206,10 @@ export default function ClientExplorePage() {
                     )}
                   </div>
                   <div className="client-business-meta">
-                    <span>📍 {b.city ? `${b.city}${b.address ? `, ${b.address}` : ""}` : "Alicante, España"}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={16} /> {b.city ? `${b.city}${b.address ? `, ${b.address}` : ""}` : "Alicante, España"}</span>
                     <span style={{ color: "var(--border-strong)" }}>|</span>
                     <span className="client-rating" style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 700 }}>
-                      <span style={{ color: "#f59e0b" }}>★</span> {b.score && b.score > 0 ? b.score.toFixed(2) : "Nueva"} 
+                      <Star size={16} color="#f59e0b" fill="#f59e0b" /> {b.score && b.score > 0 ? b.score.toFixed(2) : "Nueva"} 
                     </span>
                   </div>
                   
@@ -219,24 +220,24 @@ export default function ClientExplorePage() {
                   <div className="client-business-footer">
                     <div className="client-business-features" style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                       {(b.amenities || []).slice(0, 5).map((amenity, idx) => {
-                        let icon = '';
+                        let icon: React.ReactNode = null;
                         const lower = amenity.toLowerCase().trim();
-                        if (lower.includes('wifi')) icon = '📶';
-                        else if (lower.includes('caf')) icon = '☕';
-                        else if (lower.includes('piscina')) icon = '🏊';
-                        else if (lower.includes('cocina')) icon = '🍳';
-                        else if (lower.includes('aire')) icon = '❄️';
-                        else if (lower.includes('tv')) icon = '📺';
+                        if (lower.includes('wifi')) icon = <Wifi size={18} />;
+                        else if (lower.includes('caf')) icon = <Coffee size={18} />;
+                        else if (lower.includes('piscina')) icon = <Waves size={18} />;
+                        else if (lower.includes('cocina')) icon = <CookingPot size={18} />;
+                        else if (lower.includes('aire')) icon = <Snowflake size={18} />;
+                        else if (lower.includes('tv')) icon = <Tv size={18} />;
                         
-                        if (icon === '') {
+                        if (!icon) {
                           return (
-                            <span key={idx} style={{ fontSize: "12px", background: "var(--surface-hover)", padding: "4px 8px", borderRadius: "4px" }}>
-                              ✨ {amenity}
+                            <span key={idx} style={{ fontSize: "12px", background: "var(--surface-hover)", padding: "4px 8px", borderRadius: "4px", display: "flex", alignItems: "center", gap: "4px" }}>
+                              <Sparkles size={12} /> {amenity}
                             </span>
                           );
                         }
                         
-                        return <span key={idx} title={amenity} style={{ fontSize: "18px" }}>{icon}</span>;
+                        return <span key={idx} title={amenity} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>{icon}</span>;
                       })}
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>

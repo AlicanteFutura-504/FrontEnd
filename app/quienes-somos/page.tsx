@@ -7,6 +7,7 @@ import styles from '@/app/Landing.module.css';
 import LandingHeader from '@/components/ui/LandingHeader';
 import LandingFooter from '@/components/ui/LandingFooter';
 import CookieBanner from '@/components/ui/CookieBanner';
+import { MapPin, Building2 } from 'lucide-react';
 
 export default function AboutPage() {
   const timelineRef = useRef<HTMLDivElement>(null);
@@ -210,14 +211,14 @@ export default function AboutPage() {
             <p className={styles.featureDesc} style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>
               Nuestra sede central está ubicada en Alicante, un centro neurálgico de tecnología e innovación en pleno crecimiento, aunque nuestro equipo trabaja de forma remota en todo el mundo.
             </p>
-            <p style={{ color: '#0066FF', fontWeight: 600, fontSize: '1.125rem' }}>
-              📍 Alicante Futura, Alicante, España
+            <p style={{ color: '#0066FF', fontWeight: 600, fontSize: '1.125rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <MapPin size={20} /> Alicante Futura, Alicante, España
             </p>
           </div>
           <div className={`${styles.locationImageWrapper} ${styles.reveal} ${styles.revealDelay2}`}>
             {/* Usando un placeholder o color si no hay imagen de oficina */}
-            <div style={{ width: '100%', height: '100%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: '4rem' }}>🏢</span>
+            <div style={{ width: '100%', height: '100%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '1rem' }}>
+              <Building2 size={64} color="#94a3b8" />
             </div>
           </div>
         </div>

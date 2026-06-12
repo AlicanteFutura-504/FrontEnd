@@ -7,6 +7,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { getBusinesses } from "@/lib/api";
 import { Business } from "@/lib/types";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import NotificationDropdown from "@/components/ui/NotificationDropdown";
 import styles from '@/app/Landing.module.css';
 
 export default function Header() {
@@ -14,7 +15,6 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   const [businesses, setBusinesses] = useState<Business[]>([]);
-
 
   const isInsideBusiness = pathname?.startsWith("/properties/") && pathname !== "/properties";
   const urlBusinessId = isInsideBusiness ? pathname.split("/")[2] : null;
@@ -142,6 +142,8 @@ export default function Header() {
 
       <div className={styles.navActions} style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, justifyContent: 'flex-end' }}>
         <ThemeToggle />
+        
+        <NotificationDropdown />
         
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
