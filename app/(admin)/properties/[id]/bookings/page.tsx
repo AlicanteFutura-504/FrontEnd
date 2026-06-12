@@ -9,6 +9,7 @@ import { Booking, CreateBookingDto, BookingStatus } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import Link from "next/link";
 import { useSortableData, SortableHeader } from "@/lib/useSortableData";
+import BookingDetailsModal from "@/components/BookingDetailsModal";
 
 // --- Calendar Helpers ---
 function formatDate(dateString: string) {
@@ -114,6 +115,7 @@ export default function BusinessBookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [editStatus, setEditStatus] = useState<BookingStatus>("pending");
   const [rowActionsId, setRowActionsId] = useState<number | null>(null);
+  const [viewingBooking, setViewingBooking] = useState<Booking | null>(null);
 
   const isReadOnly = selectedBooking?.status === 'completed' && selectedBooking?.payment?.status === 'pagado';
 
@@ -465,17 +467,7 @@ export default function BusinessBookingsPage() {
                           style={{ backgroundColor: STATUS_DOT[b.status] || STATUS_DOT.pending }}
                           onClick={e => {
                             e.stopPropagation();
-                            setEditBookingId(b.id);
-                            setSelectedBooking(b);
-                            setFormData({
-                              checkInDate: b.checkInDate,
-                              checkOutDate: b.checkOutDate,
-                              customerEmail: b.usuario?.email || "",
-                              customerNombreCompleto: b.usuario?.nombreCompleto || "",
-                              customerPhone: b.usuario?.phone || "",
-                            });
-                            setFoundCustomer(b.usuario);
-                            setIsModalOpen(true);
+                            setViewingBooking(b);
                           }}
                         >
                           {b.usuario?.nombreCompleto || b.usuario?.email || `Reserva #${b.id}`}
@@ -579,52 +571,62 @@ export default function BusinessBookingsPage() {
                   <Badge status={b.status as any} />
                 </td>
                 <td>
-                  {rowActionsId === b.id ? (
-                    <div style={{ display: "flex", gap: 8 }}>
-                      {!((b.status === 'completed' && b.payment?.status === 'pagado')) && (
-                        <>
-                          <button 
-                            type="button" 
-                            className="secondary-btn" 
-                            style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px' }}
-                            onClick={() => {
-                              setEditBookingId(b.id);
-                              setSelectedBooking(b);
-                              setEditStatus(b.status as BookingStatus);
-                              setIsEditOpen(true);
-                            }}
-                          >
-                            Editar Estado
-                          </button>
-                          <button 
-                            type="button" 
-                            className="danger-btn" 
-                            style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px' }}
-                            onClick={() => handleDelete(b.id)}
-                          >
-                            Eliminar
-                          </button>
-                        </>
-                      )}
-                      <button 
-                        type="button" 
-                        className="secondary-btn" 
-                        style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px', background: 'transparent', border: 'none' }}
-                        onClick={() => setRowActionsId(null)}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ) : (
+                  <div style={{ display: "flex", gap: 8 }}>
                     <button 
                       type="button" 
                       className="secondary-btn" 
                       style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px' }}
-                      onClick={() => setRowActionsId(b.id)}
+                      onClick={() => setViewingBooking(b)}
                     >
-                      Modificar
+                      Detalles
                     </button>
-                  )}
+                    {rowActionsId === b.id ? (
+                      <>
+                        {!((b.status === 'completed' && b.payment?.status === 'pagado')) && (
+                          <>
+                            <button 
+                              type="button" 
+                              className="secondary-btn" 
+                              style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px' }}
+                              onClick={() => {
+                                setEditBookingId(b.id);
+                                setSelectedBooking(b);
+                                setEditStatus(b.status as BookingStatus);
+                                setIsEditOpen(true);
+                              }}
+                            >
+                              Editar Estado
+                            </button>
+                            <button 
+                              type="button" 
+                              className="danger-btn" 
+                              style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px' }}
+                              onClick={() => handleDelete(b.id)}
+                            >
+                              Eliminar
+                            </button>
+                          </>
+                        )}
+                        <button 
+                          type="button" 
+                          className="secondary-btn" 
+                          style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px', background: 'transparent', border: 'none' }}
+                          onClick={() => setRowActionsId(null)}
+                        >
+                          ✕
+                        </button>
+                      </>
+                    ) : (
+                      <button 
+                        type="button" 
+                        className="secondary-btn" 
+                        style={{ padding: '6px 12px', minHeight: 'auto', fontSize: '13px' }}
+                        onClick={() => setRowActionsId(b.id)}
+                      >
+                        Modificar
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -714,6 +716,15 @@ export default function BusinessBookingsPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {viewingBooking && (
+        <BookingDetailsModal
+          booking={viewingBooking}
+          businessName={viewingBooking.propertyName || `Propiedad #${viewingBooking.propertyId}`}
+          customerName={viewingBooking.usuario?.nombreCompleto || viewingBooking.usuario?.email || `Huésped #${viewingBooking.usuarioId}`}
+          onClose={() => setViewingBooking(null)}
+        />
       )}
     </div>
   );

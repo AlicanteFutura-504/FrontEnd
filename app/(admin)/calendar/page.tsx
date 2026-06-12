@@ -14,7 +14,7 @@ import Badge from "@/components/ui/Badge";
 import Loading from "@/components/ui/Loading";
 import { getAppointmentsByRange, getBusinesses, getClients, getClientsByBusiness } from "@/lib/api";
 import type { Booking, Business, User } from "@/lib/types";
-import Link from "next/link";
+import BookingDetailsModal from "@/components/BookingDetailsModal";
 
 // ---------------------------------------------------------------------------
 // Helpers de fecha
@@ -97,6 +97,7 @@ export default function CalendarPage() {
   const [loadingMetadata, setLoadingMetadata] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(toYMD(today));
+  const [viewingBooking, setViewingBooking] = useState<Booking | null>(null);
 
   // Compute the from/to for the current view (include surrounding days)
   const { from, to } = useMemo(() => {
@@ -382,10 +383,10 @@ export default function CalendarPage() {
                 paddingRight: "8px"
               }}>
                 {selectedBookings.slice(0, 50).map((b) => (
-                <Link 
-                  href={`/properties/${b.propertyId}/bookings`}
+                <button 
+                  onClick={() => setViewingBooking(b)}
                   key={b.id} 
-                  style={{ ...bookingCardStyle, textDecoration: "none", cursor: "pointer", display: "block" }}
+                  style={{ ...bookingCardStyle, textDecoration: "none", cursor: "pointer", display: "block", textAlign: "left", width: "100%" }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>
@@ -399,7 +400,7 @@ export default function CalendarPage() {
                   <p style={{ fontSize: 11, marginTop: 6, color: "var(--text-muted)", background: "var(--surface)", padding: "4px 8px", borderRadius: "4px", display: "inline-block" }}>
                     Huésped #{b.usuarioId}{customerName(b.usuarioId) ? ` - ${customerName(b.usuarioId)}` : ""}
                   </p>
-                </Link>
+                </button>
               ))}
               </div>
               {selectedBookings.length > 50 && (
@@ -425,6 +426,15 @@ export default function CalendarPage() {
           </div>
         ))}
       </div>
+
+      {viewingBooking && (
+        <BookingDetailsModal
+          booking={viewingBooking}
+          businessName={businessName(viewingBooking.propertyId)}
+          customerName={customerName(viewingBooking.usuarioId) || `Huésped #${viewingBooking.usuarioId}`}
+          onClose={() => setViewingBooking(null)}
+        />
+      )}
     </div>
   );
 }

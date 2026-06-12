@@ -116,3 +116,13 @@ export interface Business {
 }
 
 // NOTE: Customer table removed; use `User` with role='client' instead.
+
+export interface Review {
+  id: number;
+  propertyId: number;
+  guestId: number;
+  score: number;
+  comment: string;
+  createdAt: string;
+  guest?: User;
+}

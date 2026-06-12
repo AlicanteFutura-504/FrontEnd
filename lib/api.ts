@@ -10,7 +10,8 @@ import type {
   UpdateUserDto,
   BookingStatus,
   PaymentStatus,
-  PaymentTypeEnum
+  PaymentTypeEnum,
+  Review
 } from "./types";
 
 export type {
@@ -25,7 +26,8 @@ export type {
   UpdateUserDto,
   BookingStatus,
   PaymentStatus,
-  PaymentTypeEnum
+  PaymentTypeEnum,
+  Review
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";

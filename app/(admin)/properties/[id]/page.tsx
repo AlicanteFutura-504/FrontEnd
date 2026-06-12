@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Loading from "@/components/ui/Loading";
-import { getBusiness, getBusinessDashboardSummary, getAllBookingsByBusiness, getAllClientsByBusiness } from "@/lib/api";
-import { Booking, Business } from "@/lib/types";
+import { getBusiness, getBusinessDashboardSummary, getAllBookingsByBusiness, getAllClientsByBusiness, getReviewsByProperty } from "@/lib/api";
+import { Booking, Business, Review } from "@/lib/types";
 import KpiCard from "@/components/ui/KpiCard";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
@@ -39,6 +39,7 @@ export default function BusinessDashboardPage() {
   const businessId = params.id as string;
   const [business, setBusiness] = useState<Business | null>(null);
   const [summary, setSummary] = useState<BusinessSummary | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +51,7 @@ export default function BusinessDashboardPage() {
       try {
         // Two parallel requests: business info + aggregated KPIs from backend
         // No rows downloaded — all counts computed server-side in SQL
-        const [businessResp, summaryResp] = await Promise.all([
+        const [businessResp, summaryResp, reviewsResp] = await Promise.all([
           getBusiness(Number(businessId)).catch((e) => {
             console.error('getBusiness error:', e);
             return null;
@@ -59,10 +60,15 @@ export default function BusinessDashboardPage() {
             console.error('getBusinessDashboardSummary error:', e);
             return null;
           }),
+          getReviewsByProperty(Number(businessId)).catch((e) => {
+            console.error('getReviewsByProperty error:', e);
+            return [];
+          }),
         ]);
 
         setBusiness(businessResp);
         setSummary(summaryResp);
+        setReviews(reviewsResp);
       } catch (err: any) {
         console.error('Error fetching business dashboard:', err);
         setError(err?.message || 'Error al cargar los datos del propiedad');
@@ -278,6 +284,75 @@ export default function BusinessDashboardPage() {
           </div>
         </section>
       </div>
+
+      <section className="section-card" style={{ marginTop: '24px' }}>
+        <div className="panel-title-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 className="panel-title">Reseñas y Valoración</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', gap: '2px' }}>
+              {[0, 1, 2, 3, 4].map(index => {
+                const score = (business as any).score || 0;
+                const fillPercentage = Math.max(0, Math.min(100, (score - index) * 100));
+                return (
+                  <span key={index} style={{
+                    background: `linear-gradient(90deg, #b8860b ${fillPercentage}%, var(--border-strong) ${fillPercentage}%)`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    display: 'inline-block',
+                    fontSize: '1.3rem',
+                    lineHeight: 1
+                  }}>
+                    ★
+                  </span>
+                );
+              })}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '1.2rem', fontWeight: 700 }}>
+                ★ {((business as any).score || 0).toFixed(1)}
+              </span>
+              <span style={{ color: 'var(--text-muted)' }}>({reviews.length} reseñas)</span>
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '20px' }}>
+          {reviews.length > 0 ? reviews.map(r => (
+            <div key={r.id} style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: '12px', background: 'var(--surface)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <strong style={{ fontSize: '1rem' }}>{r.guest?.nombreCompleto || r.guest?.username || 'Huésped Anónimo'}</strong>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '2px' }}>
+                    {[0, 1, 2, 3, 4].map(index => {
+                      const fillPercentage = Math.max(0, Math.min(100, (r.score - index) * 100));
+                      return (
+                        <span key={index} style={{
+                          background: `linear-gradient(90deg, #b8860b ${fillPercentage}%, var(--border-strong) ${fillPercentage}%)`,
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          display: 'inline-block',
+                          fontSize: '1.1rem',
+                          lineHeight: 1
+                        }}>
+                          ★
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>
+                    {r.score.toFixed(1)}
+                  </span>
+                </div>
+              </div>
+              <p style={{ color: 'var(--text)', fontSize: '0.95rem' }}>{r.comment || <em style={{ color: 'var(--text-muted)' }}>Sin comentario</em>}</p>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                {formatDate(r.createdAt)}
+              </div>
+            </div>
+          )) : (
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>Aún no hay reseñas para esta propiedad.</p>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
