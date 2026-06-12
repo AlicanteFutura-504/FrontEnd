@@ -279,7 +279,8 @@ export default function MisReservasPage() {
                         cursor: "pointer",
                         textTransform: "capitalize",
                         fontWeight: 600,
-                        background: paymentType === method ? "rgba(255, 56, 92, 0.05)" : "transparent"
+                        background: paymentType === method ? "rgba(255, 56, 92, 0.05)" : "transparent",
+                        color: "var(--text)"
                       }}
                     >
                       <input 
@@ -331,7 +332,8 @@ export default function MisReservasPage() {
               <div style={{ borderTop: "1px solid var(--border)", paddingTop: "16px", marginTop: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <span style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Total a pagar:</span>
-                  <div style={{ fontSize: "1.45rem", fontWeight: 800 }}>{selectedBooking.payment.amount} €</div>
+                  {/* 🔴 SEGURO: Evitamos error de lectura indefinida con encadenamiento opcional */}
+                  <div style={{ fontSize: "1.45rem", fontWeight: 800 }}>{selectedBooking?.payment?.amount} €</div>
                 </div>
                 <div style={{ display: "flex", gap: "12px" }}>
                   <button 

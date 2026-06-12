@@ -23,6 +23,7 @@ export interface Booking {
   propertyName?: string;
   customerName?: string;
   payment?: Payment;
+  property?: Business; 
 }
 
 export interface CreateBookingDto {
@@ -108,6 +109,10 @@ export interface Business {
   usuarioId: number;
   businessUserId?: number;
   usuario?: User;
+  
+  pricePerNight: number;
+  images: string[];
+  amenities: string[];
 }
 
 // NOTE: Customer table removed; use `User` with role='client' instead.

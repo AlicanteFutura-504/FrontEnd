@@ -19,6 +19,9 @@ export default function ClientBookPage({ params }: { params: { id: string } }) {
   const [paymentData, setPaymentData] = useState({ card: "", exp: "", cvc: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Obtener la fecha de hoy en formato YYYY-MM-DD para limitar el calendario
+  const today = new Date().toISOString().split("T")[0];
+
   useEffect(() => {
     getBusiness(Number(params.id))
       .then((data) => {
@@ -55,7 +58,9 @@ export default function ClientBookPage({ params }: { params: { id: string } }) {
         usuarioId: user.id || 1, // Placeholder
       });
       alert("¡Reserva completada con éxito!");
-      router.push("/client");
+      
+      // 🔴 CRÍTICO: Redirección corregida a la ruta válida de visualización de estancias reservadas
+      router.push("/mis-reservas");
     } catch (e) {
       console.error(e);
       alert("Error al crear reserva");
@@ -71,7 +76,7 @@ export default function ClientBookPage({ params }: { params: { id: string } }) {
   };
 
   if (loading) return <div style={{ padding: 40, textAlign: "center" }}>Cargando propiedad...</div>;
-  if (!business) return <div style={{ padding: 40, textAlign: "center" }}>Propiedad no encontrado.</div>;
+  if (!business) return <div style={{ padding: 40, textAlign: "center" }}>Propiedad no encontrada.</div>;
 
   return (
     <div style={{ maxWidth: 600, margin: "40px auto", padding: 24, background: "var(--surface)", borderRadius: 12, border: "1px solid var(--border)" }}>
@@ -85,6 +90,7 @@ export default function ClientBookPage({ params }: { params: { id: string } }) {
             <input 
               type="date" 
               className="input" 
+              min={today} // 🔴 MEJORA: Evita seleccionar días del pasado
               value={form.checkInDate}
               onChange={(e) => setForm({ ...form, checkInDate: e.target.value })}
               required 
@@ -95,6 +101,7 @@ export default function ClientBookPage({ params }: { params: { id: string } }) {
             <input 
               type="date" 
               className="input" 
+              min={form.checkInDate || today} // 🔴 MEJORA: No permite que la salida sea anterior a la entrada
               value={form.checkOutDate}
               onChange={(e) => setForm({ ...form, checkOutDate: e.target.value })}
               required 

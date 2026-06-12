@@ -32,8 +32,6 @@ export type {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-// Export refresh triggered to solve build issues
-
 /**
  * Obtiene los headers necesarios para las peticiones, incluyendo el token de autenticación.
  */
@@ -62,7 +60,6 @@ async function handleResponse(res: Response) {
     if (typeof window !== "undefined") {
       localStorage.removeItem("access_token");
       localStorage.removeItem("user");
-      // Redirigir al usuario al login automáticamente cuando su sesión caduque
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
@@ -121,7 +118,6 @@ export async function updateMe(data: UpdateUserDto): Promise<User> {
 }
 
 export async function uploadAvatar(file: File): Promise<{ profilePicture: string }> {
-  // Para multipart/form-data NO usamos getHeaders() con Content-Type: application/json
   const token = localStorage.getItem("access_token");
   const headers: HeadersInit = {
     Authorization: `Bearer ${token}`,
@@ -146,7 +142,7 @@ export async function updateUser(id: number, data: UpdateUserDto): Promise<User>
   });
   return handleResponse(res);
 }
-// Backwards-compatible client helpers that use `usuarios` endpoints
+
 export async function getClients(page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: User[], total: number }> {
   const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
   const res = await fetch(`${API_URL}/usuarios/guests?${params.toString()}`, { headers: getHeaders() });
@@ -155,7 +151,6 @@ export async function getClients(page: number = 1, limit: number = 20, search: s
 
 export async function getAllClients(search: string = ''): Promise<User[]> {
   const PAGE_LIMIT = 1000;
-  // Limitado a 1000 para evitar crasheos con base de datos masivas
   const response = await getClients(1, PAGE_LIMIT, search);
   return response.data;
 }
@@ -194,11 +189,11 @@ export async function updateClient(id: number, data: Partial<User>): Promise<Use
 
 export async function getAllClientsByBusiness(businessId: string, search: string = ''): Promise<User[]> {
   const PAGE_LIMIT = 1000;
-  // Limitado a 1000 para evitar crasheos
   const response = await getClientsByBusiness(businessId, 1, PAGE_LIMIT, search);
   return response.data;
 }
-// --- BUSINESS ---
+
+// --- BUSINESS / PROPERTIES ---
 
 export async function getBusinesses(
   page: number = 1,
@@ -215,15 +210,23 @@ export async function getBusinesses(
   if (filterField) params.append('filterField', filterField);
   if (filterValue) params.append('filterValue', filterValue);
 
+  // 🛠️ CORRECCIÓN: Si no se define filtro de precio, forzamos un rango alto para evitar que el backend aplique su filtro de 300€ por defecto.
+  if (filterField !== 'maxPrice' && filterField !== 'precio') {
+    params.append('maxPrice', '1000');
+    params.append('limit', limit.toString());
+  }
+
   const res = await fetch(`${API_URL}/properties?${params.toString()}`, { headers: getHeaders() });
   return handleResponse(res) || { data: [], total: 0 };
 }
 
 export async function getAllBusinesses(search: string = ''): Promise<Business[]> {
   const PAGE_LIMIT = 1000;
-  // Limitado a 1000
-  const response = await getBusinesses(1, PAGE_LIMIT, search);
-  return response.data;
+  // 🛠️ SOLUCIÓN AL LÍMITE DE 25: Forzamos el paso de parámetros limpios para saltarnos restricciones del backend
+  const params = new URLSearchParams({ page: "1", limit: PAGE_LIMIT.toString(), search, maxPrice: "1000" });
+  const res = await fetch(`${API_URL}/properties?${params.toString()}`, { headers: getHeaders() });
+  const response = await handleResponse(res);
+  return response?.data || response || [];
 }
 
 export async function createBusiness(data: any): Promise<Business> {
@@ -257,11 +260,33 @@ export async function deleteBusiness(id: number): Promise<void> {
   return handleResponse(res);
 }
 
+// --- REVIEWS ---
+
 export async function getReviewsByProperty(propertyId: number): Promise<Review[]> {
   const res = await fetch(`${API_URL}/properties/${propertyId}/reviews`, { headers: getHeaders() });
   return handleResponse(res) || [];
 }
 
+export async function getPropertyReviews(propertyId: number): Promise<any[]> {
+  try {
+    const res = await fetch(`${API_URL}/properties/${propertyId}/reviews`, { headers: getHeaders() });
+    return await handleResponse(res) || [];
+  } catch (error) {
+    console.error("Error cargando reviews:", error);
+    return [];
+  }
+}
+
+export async function createPropertyReview(propertyId: number, data: { score: number; comment: string }): Promise<any> {
+  const res = await fetch(`${API_URL}/properties/${propertyId}/reviews`, {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+// --- DASHBOARD & BOOKINGS ---
 export async function getDashboardSummary(range?: string) {
   const url = range ? `${API_URL}/dashboard/summary?range=${range}` : `${API_URL}/dashboard/summary`;
   const res = await fetch(url, { headers: getHeaders() });
@@ -332,7 +357,7 @@ export async function getAppointmentsByRange(from: string, to: string, businessI
   }
 }
 
-// --- BOOKINGS (NEW) ---
+// --- BOOKINGS REAL-ESTATE ---
 
 export async function getBookingsByBusiness(businessId: string, page: number = 1, limit: number = 20, search: string = ''): Promise<{ data: Booking[], total: number }> {
   const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
@@ -411,7 +436,3 @@ export async function deletePayment(id: number): Promise<void> {
   });
   return handleResponse(res);
 }
-
-// --- CUSTOMERS ---
-
-// Legacy `/customers` endpoints removed in backend; use `/usuarios/clients` instead.

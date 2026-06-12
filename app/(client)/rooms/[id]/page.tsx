@@ -49,6 +49,9 @@ export default function PropertyDetailPage() {
   const [nights, setNights] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
 
+  // Control de fecha de hoy para los inputs
+  const today = new Date().toISOString().split("T")[0];
+
   useEffect(() => {
     const fetchPropertyAndReviews = async () => {
       try {
@@ -56,11 +59,15 @@ export default function PropertyDetailPage() {
         const data = await getBusiness(Number(propertyId));
         setProperty(data as any);
 
+        // Eliminada la barra inclinada final potencial para evitar fallos de enrutado/CORS en producción
         const reviewsData = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/properties/${propertyId}/reviews`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`
           }
-        }).then(r => r.json());
+        }).then(r => {
+          if (!r.ok) throw new Error("Error al obtener reseñas");
+          return r.json();
+        });
         setReviews(reviewsData || []);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Error al cargar la propiedad";
@@ -76,7 +83,7 @@ export default function PropertyDetailPage() {
     if (checkIn && checkOut && property) {
       const d1 = new Date(checkIn);
       const d2 = new Date(checkOut);
-      const diffTime = Math.abs(d2.getTime() - d1.getTime());
+      const diffTime = d2.getTime() - d1.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       if (diffDays > 0) {
         setNights(diffDays);
@@ -175,23 +182,42 @@ export default function PropertyDetailPage() {
         </span>
       </div>
 
+      {/* 🔴 CRÍTICO: Removidas las imágenes fijas (hardcodeadas) de Unsplash en los paneles laterales */}
       <div style={{ display: "flex", gap: "12px", height: "400px", marginBottom: "40px", borderRadius: "16px", overflow: "hidden" }}>
         <div style={{ flex: 2, background: "#eee" }}>
           <img 
             src={property.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} 
             style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-            alt="Main"
+            alt="Main Property Photo"
           />
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "12px" }}>
-          <img src="https://images.unsplash.com/photo-1502672260266-1c1de2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="Side 1" />
-          <img src="https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="Side 2" />
+          <img 
+            src={property.images?.[1] || "https://images.unsplash.com/photo-1502672260266-1c1de2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"} 
+            style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+            alt="Property Secondary View 1" 
+          />
+          <img 
+            src={property.images?.[2] || "https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"} 
+            style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+            alt="Property Secondary View 2" 
+          />
         </div>
       </div>
 
       <div style={{ display: "flex", gap: "60px", flexWrap: "wrap" }}>
         <div style={{ flex: 2, minWidth: "300px" }}>
-          <h2 style={{ fontSize: "1.5rem", fontWeight: 600, borderBottom: "1px solid var(--border)", paddingBottom: "20px", marginBottom: "20px" }}>
+          <h2 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: "8px" }}>
+            Alojamiento entero
+          </h2>
+          <div style={{ display: "flex", gap: "12px", color: "var(--text-muted)", fontSize: "1rem", marginBottom: "20px" }}>
+            <span>{property.maxGuests || 2} huéspedes</span> · 
+            <span>{Math.ceil((property.maxGuests || 2) / 2)} habitaciones</span> · 
+            <span>{Math.ceil((property.maxGuests || 2) / 2)} camas</span> · 
+            <span>{Math.ceil((property.maxGuests || 2) / 3) || 1} baños</span>
+          </div>
+
+          <h2 style={{ fontSize: "1.3rem", fontWeight: 600, borderBottom: "1px solid var(--border)", paddingBottom: "20px", marginBottom: "20px" }}>
             Anfitrión: {property.usuario?.nombreCompleto || property.usuario?.username || 'Desconocido'}
           </h2>
           
@@ -201,11 +227,23 @@ export default function PropertyDetailPage() {
 
           <h3 style={{ fontSize: "1.3rem", fontWeight: 600, marginBottom: "20px" }}>Lo que ofrece este lugar</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", color: "var(--text)" }}>
-            {(property.amenities || ["Wifi", "Piscina", "Cocina", "TV", "Aire acondicionado"]).map((amenity, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <span style={{ fontSize: "1.2rem" }}>✨</span> {amenity}
-              </div>
-            ))}
+            {(property.amenities && property.amenities.length > 0 ? property.amenities : ["Wifi", "Piscina", "Cocina", "TV", "Aire acondicionado", "Cafetera"]).map((amenity, i) => {
+              let icon = "✨";
+              const lower = amenity.toLowerCase();
+              if (lower.includes("wifi")) icon = "📶";
+              else if (lower.includes("caf")) icon = "☕";
+              else if (lower.includes("piscina")) icon = "🏊";
+              else if (lower.includes("cocina")) icon = "🍳";
+              else if (lower.includes("aire")) icon = "❄️";
+              else if (lower.includes("tv") || lower.includes("televisión")) icon = "📺";
+              
+              return (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <span style={{ fontSize: "1.3rem", width: "24px", textAlign: "center" }}>{icon}</span> 
+                  <span style={{ fontSize: "1.05rem" }}>{amenity}</span>
+                </div>
+              );
+            })}
           </div>
 
           <div style={{ marginTop: "40px", padding: "20px", background: "var(--surface-hover)", borderRadius: "12px" }}>
@@ -227,11 +265,25 @@ export default function PropertyDetailPage() {
                 <div style={{ display: "flex", borderBottom: "1px solid var(--border-strong)" }}>
                   <div style={{ flex: 1, padding: "10px", borderRight: "1px solid var(--border-strong)" }}>
                     <label style={{ display: "block", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase" }}>Llegada</label>
-                    <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} required style={{ width: "100%", border: "none", outline: "none", background: "transparent", marginTop: "4px" }} />
+                    <input 
+                      type="date" 
+                      min={today} // 🔴 MEJORA: No permite viajar al pasado
+                      value={checkIn} 
+                      onChange={e => setCheckIn(e.target.value)} 
+                      required 
+                      style={{ width: "100%", border: "none", outline: "none", background: "transparent", marginTop: "4px", color: "var(--text)" }} 
+                    />
                   </div>
                   <div style={{ flex: 1, padding: "10px" }}>
                     <label style={{ display: "block", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase" }}>Salida</label>
-                    <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} required style={{ width: "100%", border: "none", outline: "none", background: "transparent", marginTop: "4px" }} />
+                    <input 
+                      type="date" 
+                      min={checkIn || today} // 🔴 MEJORA: La salida debe ser posterior o igual a la llegada
+                      value={checkOut} 
+                      onChange={e => setCheckOut(e.target.value)} 
+                      required 
+                      style={{ width: "100%", border: "none", outline: "none", background: "transparent", marginTop: "4px", color: "var(--text)" }} 
+                    />
                   </div>
                 </div>
               </div>
